@@ -1,0 +1,333 @@
+{
+  "brand": {
+    "logo": "Mathe Paidi Mou Arxaia!"
+  },
+  "nav": {
+    "main": "Main",
+    "notes": "Notes",
+    "about": "About",
+    "login": "Login",
+    "profile": "Profile",
+    "editProfile": "Edit profile",
+    "logout": "Log out",
+    "adminPanel": "Admin panel",
+    "language": "Language",
+    "languageEl": "Ελληνικά",
+    "languageEn": "English",
+    "myCourses": "My Courses",
+    "register": "Register",
+    "user": "User",
+    "userMenu": "User menu",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "home": {
+    "section": {
+      "welcome": "Welcome",
+      "information": "Information",
+      "grades": "Grades",
+      "instructions": "Instructions of Use",
+      "more": "More",
+      "communication": "Communication"
+    },
+    "welcome": {
+      "badge": "Master Ancient Greek Exams",
+      "title": "Prepare for Ancient Greek exams with structured notes and lessons.",
+      "lead": "The ultimate platform for Greek high school students. Step-by-step guidance, curated notes, and interactive practice to help you ace your exams.",
+      "cta": "Explore Courses",
+      "ctaSecondary": "View Free Notes"
+    },
+    "info": {
+      "title": "Information",
+      "body": "Here is what you need to know about the platform.",
+      "bullet1": "Structured notes for each grade, made for exam preparation.",
+      "bullet2": "Step-by-step lessons you can follow at your own pace.",
+      "bullet3": "Clear layout so you can find topics quickly.",
+      "extra": "All content is organized by grade and subject, so you can focus on what matters for your exams."
+    },
+    "grades": {
+      "title": "Grades",
+      "cardHint": "Select a grade to view its lessons.",
+      "empty": "No grades available yet.",
+      "emptyHint": "Grades will appear here once they are added."
+    },
+    "instructions": {
+      "title": "Instructions of Use",
+      "body": "Getting started is easy.",
+      "step1": "Choose your grade from the list above.",
+      "step2": "Open a subject and its course or notes.",
+      "step3": "Read the lessons and follow the steps in each chapter."
+    },
+    "more": {
+      "title": "More",
+      "body": "We keep improving the platform.",
+      "bullet1": "New material and topics are added over time.",
+      "bullet2": "Extra resources and explanations when they are ready."
+    },
+    "communication": {
+      "title": "Communication",
+      "lead": "Send a message if you have questions or need help.",
+      "emailLabel": "Email",
+      "messageLabel": "Message",
+      "emailSubject": "Message from mathe-paidi-mou-arxaia.com!",
+      "submit": "Send",
+      "note": "We will get back to you as soon as we can.",
+      "sending": "Sending...",
+      "successToast": "Message sent!",
+      "errorToast": "Failed to send. Please try again.",
+      "successMessage": "Your message has been sent. We will get back to you as soon as we can."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  },
+  "course": {
+    "buy": "Buy Course",
+    "free": "Free",
+    "redirecting": "Redirecting...",
+    "lessons": "Lessons",
+    "noLessonsYet": "No lessons yet.",
+    "checkoutError": "Checkout failed",
+    "title": "Course"
+  },
+  "lesson": {
+    "viewPdf": "View PDF",
+    "loading": "Loading...",
+    "purchaseRequired": "Purchase the course to view the PDF.",
+    "title": "Lesson",
+    "paywall": {
+      "title": "Unlock this lesson",
+      "description": "Purchase the course to access all its lessons and PDF materials.",
+      "cta": "View Course"
+    }
+  },
+  "about": {
+    "title": "About",
+    "body": "About the educator and this platform.",
+    "hero": {
+      "lead": "Everything you need to master Ancient Greek for your exams — structured notes, step-by-step lessons, and curated practice material."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "body": "We believe every student deserves clear, well-organised exam material. This platform was built to make Ancient Greek accessible — turning what feels like a daunting subject into a structured, achievable goal."
+    },
+    "platform": {
+      "title": "What We Offer",
+      "bullet1": "Structured notes organised by grade and subject",
+      "bullet2": "Step-by-step lessons you can follow at your own pace",
+      "bullet3": "Clear, exam-focused layout so you spend time learning, not searching"
+    },
+    "contact": {
+      "title": "Get in Touch",
+      "body": "Have a question, a suggestion, or need help? We are always happy to hear from students.",
+      "link": "Send a message"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "body": "Language and theme preferences.",
+    "edit": {
+      "title": "Edit Profile",
+      "name": "Name",
+      "avatar": "Profile picture",
+      "avatarHint": "JPEG, PNG or WebP, max 2MB",
+      "save": "Save",
+      "success": "Profile updated",
+      "passwordSection": "Change Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "provider": "Login method",
+      "joinedAt": "Member since",
+      "providerCredentials": "Email & password",
+      "providerGoogle": "Google account",
+      "passwordMismatch": "Passwords do not match",
+      "passwordWrong": "Current password is incorrect",
+      "passwordMin": "Password must be at least 8 characters",
+      "avatarTypeError": "Only JPEG, PNG and WebP images are allowed",
+      "avatarSizeError": "Image must be smaller than 2 MB"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "body": "Your purchased courses and progress.",
+    "myCourses": "My Courses",
+    "empty": "No purchased courses yet.",
+    "emptyCta": "Browse Courses",
+    "emptyHint": "Purchase a course to unlock all its lessons."
+  },
+  "grade": {
+    "title": "Grade",
+    "subjectsAndCourses": "Subjects and courses",
+    "free": "Free",
+    "noSubjectsYet": "No subjects for this grade yet.",
+    "titleWithName": "Grades"
+  },
+  "subject": {
+    "title": "Subject",
+    "free": "Free",
+    "noCoursesYet": "No courses in this subject yet."
+  },
+  "admin": {
+    "nav": "Admin",
+    "backToSite": "Back to site",
+    "overview": "Overview",
+    "grades": "Grades",
+    "subjects": "Subjects",
+    "courses": "Courses",
+    "lessons": "Lessons",
+    "uploads": "Uploads",
+    "purchases": "Purchases",
+    "overviewTitle": "Admin Overview",
+    "overviewBody": "Manage grades, subjects, courses, lessons, and view purchases.",
+    "uploadsTitle": "Uploads",
+    "uploadsBody": "Upload PDFs to Supabase Storage and attach to lessons.",
+    "gradesTitle": "Grades",
+    "gradesLoading": "Loading...",
+    "gradesEmpty": "No grades. Create them via API or admin CRUD.",
+    "coursesTitle": "Courses",
+    "subjectsTitle": "Subjects",
+    "subjectsEmpty": "No subjects. Create the first one.",
+    "lessonsTitle": "Lessons",
+    "purchasesTitle": "Purchases",
+    "purchaseLine": "User {userId} – Course {courseId}",
+    "paid": "Paid",
+    "categories": "Categories",
+    "users": "Users",
+    "sectionContent": "Content",
+    "sectionPeople": "People",
+    "categoriesTitle": "Categories",
+    "categoriesEmpty": "No categories yet.",
+    "usersTitle": "Users",
+    "usersEmpty": "No users yet.",
+    "statsTitle": "Overview",
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalLessons": "Total Lessons",
+      "downloads": "Downloads",
+      "revenue": "Revenue"
+    },
+    "recentDownloads": "Recent Downloads",
+    "topLessons": "Top Lessons",
+    "noDownloads": "No downloads yet.",
+    "modal": {
+      "create": "Create",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure? This cannot be undone.",
+      "deleteTitle": "Confirm Delete"
+    },
+    "field": {
+      "name": "Name",
+      "order": "Order",
+      "grade": "Grade",
+      "subject": "Subject",
+      "title": "Title",
+      "description": "Description",
+      "isFree": "Free",
+      "price": "Price (€)",
+      "thumbnailUrl": "Thumbnail URL",
+      "content": "Content",
+      "pdfUrl": "PDF URL",
+      "assignedTo": "Assigned to",
+      "course": "Course",
+      "category": "Category",
+      "isAdmin": "Admin",
+      "email": "Email",
+      "joinedAt": "Joined",
+      "downloads": "Downloads",
+      "purchases": "Purchases",
+      "stripeId": "Stripe ID"
+    },
+    "assignCourse": "Part of a course",
+    "assignCategory": "Standalone category",
+    "grantAccess": "Grant Access",
+    "grantSuccess": "Access granted",
+    "grantError": "Failed to grant access",
+    "isAdminToggleSuccess": "Admin status updated",
+    "userDetails": "User Details"
+  },
+  "pdf": {
+    "prev": "Prev",
+    "next": "Next",
+    "loading": "Loading PDF…"
+  },
+  "search": {
+    "placeholder": "Search for courses or notes...",
+    "loading": "Searching...",
+    "type": {
+      "course": "Course",
+      "lesson": "Lesson"
+    },
+    "noResults": "No results found"
+  },
+  "notes": {
+    "empty": "No notes available."
+  },
+  "footer": {
+    "brand": "Mathe Paidi Mou Arxaia",
+    "tagline": "Structured notes and lessons for Ancient Greek exam preparation.",
+    "nav": "Navigation",
+    "resources": "Resources",
+    "contact": "Contact",
+    "contactText": "Questions or feedback? We are here to help.",
+    "contactLink": "Send a message",
+    "copyright": "All rights reserved.",
+    "privacy": "About",
+    "terms": "Contact"
+  },
+  "header": {
+    "languageEl": "Switch to Greek",
+    "languageEn": "Switch to English",
+    "toggleTheme": "Toggle theme"
+  },
+  "auth": {
+    "logoutConfirm": {
+      "title": "Sign out",
+      "description": "Are you sure you want to sign out?",
+      "confirm": "Sign out",
+      "cancel": "Cancel",
+      "successToast": "You have been logged out"
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Sign in to continue to your courses.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "error": {
+        "generic": "Unable to login",
+        "invalidCredentials": "Email or password is incorrect",
+        "oauthNotLinked": "This email is already registered with a different login method"
+      },
+      "google": "Sign in with Google",
+      "success": "Signed in",
+      "successToast": "Welcome back!",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "logout": {
+      "success": "Signed out"
+    },
+    "back": "Back",
+    "register": {
+      "title": "Register",
+      "subtitle": "Create a student account to get started.",
+      "google": "Sign up with Google",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Register",
+      "submitting": "Registering...",
+      "success": "Account created. You can now log in.",
+      "error": {
+        "generic": "Unable to register"
+      },
+      "hasAccount": "Already have an account?",
+      "loginLink": "Login"
+    }
+  }
+}

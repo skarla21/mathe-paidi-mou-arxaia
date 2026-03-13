@@ -1,0 +1,38 @@
+---
+alwaysApply: true
+---
+
+# DEVELOPMENT RULES
+
+1. DO NOT introduce new libraries unless explicitly required.
+2. Always use Supabase for:
+   - Database
+   - Storage
+3. Always use Stripe for payments.
+4. Always use Auth.js for authentication.
+5. Use shadcn-vue for UI components.
+6. Use GSAP for animations.
+7. Do not implement search engines.
+8. Do not implement external CMS.
+9. Use Nuxt server routes for backend logic.
+10. Validate paid access before rendering content.
+11. Keep business logic in server routes.
+12. Use role-based middleware for admin routes.
+13. Keep the architecture scalable and modular.
+14. Prefer simplicity over over-engineering.
+15. All sensitive operations must run server-side.
+16. Never expose Stripe secret keys.
+17. Use Supabase row-level security if needed.
+18. Keep file uploads restricted and validated.
+19. Always check purchase table before unlocking content.
+20. Follow clean folder structure.
+21. Dont use emojis, use oh-vue-icons and animations.
+22. Never write hardcoded texts, use the translations file instead.
+
+Project philosophy:
+Minimal.
+Modern.
+Secure.
+Scalable.
+Educational-focused.
+Pretty with animations.

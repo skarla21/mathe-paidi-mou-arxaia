@@ -1,0 +1,31 @@
+{
+  "plugins": {
+    "stripe": {
+      "enabled": true
+    },
+    "supabase": {
+      "enabled": true
+    },
+    "superpowers": {
+      "enabled": true
+    },
+    "figma": {
+      "enabled": true
+    },
+    "parallel": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    },
+    "create-plugin": {
+      "enabled": true
+    },
+    "context7-plugin": {
+      "enabled": true
+    },
+    "continual-learning": {
+      "enabled": true
+    }
+  }
+}

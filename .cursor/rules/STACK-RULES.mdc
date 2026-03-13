@@ -1,0 +1,75 @@
+---
+alwaysApply: true
+---
+
+# GLOBAL TECH STACK RULES
+
+This project MUST strictly use the following technologies:
+
+## Framework
+
+- Nuxt 3
+- Vue 3 with Composition API and <script setup>
+
+## Styling
+
+- Tailwind CSS
+- shadcn-vue components
+- No other UI libraries allowed
+- No Vuetify, Quasar, Element Plus, etc.
+
+## Animations
+
+- GSAP only
+- Do not use Framer Motion
+- Do not use Anime.js
+
+## Backend
+
+- Supabase ONLY
+  - PostgreSQL database
+  - Supabase Storage for files
+- No Firebase
+- No Prisma
+- No MongoDB
+- No external ORM
+
+## Authentication
+
+- Auth.js only
+- Role-based (admin, student)
+
+## Payments
+
+- Stripe only
+- Stripe Checkout for payments
+- Stripe Webhooks handled in Nuxt server routes
+
+## PDF Viewing
+
+- PDF.js only
+
+## Email
+
+- FormSubmit only
+- No Resend
+- No SendGrid
+- No email server implementation
+
+## Hosting
+
+- Vercel only
+
+## Architecture Rules
+
+- Custom admin dashboard inside Nuxt app
+- No external CMS
+- No search engine integration
+- Content filtering handled via Supabase queries
+- All paid content access controlled by database flags
+- Secure route middleware for protected content
+
+If any feature can be implemented with the existing stack,
+DO NOT introduce new dependencies.
+
+No stack expansion unless explicitly approved.
