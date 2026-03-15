@@ -24,8 +24,8 @@ export default defineEventHandler(async (event) => {
   const session = stripeEvent.data.object as Stripe.Checkout.Session
   if (session.mode !== 'payment') return { received: true }
   const userId = session.metadata?.userId ?? session.client_reference_id
-  const courseId = session.metadata?.courseId
-  if (!userId || !courseId) {
+  const lessonId = session.metadata?.lessonId
+  if (!userId || !lessonId) {
     throw createError({ statusCode: 400, message: 'Missing metadata' })
   }
   const { serverSupabaseService } = await import('../../utils/supabaseServer')
@@ -36,7 +36,7 @@ export default defineEventHandler(async (event) => {
   }
   await supabase.from('purchases').insert({
     user_id: userId,
-    course_id: courseId,
+    lesson_id: lessonId,
     stripe_session_id: session.id,
   })
   return { received: true }

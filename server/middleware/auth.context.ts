@@ -6,25 +6,30 @@ export default defineEventHandler(async (event) => {
     return;
   }
 
-  const authOptions = getAuthOptions();
-  const url = new URL("/api/auth/session", getRequestURL(event).origin);
-  const authRequest = new Request(url.toString(), {
-    method: "GET",
-    headers: (event.node.req.headers as unknown) as HeadersInit,
-  });
+  event.context.auth = { userId: null, isAdmin: false };
 
-  const response = await Auth(authRequest, authOptions);
+  try {
+    const authOptions = getAuthOptions();
+    const url = new URL("/api/auth/session", getRequestURL(event).origin);
+    const authRequest = new Request(url.toString(), {
+      method: "GET",
+      headers: {
+        cookie: getRequestHeader(event, "cookie") ?? "",
+      },
+    });
 
-  if (!response.ok) {
-    event.context.auth = { userId: null, isAdmin: false };
-    return;
+    const response = await Auth(authRequest, authOptions);
+
+    if (!response.ok) return;
+
+    const session = (await response.json()) as { user?: { id?: string; isAdmin?: boolean } } | null;
+    const user = session?.user;
+
+    event.context.auth = {
+      userId: user?.id ?? null,
+      isAdmin: Boolean(user?.isAdmin),
+    };
+  } catch (err) {
+    console.error("[auth.context] failed to resolve session:", err);
   }
-
-  const session = (await response.json()) as { user?: { id?: string; isAdmin?: boolean } } | null;
-  const user = session?.user;
-
-  event.context.auth = {
-    userId: user?.id ?? null,
-    isAdmin: Boolean(user?.isAdmin),
-  };
 });

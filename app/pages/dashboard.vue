@@ -4,7 +4,6 @@ import UiCardHeader from '~/components/ui/CardHeader.vue'
 import UiCardTitle from '~/components/ui/CardTitle.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiSkeleton from '~/components/ui/Skeleton.vue'
-import UiBadge from '~/components/ui/Badge.vue'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -15,7 +14,7 @@ const { data: purchasesData, pending } = await useFetch<
   { id: string; title: string; is_free: boolean; price: number }[]
 >('/api/user/purchases')
 
-const courses = computed(() => purchasesData.value ?? [])
+const lessons = computed(() => purchasesData.value ?? [])
 
 onMounted(() => {
   if (import.meta.client) {
@@ -46,7 +45,7 @@ onMounted(() => {
 
       <!-- Empty state -->
       <div
-        v-else-if="courses.length === 0"
+        v-else-if="lessons.length === 0"
         class="rounded-xl border border-dashed border-border bg-muted/30 p-10 text-center max-w-md"
       >
         <VIcon name="bi-cart" class="size-10 mx-auto text-muted-foreground/70" aria-hidden="true" />
@@ -60,12 +59,12 @@ onMounted(() => {
         </NuxtLink>
       </div>
 
-      <!-- Course grid -->
+      <!-- Content grid -->
       <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <NuxtLink
-          v-for="c in courses"
+          v-for="c in lessons"
           :key="c.id"
-          :to="`/course/${c.id}`"
+          :to="`/lesson/${c.id}`"
           class="block group"
         >
           <UiCard class="rounded-xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:scale-[1.02] border-border/80">
@@ -79,9 +78,9 @@ onMounted(() => {
               <UiCardTitle class="font-heading text-base leading-snug">{{ c.title }}</UiCardTitle>
             </UiCardHeader>
             <UiCardContent class="pt-0 pb-4">
-              <UiBadge variant="secondary" class="text-xs">
-                {{ c.is_free ? t('course.free') : `€${(c.price / 100).toFixed(2)}` }}
-              </UiBadge>
+              <span class="text-xs text-muted-foreground">
+                {{ c.is_free ? t('lesson.free') : `€${(c.price / 100).toFixed(2)}` }}
+              </span>
             </UiCardContent>
           </UiCard>
         </NuxtLink>

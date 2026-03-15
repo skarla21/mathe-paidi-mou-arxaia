@@ -1,5 +1,7 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const { session } = useCurrentUser()
+const { openLogin } = useAuthModal()
 </script>
 
 <template>
@@ -29,10 +31,14 @@ const { t } = useI18n()
                 {{ t('nav.about') }}
               </NuxtLink>
             </li>
-            <li>
-              <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-primary font-heading transition-colors">
+            <li v-if="!session.user">
+              <button
+                type="button"
+                class="text-sm text-muted-foreground hover:text-primary font-heading transition-colors"
+                @click="openLogin()"
+              >
                 {{ t('nav.login') }}
-              </NuxtLink>
+              </button>
             </li>
           </ul>
         </div>

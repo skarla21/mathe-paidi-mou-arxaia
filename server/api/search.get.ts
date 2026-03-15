@@ -8,13 +8,13 @@ export default defineEventHandler(async (event) => {
   }
   const supabase = serverSupabaseService()
   const pattern = `%${q}%`
-  const [coursesRes, lessonsRes] = await Promise.all([
-    supabase.from('courses').select('id, title').ilike('title', pattern).limit(10),
-    supabase.from('lessons').select('id, title, course_id').ilike('title', pattern).limit(10),
+  const [chaptersRes, lessonsRes] = await Promise.all([
+    supabase.from('chapters').select('id, title').ilike('title', pattern).limit(10),
+    supabase.from('lessons').select('id, title, chapter_id').ilike('title', pattern).limit(10),
   ])
-  const results: { type: 'course' | 'lesson'; id: string; title: string; url: string }[] = []
-  for (const row of coursesRes.data ?? []) {
-    results.push({ type: 'course', id: row.id, title: row.title, url: `/course/${row.id}` })
+  const results: { type: 'chapter' | 'lesson'; id: string; title: string; url: string }[] = []
+  for (const row of chaptersRes.data ?? []) {
+    results.push({ type: 'chapter', id: row.id, title: row.title, url: `/chapter/${row.id}` })
   }
   for (const row of lessonsRes.data ?? []) {
     results.push({ type: 'lesson', id: row.id, title: row.title, url: `/lesson/${row.id}` })

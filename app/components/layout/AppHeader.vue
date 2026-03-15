@@ -22,6 +22,8 @@ import UiAlertDialogAction from "~/components/ui/alert-dialog/AlertDialogAction.
 
 const { t } = useI18n();
 const { session, isAdmin } = useCurrentUser();
+const { openLogin, openRegister } = useAuthModal();
+const { open: openEditProfile } = useEditProfileModal();
 
 const logoRef = ref<HTMLElement | null>(null);
 const logoutDialogOpen = ref(false);
@@ -65,7 +67,7 @@ function onMobileNavLink() {
 
 async function confirmLogout() {
   try {
-    await $fetch("/api/signout", { method: "POST" });
+    await $fetch<{ success: boolean }>("/api/signout", { method: "POST" });
   } catch {
     // ignore errors — sign out regardless
   }
@@ -139,9 +141,10 @@ async function confirmLogout() {
 
         <LayoutThemeLanguageControls />
 
-        <!-- Avatar button + dropdown -->
+        <!-- Avatar button + dropdown (authenticated) / Σύνδεση button (unauthenticated) -->
         <ClientOnly>
-          <UiDropdownMenu>
+          <!-- Authenticated: avatar + dropdown -->
+          <UiDropdownMenu v-if="session.user">
             <UiDropdownMenuTrigger as-child>
               <button
                 type="button"
@@ -149,18 +152,18 @@ async function confirmLogout() {
                 :aria-label="t('nav.userMenu')"
               >
                 <img
-                  v-if="session.user?.avatar_url"
+                  v-if="session.user.avatar_url"
                   :src="session.user.avatar_url"
-                  :alt="session.user?.name ?? ''"
+                  :alt="session.user.name ?? ''"
                   class="size-full object-cover"
                 >
                 <span
                   v-else
-                  class="flex size-full items-center justify-center rounded-full bg-primary/15 text-primary"
+                  class="flex size-full items-center justify-center rounded-full bg-muted text-muted-foreground"
                 >
                   <VIcon
-                    name="bi-person-circle"
-                    class="size-6"
+                    name="bi-person-fill"
+                    class="size-5"
                     aria-hidden="true"
                   />
                 </span>
@@ -168,107 +171,86 @@ async function confirmLogout() {
             </UiDropdownMenuTrigger>
 
             <UiDropdownMenuContent align="end" class="min-w-52">
-              <!-- AUTHENTICATED -->
-              <template v-if="session.user">
-                <!-- User info header (non-interactive) -->
+              <!-- User info header (non-interactive) -->
+              <div
+                class="flex items-center gap-3 px-3 py-2.5 border-b border-border"
+              >
                 <div
-                  class="flex items-center gap-3 px-3 py-2.5 border-b border-border"
+                  class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
                 >
-                  <div
-                    class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
+                  <img
+                    v-if="session.user.avatar_url"
+                    :src="session.user.avatar_url"
+                    :alt="session.user.name ?? ''"
+                    class="size-full object-cover"
                   >
-                    <img
-                      v-if="session.user.avatar_url"
-                      :src="session.user.avatar_url"
-                      :alt="session.user.name ?? ''"
-                      class="size-full object-cover"
-                    >
+                  <VIcon
+                    v-else
+                    name="bi-person-fill"
+                    class="size-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </div>
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-medium leading-none">
+                    {{ session.user.name ?? t("nav.user") }}
+                  </p>
+                  <p class="truncate text-xs text-muted-foreground mt-0.5">
+                    {{ session.user.email }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Nav links -->
+              <div class="py-1 border-b border-border">
+                <UiDropdownMenuItem @click="openEditProfile">
+                  <span class="flex items-center w-full">
+                    <VIcon name="bi-pencil" class="mr-2 size-4 shrink-0" />
+                    {{ t("nav.editProfile") }}
+                  </span>
+                </UiDropdownMenuItem>
+                <UiDropdownMenuItem v-if="!isAdmin">
+                  <NuxtLink to="/dashboard" class="flex items-center w-full">
                     <VIcon
-                      v-else
-                      name="bi-person-circle"
-                      class="size-5 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                  </div>
-                  <div class="min-w-0">
-                    <p class="truncate text-sm font-medium leading-none">
-                      {{ session.user.name ?? t("nav.user") }}
-                    </p>
-                    <p class="truncate text-xs text-muted-foreground mt-0.5">
-                      {{ session.user.email }}
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Nav links -->
-                <div class="py-1 border-b border-border">
-                  <UiDropdownMenuItem>
-                    <NuxtLink
-                      to="/profile/edit"
-                      class="flex items-center w-full"
-                    >
-                      <VIcon name="bi-pencil" class="mr-2 size-4 shrink-0" />
-                      {{ t("nav.editProfile") }}
-                    </NuxtLink>
-                  </UiDropdownMenuItem>
-                  <UiDropdownMenuItem>
-                    <NuxtLink to="/dashboard" class="flex items-center w-full">
-                      <VIcon
-                        name="bi-journal-bookmark"
-                        class="mr-2 size-4 shrink-0"
-                      />
-                      {{ t("nav.myCourses") }}
-                    </NuxtLink>
-                  </UiDropdownMenuItem>
-                </div>
-
-                <!-- Admin (admins only) -->
-                <div v-if="isAdmin" class="py-1 border-b border-border">
-                  <UiDropdownMenuItem>
-                    <NuxtLink to="/admin" class="flex items-center w-full">
-                      <VIcon name="bi-gear" class="mr-2 size-4 shrink-0" />
-                      {{ t("nav.adminPanel") }}
-                    </NuxtLink>
-                  </UiDropdownMenuItem>
-                </div>
-
-                <!-- Logout -->
-                <div class="py-1">
-                  <UiDropdownMenuItem @click="logoutDialogOpen = true">
-                    <VIcon
-                      name="bi-box-arrow-right"
+                      name="bi-journal-bookmark"
                       class="mr-2 size-4 shrink-0"
                     />
-                    {{ t("nav.logout") }}
-                  </UiDropdownMenuItem>
-                </div>
-              </template>
+                    {{ t("nav.myCourses") }}
+                  </NuxtLink>
+                </UiDropdownMenuItem>
+              </div>
 
-              <!-- UNAUTHENTICATED -->
-              <template v-else>
-                <div class="py-1">
-                  <UiDropdownMenuItem>
-                    <NuxtLink to="/login" class="flex items-center w-full">
-                      <VIcon
-                        name="bi-person-circle"
-                        class="mr-2 size-4 shrink-0"
-                      />
-                      {{ t("nav.login") }}
-                    </NuxtLink>
-                  </UiDropdownMenuItem>
-                  <UiDropdownMenuItem>
-                    <NuxtLink to="/register" class="flex items-center w-full">
-                      <VIcon
-                        name="bi-person-plus"
-                        class="mr-2 size-4 shrink-0"
-                      />
-                      {{ t("nav.register") }}
-                    </NuxtLink>
-                  </UiDropdownMenuItem>
-                </div>
-              </template>
+              <!-- Admin (admins only) -->
+              <div v-if="isAdmin" class="py-1 border-b border-border">
+                <UiDropdownMenuItem>
+                  <NuxtLink to="/admin" class="flex items-center w-full">
+                    <VIcon name="bi-gear" class="mr-2 size-4 shrink-0" />
+                    {{ t("nav.adminPanel") }}
+                  </NuxtLink>
+                </UiDropdownMenuItem>
+              </div>
+
+              <!-- Logout -->
+              <div class="py-1">
+                <UiDropdownMenuItem @click="logoutDialogOpen = true">
+                  <VIcon
+                    name="bi-box-arrow-right"
+                    class="mr-2 size-4 shrink-0"
+                  />
+                  {{ t("nav.logout") }}
+                </UiDropdownMenuItem>
+              </div>
             </UiDropdownMenuContent>
           </UiDropdownMenu>
+
+          <!-- Unauthenticated: plain login button -->
+          <UiButton
+            v-else
+            size="sm"
+            @click="openLogin()"
+          >
+            {{ t("nav.login") }}
+          </UiButton>
 
           <!-- Logout confirmation dialog -->
           <UiAlertDialogRoot v-model:open="logoutDialogOpen">
@@ -332,9 +314,8 @@ async function confirmLogout() {
         class="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm flex flex-col md:hidden overflow-y-auto"
         role="dialog"
         aria-modal="true"
-        aria-label="Mobile navigation menu"
+        :aria-label="t('nav.mobileMenu')"
       >
-        <!-- TODO: move aria-label above to i18n once nav.mobileMenu key is added to locales -->
         <!-- Drawer header -->
         <div
           class="flex items-center justify-between px-4 py-4 border-b border-border shrink-0"
@@ -477,8 +458,8 @@ async function confirmLogout() {
                   >
                   <VIcon
                     v-else
-                    name="bi-person-circle"
-                    class="size-6 text-muted-foreground"
+                    name="bi-person-fill"
+                    class="size-5 text-muted-foreground"
                     aria-hidden="true"
                   />
                 </div>
@@ -492,10 +473,10 @@ async function confirmLogout() {
                 </div>
               </div>
 
-              <NuxtLink
-                to="/profile/edit"
-                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                @click="onMobileNavLink"
+              <button
+                type="button"
+                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
+                @click="openEditProfile(); closeMobileMenu()"
               >
                 <VIcon
                   name="bi-pencil"
@@ -503,9 +484,10 @@ async function confirmLogout() {
                   aria-hidden="true"
                 />
                 {{ t("nav.editProfile") }}
-              </NuxtLink>
+              </button>
 
               <NuxtLink
+                v-if="!isAdmin"
                 to="/dashboard"
                 class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 @click="onMobileNavLink"
@@ -551,10 +533,10 @@ async function confirmLogout() {
 
             <!-- Guest links -->
             <template v-else>
-              <NuxtLink
-                to="/login"
-                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                @click="onMobileNavLink"
+              <button
+                type="button"
+                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
+                @click="openLogin(); closeMobileMenu()"
               >
                 <VIcon
                   name="bi-person-circle"
@@ -562,12 +544,12 @@ async function confirmLogout() {
                   aria-hidden="true"
                 />
                 {{ t("nav.login") }}
-              </NuxtLink>
+              </button>
 
-              <NuxtLink
-                to="/register"
-                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                @click="onMobileNavLink"
+              <button
+                type="button"
+                class="font-heading flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full"
+                @click="openRegister(); closeMobileMenu()"
               >
                 <VIcon
                   name="bi-person-plus"
@@ -575,7 +557,7 @@ async function confirmLogout() {
                   aria-hidden="true"
                 />
                 {{ t("nav.register") }}
-              </NuxtLink>
+              </button>
             </template>
           </ClientOnly>
         </nav>

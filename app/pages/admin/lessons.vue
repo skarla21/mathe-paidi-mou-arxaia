@@ -75,7 +75,7 @@ async function confirmDelete() {
         <tbody>
           <tr v-for="l in lessons" :key="l.id" class="border-b last:border-0 hover:bg-muted/30">
             <td class="px-4 py-3 font-medium">{{ l.title }}</td>
-            <td class="px-4 py-3 text-muted-foreground">{{ l.courses?.title ?? l.lesson_categories?.name ?? '—' }}</td>
+            <td class="px-4 py-3 text-muted-foreground">{{ l.chapters?.title ?? l.subjects?.name ?? l.categories?.name ?? '—' }}</td>
             <td class="px-4 py-3">
               <UiBadge :variant="l.is_free ? 'secondary' : 'default'">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</UiBadge>
             </td>

@@ -2,14 +2,18 @@ import { serverSupabaseService } from '../../utils/supabaseServer'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
-  const courseId = query.course_id as string | undefined
-  if (!courseId) throw createError({ statusCode: 400, message: 'course_id required' })
+  const chapterId = query.chapter_id as string | undefined
+  const subjectId = query.subject_id as string | undefined
+  const categoryId = query.category_id as string | undefined
+  if (!chapterId && !subjectId && !categoryId) {
+    throw createError({ statusCode: 400, message: 'chapter_id, subject_id, or category_id required' })
+  }
   const supabase = serverSupabaseService()
-  const { data, error } = await supabase
-    .from('lessons')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('created_at', { ascending: true })
+  let q = supabase.from('lessons').select('*')
+  if (chapterId) q = q.eq('chapter_id', chapterId)
+  if (subjectId) q = q.eq('subject_id', subjectId)
+  if (categoryId) q = q.eq('category_id', categoryId)
+  const { data, error } = await q.order('order', { ascending: true })
   if (error) throw createError({ statusCode: 500, message: error.message })
   return data ?? []
 })

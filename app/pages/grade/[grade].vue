@@ -3,14 +3,11 @@ import UiCard from '~/components/ui/Card.vue'
 import UiCardHeader from '~/components/ui/CardHeader.vue'
 import UiCardTitle from '~/components/ui/CardTitle.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
-import UiBadge from '~/components/ui/Badge.vue'
 
-interface Course {
+interface Chapter {
   id: string
   title: string
-  is_free: boolean
   subject_id: string
-  price: number
 }
 
 interface Subject {
@@ -31,7 +28,7 @@ const gradeId = route.params.grade as string
 const { t } = useI18n()
 
 const subjects = ref<Subject[]>([])
-const courses = ref<Course[]>([])
+const chapters = ref<Chapter[]>([])
 
 const { data: gradeData } = await useFetch(`/api/grades`)
 const gradeFromList = computed(() => (gradeData.value as Grade[])?.find((g) => g.id === gradeId))
@@ -39,11 +36,11 @@ const gradeFromList = computed(() => (gradeData.value as Grade[])?.find((g) => g
 const { data: subjectsData } = await useFetch('/api/subjects', { query: { grade_id: gradeId } })
 subjects.value = (subjectsData.value as Subject[]) ?? []
 
-const { data: coursesData } = await useFetch('/api/courses', { query: { grade_id: gradeId } })
-courses.value = (coursesData.value as Course[]) ?? []
+const { data: chaptersData } = await useFetch('/api/chapters', { query: { grade_id: gradeId } })
+chapters.value = (chaptersData.value as Chapter[]) ?? []
 
-function coursesForSubject(subjectId: string) {
-  return courses.value.filter((c) => c.subject_id === subjectId)
+function chaptersForSubject(subjectId: string) {
+  return chapters.value.filter((c) => c.subject_id === subjectId)
 }
 
 useHead(() => ({
@@ -70,9 +67,9 @@ onMounted(() => {
         <h2 class="font-heading text-xl font-semibold mb-4">{{ subj.name }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <NuxtLink
-            v-for="c in coursesForSubject(subj.id)"
+            v-for="c in chaptersForSubject(subj.id)"
             :key="c.id"
-            :to="`/course/${c.id}`"
+            :to="`/chapter/${c.id}`"
             class="block"
           >
             <UiCard class="group relative rounded-xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:scale-[1.02] border-border/80">
@@ -83,14 +80,13 @@ onMounted(() => {
                 <UiCardTitle class="font-heading text-base leading-snug">{{ c.title }}</UiCardTitle>
               </UiCardHeader>
               <UiCardContent class="pt-0 pb-4">
-                <UiBadge v-if="c.is_free" variant="secondary" class="text-xs">{{ t('grade.free') }}</UiBadge>
-                <UiBadge v-else variant="outline" class="text-xs">€{{ (c.price / 100).toFixed(2) }}</UiBadge>
+                <span class="text-xs text-muted-foreground">{{ t('chapter.title') }}</span>
               </UiCardContent>
             </UiCard>
           </NuxtLink>
         </div>
-        <p v-if="coursesForSubject(subj.id).length === 0" class="text-muted-foreground text-sm mt-2">
-          {{ t('subject.noCoursesYet') }}
+        <p v-if="chaptersForSubject(subj.id).length === 0" class="text-muted-foreground text-sm mt-2">
+          {{ t('chapter.noLessonsYet') }}
         </p>
       </section>
     </div>

@@ -6,7 +6,7 @@ import UiPopoverAnchor from '~/components/ui/popover/PopoverAnchor.vue'
 import UiPopoverContent from '~/components/ui/popover/PopoverContent.vue'
 
 interface SearchResult {
-  type: 'course' | 'lesson'
+  type: 'chapter' | 'lesson'
   id: string
   title: string
   url: string
@@ -100,7 +100,7 @@ onUnmounted(() => {
           @click="close"
         >
           <span class="text-muted-foreground text-xs">
-            {{ r.type === 'course' ? t('search.type.course') : t('search.type.lesson') }}:
+            {{ r.type === 'chapter' ? t('search.type.chapter') : t('search.type.lesson') }}:
           </span>
           {{ r.title }}
         </NuxtLink>

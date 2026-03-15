@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
   const supabase = serverSupabaseService()
-  const { error } = await supabase.from('lesson_categories').delete().eq('id', id!)
+  const { error } = await supabase.from('categories').delete().eq('id', id!)
   if (error) throw createError({ statusCode: 500, message: error.message })
   return { ok: true }
 })

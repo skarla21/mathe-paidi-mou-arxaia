@@ -8,17 +8,17 @@ export default defineEventHandler(async (event) => {
   const [usersRes, lessonsRes, downloadsRes, revenueRes, recentDownloadsRes, allDownloadsRes] = await Promise.all([
     supabase.from('users').select('*', { count: 'exact', head: true }),
     supabase.from('lessons').select('*', { count: 'exact', head: true }),
-    supabase.from('lesson_downloads').select('*', { count: 'exact', head: true }),
-    supabase.from('purchases').select('courses(price, is_free)'),
-    supabase.from('lesson_downloads')
+    supabase.from('downloads').select('*', { count: 'exact', head: true }),
+    supabase.from('purchases').select('lessons(price, is_free)'),
+    supabase.from('downloads')
       .select('id, downloaded_at, users(name), lessons(title)')
       .order('downloaded_at', { ascending: false })
       .limit(10),
-    supabase.from('lesson_downloads').select('lesson_id, lessons(title)').limit(500),
+    supabase.from('downloads').select('lesson_id, lessons(title)').limit(500),
   ])
 
   const revenue = (revenueRes.data ?? []).reduce((sum: number, row: any) => {
-    if (!row.courses?.is_free) sum += (row.courses?.price ?? 0)
+    if (!row.lessons?.is_free) sum += (row.lessons?.price ?? 0)
     return sum
   }, 0)
 

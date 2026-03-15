@@ -1,58 +1,80 @@
 <script setup lang="ts">
-import LessonPdfViewer from "~/components/lesson/PdfViewer.vue";
-import UiSkeleton from "~/components/ui/Skeleton.vue";
+import { toast } from 'vue-sonner'
+import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
+import UiButton from '~/components/ui/Button.vue'
+import UiSkeleton from '~/components/ui/Skeleton.vue'
 
 interface Lesson {
-  id: string;
-  title: string;
-  content?: string | null;
-  is_free: boolean;
-  course_id: string;
-  pdf_url?: string | null;
+  id: string
+  title: string
+  content?: string | null
+  is_free: boolean
+  chapter_id: string | null
+  subject_id: string | null
+  category_id: string | null
+  price: number
+  pdf_url?: string | null
 }
 
 interface LessonResponse extends Lesson {
-  can_access: boolean;
+  can_access: boolean
 }
 
-const route = useRoute();
-const lessonId = route.params.lessonId as string;
-const { t } = useI18n();
+const route = useRoute()
+const lessonId = route.params.lessonId as string
+const { t } = useI18n()
 
-const lesson = ref<Lesson | null>(null);
-const canAccess = ref(false);
+const lesson = ref<Lesson | null>(null)
+const canAccess = ref(false)
+const purchasing = ref(false)
 
-const { data } = await useFetch<LessonResponse>(`/api/lessons/${lessonId}`);
+const { data } = await useFetch<LessonResponse>(`/api/lessons/${lessonId}`)
 if (data.value) {
-  const { can_access, ...rest } = data.value;
-  lesson.value = rest;
-  canAccess.value = can_access;
+  const { can_access, ...rest } = data.value
+  lesson.value = rest
+  canAccess.value = can_access
 }
 
 // Minimal sanitization — strips script tags and event handlers
 function sanitizeHtml(html: string): string {
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/\s+on\w+="[^"]*"/gi, "")
-    .replace(/\s+on\w+='[^']*'/gi, "");
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/\s+on\w+="[^"]*"/gi, '')
+    .replace(/\s+on\w+='[^']*'/gi, '')
 }
 
 const safeContent = computed(() =>
-  lesson.value?.content ? sanitizeHtml(lesson.value.content) : "",
-);
+  lesson.value?.content ? sanitizeHtml(lesson.value.content) : '',
+)
+
+async function buyLesson() {
+  purchasing.value = true
+  try {
+    const { url } = await $fetch<{ url: string }>('/api/stripe/checkout', {
+      method: 'POST',
+      body: { lessonId },
+    })
+    if (url) window.location.href = url
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('lesson.checkoutError'))
+  } finally {
+    purchasing.value = false
+  }
+}
 
 useHead(() => ({
-  title: lesson.value ? lesson.value.title : t("lesson.title"),
-}));
+  title: lesson.value ? lesson.value.title : t('lesson.title'),
+}))
 
 onMounted(() => {
   if (import.meta.client) {
-    const { revealSection } = useGsapReveal();
+    const { revealSection } = useGsapReveal()
     nextTick(() => {
-      revealSection("#lesson-title");
-    });
+      revealSection('#lesson-title')
+    })
   }
-});
+})
 </script>
 
 <template>
@@ -86,18 +108,15 @@ onMounted(() => {
         </span>
         <div>
           <h3 class="font-heading text-xl font-bold text-foreground">
-            {{ t("lesson.paywall.title") }}
+            {{ t('lesson.paywall.title') }}
           </h3>
           <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {{ t("lesson.paywall.description") }}
+            {{ t('lesson.paywall.description') }}
           </p>
         </div>
-        <NuxtLink
-          :to="`/course/${lesson.course_id}`"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-8"
-        >
-          {{ t("lesson.paywall.cta") }}
-        </NuxtLink>
+        <UiButton :disabled="purchasing" @click="buyLesson">
+          {{ purchasing ? t('lesson.redirecting') : t('lesson.paywall.cta') }}
+        </UiButton>
       </div>
     </template>
   </div>

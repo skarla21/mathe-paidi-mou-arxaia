@@ -7,11 +7,11 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await supabase
     .from('purchases')
-    .select('course_id, courses(id, title, is_free, price)')
+    .select('lesson_id, lessons(id, title, is_free, price)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) throw createError({ statusCode: 500, message: error.message })
 
-  return (data ?? []).map((p: any) => p.courses).filter(Boolean)
+  return (data ?? []).map((p: any) => p.lessons).filter(Boolean)
 })

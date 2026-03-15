@@ -45,7 +45,7 @@ watch(() => props.open, async (val) => {
             <p class="text-sm font-semibold mb-2">{{ t('admin.field.purchases') }}</p>
             <p v-if="!purchases.length" class="text-xs text-muted-foreground">—</p>
             <ul v-else class="text-xs space-y-1">
-              <li v-for="p in purchases" :key="p.id">{{ p.courses?.title }} — {{ new Date(p.created_at).toLocaleDateString() }}</li>
+              <li v-for="p in purchases" :key="p.id">{{ p.lessons?.title }} — {{ new Date(p.created_at).toLocaleDateString() }}</li>
             </ul>
           </div>
           <div>

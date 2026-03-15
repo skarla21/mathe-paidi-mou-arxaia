@@ -1,136 +1,342 @@
 {
-  "nav.main": "Κύρια",
-  "nav.notes": "Σημειώσεις",
-  "nav.about": "Σχετικά",
-  "nav.login": "Σύνδεση",
-  "nav.profile": "Προφίλ",
-
-  "brand.logo": "Μάθε Παδί Μου Αρχαία!",
-
-  "home.section.welcome": "Καλώς ήρθατε",
-  "home.section.information": "Πληροφορίες",
-  "home.section.grades": "Επισκόπηση τάξεων",
-  "home.section.instructions": "Οδηγίες",
-  "home.section.more": "Περισσότερο υλικό",
-  "home.section.communication": "Επικοινωνία",
-
-  "home.welcome.title": "Καλώς ήρθατε",
-  "home.welcome.lead": "Εκπαιδευτικό υλικό για το ελληνικό δημόσιο σχολείο.",
-
-  "home.info.title": "Πληροφορίες",
-  "home.info.body": "Πλοηγηθείτε ανά τάξη και μάθημα. Διαθέσιμα δωρεάν και επί πληρωμή μαθήματα.",
-
-  "home.grades.title": "Επισκόπηση τάξεων",
-  "home.grades.cardHint": "Δείτε μαθήματα και ενότητες",
-  "home.grades.empty": "Δεν υπάρχουν ακόμη τάξεις.",
-
-  "home.instructions.title": "Οδηγίες χρήσης",
-  "home.instructions.body": "Χρησιμοποιήστε το μενού Σημειώσεις για να πλοηγηθείτε ανά τάξη και μάθημα. Δημιουργήστε λογαριασμό για να αγοράσετε επί πληρωμή μαθήματα.",
-
-  "home.more.title": "Περισσότερο υλικό από τον εκπαιδευτικό",
-  "home.more.body": "Επιπλέον υλικό θα εμφανιστεί εδώ.",
-
-  "home.communication.title": "Επικοινωνία",
-  "home.communication.lead": "Στείλτε μήνυμα μέσω της παρακάτω φόρμας (FormSubmit).",
-  "home.communication.emailLabel": "Email",
-  "home.communication.messageLabel": "Μήνυμα",
-  "home.communication.submit": "Αποστολή",
-
-  "search.placeholder": "Αναζήτηση…",
-  "search.loading": "Γίνεται αναζήτηση…",
-  "search.type.course": "Μάθημα",
-  "search.type.lesson": "Ενότητα",
-
-  "notes.empty": "Δεν υπάρχουν ακόμη τάξεις.",
-
-  "course.buy": "Αγορά μαθήματος",
-  "course.free": "Δωρεάν",
-  "course.loading": "Φόρτωση…",
-  "course.price.free": "Δωρεάν",
-  "course.price.paid": "€{price}",
-  "course.redirecting": "Γίνεται ανακατεύθυνση…",
-  "course.lessons.title": "Ενότητες",
-  "course.lessons.empty": "Δεν υπάρχουν ακόμη ενότητες.",
-
-  "lesson.viewPdf": "Προβολή PDF",
-  "lesson.loading": "Φόρτωση…",
-  "lesson.pdf.locked": "Αγοράστε το μάθημα για να δείτε το PDF.",
-
-  "admin.title": "Διαχείριση",
-  "admin.overview.title": "Επισκόπηση διαχείρισης",
-  "admin.overview.body": "Διαχείριση τάξεων, μαθημάτων, ενοτήτων και αγορών.",
-  "admin.grades.title": "Τάξεις",
-  "admin.grades.loading": "Φόρτωση…",
-  "admin.grades.empty": "Δεν υπάρχουν τάξεις. Δημιουργήστε τις μέσω API ή του πίνακα διαχείρισης.",
-  "admin.subjects.title": "Μαθήματα",
-  "admin.courses.title": "Κύκλοι μαθημάτων",
-  "admin.lessons.title": "Ενότητες",
-  "admin.uploads.title": "Ανεβάσματα",
-  "admin.uploads.body": "Ανεβάστε PDF στο Supabase Storage και συνδέστε τα με ενότητες.",
-  "admin.purchases.title": "Αγορές",
-  "admin.categories": "Κατηγορίες",
-  "admin.users": "Χρήστες",
-  "admin.sectionContent": "Περιεχόμενο",
-  "admin.sectionPeople": "Χρήστες",
-  "admin.categoriesTitle": "Κατηγορίες",
-  "admin.categoriesEmpty": "Δεν υπάρχουν κατηγορίες ακόμα.",
-  "admin.usersTitle": "Χρήστες",
-  "admin.usersEmpty": "Δεν υπάρχουν χρήστες ακόμα.",
-  "admin.statsTitle": "Επισκόπηση",
-  "admin.stats.totalUsers": "Σύνολο χρηστών",
-  "admin.stats.totalLessons": "Σύνολο μαθημάτων",
-  "admin.stats.downloads": "Λήψεις",
-  "admin.stats.revenue": "Έσοδα",
-  "admin.recentDownloads": "Πρόσφατες λήψεις",
-  "admin.topLessons": "Κορυφαία μαθήματα",
-  "admin.noDownloads": "Δεν υπάρχουν λήψεις ακόμα.",
-  "admin.modal.create": "Δημιουργία",
-  "admin.modal.edit": "Επεξεργασία",
-  "admin.modal.save": "Αποθήκευση",
-  "admin.modal.cancel": "Ακύρωση",
-  "admin.modal.delete": "Διαγραφή",
-  "admin.modal.confirmDelete": "Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.",
-  "admin.modal.deleteTitle": "Επιβεβαίωση διαγραφής",
-  "admin.field.name": "Όνομα",
-  "admin.field.order": "Σειρά",
-  "admin.field.grade": "Τάξη",
-  "admin.field.subject": "Μάθημα",
-  "admin.field.title": "Τίτλος",
-  "admin.field.description": "Περιγραφή",
-  "admin.field.isFree": "Δωρεάν",
-  "admin.field.price": "Τιμή (€)",
-  "admin.field.thumbnailUrl": "URL εικόνας",
-  "admin.field.content": "Περιεχόμενο",
-  "admin.field.pdfUrl": "URL PDF",
-  "admin.field.assignedTo": "Ανήκει σε",
-  "admin.field.course": "Σειρά μαθημάτων",
-  "admin.field.category": "Κατηγορία",
-  "admin.field.isAdmin": "Διαχειριστής",
-  "admin.field.email": "Email",
-  "admin.field.joinedAt": "Εγγραφή",
-  "admin.field.downloads": "Λήψεις",
-  "admin.field.purchases": "Αγορές",
-  "admin.assignCourse": "Μέρος σειράς μαθημάτων",
-  "admin.assignCategory": "Αυτόνομη κατηγορία",
-  "admin.grantAccess": "Χορήγηση πρόσβασης",
-  "admin.grantSuccess": "Η πρόσβαση χορηγήθηκε",
-  "admin.grantError": "Αποτυχία χορήγησης",
-  "admin.isAdminToggleSuccess": "Ο ρόλος διαχειριστή ενημερώθηκε",
-  "admin.userDetails": "Λεπτομέρειες χρήστη",
-
-  "auth.login.title": "Σύνδεση",
-  "auth.login.lead": "Ενσωμάτωση Auth.js: ρυθμίστε τον πάροχο.",
-  "auth.register.title": "Εγγραφή",
-  "auth.register.lead": "Ενσωμάτωση Auth.js: ρυθμίστε τον πάροχο.",
-  "auth.back": "Πίσω",
-
-  "dashboard.title": "Πίνακας ελέγχου",
-  "dashboard.body": "Τα αγορασμένα μαθήματά σας και η πρόοδός σας.",
-
-  "profile.title": "Προφίλ",
-  "profile.body": "Προτιμήσεις γλώσσας και θέματος.",
-
-  "about.title": "Σχετικά",
-  "about.heading": "Σχετικά",
-  "about.body": "Πληροφορίες για τον εκπαιδευτικό και την πλατφόρμα."
+  "brand": {
+    "logo": "Μάθε Παιδί Μου Αρχαία!"
+  },
+  "nav": {
+    "main": "Κύρια",
+    "notes": "Σημειώσεις",
+    "about": "Σχετικά",
+    "login": "Σύνδεση",
+    "profile": "Προφίλ",
+    "editProfile": "Επεξεργασία προφίλ",
+    "logout": "Αποσύνδεση",
+    "adminPanel": "Πίνακας διαχείρισης",
+    "language": "Γλώσσα",
+    "languageEl": "Ελληνικά",
+    "languageEn": "English",
+    "myCourses": "Το υλικό μου",
+    "register": "Εγγραφή",
+    "user": "Χρήστης",
+    "userMenu": "Μενού χρήστη",
+    "openMenu": "Άνοιγμα μενού πλοήγησης",
+    "closeMenu": "Κλείσιμο μενού πλοήγησης"
+  },
+  "home": {
+    "section": {
+      "welcome": "Καλώς ήρθατε",
+      "information": "Πληροφορίες",
+      "grades": "Τάξεις",
+      "instructions": "Οδηγίες χρήσης",
+      "more": "Περισσότερα",
+      "communication": "Επικοινωνία"
+    },
+    "welcome": {
+      "badge": "Κατακτήστε τις Πανελλήνιες",
+      "title": "Προετοιμαστείτε για τα Αρχαία με δομημένες σημειώσεις και μαθήματα.",
+      "lead": "Η απόλυτη πλατφόρμα για μαθητές Λυκείου. Βήμα-προς-βήμα καθοδήγηση, επιλεγμένες σημειώσεις και διαδραστική εξάσκηση για την επιτυχία στις εξετάσεις.",
+      "cta": "Εξερευνήστε Κεφάλαια",
+      "ctaSecondary": "Δείτε Δωρεάν Σημειώσεις"
+    },
+    "info": {
+      "title": "Πληροφορίες",
+      "body": "Να τι χρειάζεσαι για την πλατφόρμα.",
+      "bullet1": "Οργανωμένες σημειώσεις ανά τάξη, για προετοιμασία στις εξετάσεις.",
+      "bullet2": "Μαθήματα βήμα-βήμα στο ρυθμό σου.",
+      "bullet3": "Ξεκάθαρη διάταξη ώστε να βρίσκεις εύκολα τα θέματα.",
+      "extra": "Όλο το υλικό οργανώνεται ανά τάξη και μάθημα, ώστε να εστιάζεις σε ό,τι χρειάζεσαι για τις εξετάσεις."
+    },
+    "grades": {
+      "title": "Τάξεις",
+      "cardHint": "Επίλεξε τάξη για να δεις τα μαθήματά της.",
+      "empty": "Δεν υπάρχουν ακόμη διαθέσιμες τάξεις.",
+      "emptyHint": "Οι τάξεις θα εμφανίζονται εδώ μόλις προστεθούν."
+    },
+    "instructions": {
+      "title": "Οδηγίες χρήσης",
+      "body": "Το ξεκίνημα είναι εύκολο.",
+      "step1": "Διάλεξε την τάξη σου από τη λίστα παραπάνω.",
+      "step2": "Άνοιξε ένα μάθημα και το κεφάλαιό ή τις σημειώσεις του.",
+      "step3": "Διάβασε το υλικό και ακολούθησε τα βήματα σε κάθε κεφάλαιο."
+    },
+    "more": {
+      "title": "Περισσότερα",
+      "body": "Συνεχίζουμε να βελτιώνουμε την πλατφόρμα.",
+      "bullet1": "Νέο υλικό και θέματα προστίθενται σταδιακά.",
+      "bullet2": "Επιπλέον υλικό και επεξηγήσεις όταν είναι έτοιμα."
+    },
+    "communication": {
+      "title": "Επικοινωνία",
+      "lead": "Στείλε μήνυμα αν έχεις απορίες ή χρειάζεσαι βοήθεια.",
+      "emailLabel": "Email",
+      "messageLabel": "Μήνυμα",
+      "emailSubject": "Μήνυμα από το mathe-paidi-mou-arxaia.com!",
+      "submit": "Αποστολή",
+      "note": "Θα σου απαντήσουμε το συντομότερο.",
+      "sending": "Αποστολή...",
+      "successToast": "Το μήνυμα στάλθηκε!",
+      "errorToast": "Αποτυχία αποστολής. Παρακαλώ προσπαθήστε ξανά.",
+      "successMessage": "Το μήνυμά σου στάλθηκε. Θα σου απαντήσουμε το συντομότερο."
+    }
+  },
+  "common": {
+    "loading": "Φόρτωση...",
+    "error": "Κάτι πήγε στραβά"
+  },
+  "chapter": {
+    "title": "Κεφάλαιο",
+    "lessons": "Υλικό",
+    "noLessonsYet": "Δεν υπάρχει ακόμη υλικό."
+  },
+  "lesson": {
+    "viewPdf": "Προβολή PDF",
+    "loading": "Φόρτωση...",
+    "purchaseRequired": "Αγόρασε αυτό το υλικό για να δεις το PDF.",
+    "title": "Υλικό",
+    "buy": "Αγορά υλικού",
+    "free": "Δωρεάν",
+    "redirecting": "Ανακατεύθυνση...",
+    "checkoutError": "Η αγορά απέτυχε",
+    "price": "Τιμή",
+    "paywall": {
+      "title": "Ξεκλείδωσε αυτό το υλικό",
+      "description": "Αγόρασε αυτό το υλικό για πρόσβαση στο PDF.",
+      "cta": "Αγόρασε αυτό το υλικό"
+    }
+  },
+  "category": {
+    "title": "Κατηγορία",
+    "empty": "Δεν υπάρχει ακόμη υλικό σε αυτή την κατηγορία.",
+    "lessons": "Υλικό",
+    "noLessonsYet": "Δεν υπάρχει ακόμη υλικό."
+  },
+  "about": {
+    "title": "Σχετικά",
+    "body": "Σχετικά με τον εκπαιδευτικό και την πλατφόρμα.",
+    "hero": {
+      "lead": "Ό,τι χρειάζεσαι για να κατακτήσεις τα Αρχαία Ελληνικά στις εξετάσεις — δομημένες σημειώσεις, μαθήματα βήμα-βήμα και οργανωμένο υλικό εξάσκησης."
+    },
+    "mission": {
+      "title": "Η Αποστολή Μας",
+      "body": "Πιστεύουμε ότι κάθε μαθητής αξίζει ξεκάθαρο και οργανωμένο υλικό για τις εξετάσεις. Αυτή η πλατφόρμα φτιάχτηκε για να κάνει τα Αρχαία Ελληνικά προσιτά — μετατρέποντας ένα δύσκολο μάθημα σε έναν δομημένο, εφικτό στόχο."
+    },
+    "platform": {
+      "title": "Τι Προσφέρουμε",
+      "bullet1": "Οργανωμένες σημειώσεις ανά τάξη και μάθημα",
+      "bullet2": "Μαθήματα βήμα-βήμα στο ρυθμό σου",
+      "bullet3": "Ξεκάθαρη διάταξη προσαρμοσμένη στις εξετάσεις — εστίασε στην ύλη, όχι στην αναζήτηση"
+    },
+    "contact": {
+      "title": "Επικοινωνία",
+      "body": "Έχεις απορία, πρόταση ή χρειάζεσαι βοήθεια; Χαιρόμαστε πάντα να ακούμε τους μαθητές.",
+      "link": "Στείλε μήνυμα"
+    }
+  },
+  "profile": {
+    "title": "Προφίλ",
+    "body": "Γλώσσα και θέμα.",
+    "edit": {
+      "title": "Επεξεργασία προφίλ",
+      "name": "Όνομα",
+      "avatar": "Φωτογραφία προφίλ",
+      "avatarHint": "JPEG, PNG ή WebP, μέγιστο 2MB",
+      "save": "Αποθήκευση",
+      "success": "Το προφίλ ενημερώθηκε",
+      "passwordSection": "Αλλαγή κωδικού",
+      "currentPassword": "Τρέχων κωδικός",
+      "newPassword": "Νέος κωδικός",
+      "confirmPassword": "Επιβεβαίωση νέου κωδικού",
+      "provider": "Τρόπος σύνδεσης",
+      "joinedAt": "Μέλος από",
+      "providerCredentials": "Email & κωδικός",
+      "providerGoogle": "Λογαριασμός Google",
+      "passwordMismatch": "Οι κωδικοί δεν ταιριάζουν",
+      "passwordWrong": "Λάθος τρέχων κωδικός",
+      "passwordMin": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες",
+      "avatarTypeError": "Επιτρέπονται μόνο εικόνες JPEG, PNG και WebP",
+      "avatarSizeError": "Η εικόνα πρέπει να είναι μικρότερη από 2 MB"
+    }
+  },
+  "dashboard": {
+    "title": "Πίνακας",
+    "body": "Το αγορασμένο υλικό σου και η πρόοδός σου.",
+    "myCourses": "Το Υλικό Μου",
+    "empty": "Δεν έχεις αγοράσει υλικό ακόμα.",
+    "emptyCta": "Εξερεύνηση υλικού",
+    "emptyHint": "Αγόρασε υλικό για να ξεκλειδώσεις το PDF."
+  },
+  "grade": {
+    "title": "Τάξη",
+    "subjectsAndCourses": "Μαθήματα και κεφάλαια",
+    "free": "Δωρεάν",
+    "noSubjectsYet": "Δεν υπάρχουν ακόμη μαθήματα για αυτή την τάξη.",
+    "titleWithName": "Τάξεις"
+  },
+  "subject": {
+    "title": "Μάθημα",
+    "free": "Δωρεάν",
+    "noCoursesYet": "Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα."
+  },
+  "admin": {
+    "nav": "Διαχείριση",
+    "backToSite": "Πίσω στην τοποθεσία",
+    "overview": "Επισκόπηση",
+    "grades": "Τάξεις",
+    "subjects": "Μαθήματα",
+    "chapters": "Κεφάλαια",
+    "lessons": "Υλικό",
+    "uploads": "Μεταφορτώσεις",
+    "purchases": "Αγορές",
+    "overviewTitle": "Επισκόπηση Διαχείρισης",
+    "overviewBody": "Διαχείριση τάξεων, μαθημάτων, κεφαλαίων, υλικού και προβολή αγορών.",
+    "uploadsTitle": "Μεταφορτώσεις",
+    "uploadsBody": "Μεταφόρτωση PDF στο Supabase Storage και σύνδεση με ενότητες.",
+    "gradesTitle": "Τάξεις",
+    "gradesLoading": "Φόρτωση...",
+    "gradesEmpty": "Δεν υπάρχουν τάξεις. Δημιούργησέ τες μέσω API ή διαχείρισης.",
+    "chaptersTitle": "Κεφάλαια",
+    "subjectsTitle": "Μαθήματα",
+    "subjectsEmpty": "Δεν υπάρχουν μαθήματα. Δημιούργησε το πρώτο.",
+    "lessonsTitle": "Υλικό",
+    "purchasesTitle": "Αγορές",
+    "purchaseLine": "Χρήστης {userId} – Υλικό {lessonId}",
+    "paid": "Πληρωμένο",
+    "categories": "Κατηγορίες",
+    "users": "Χρήστες",
+    "sectionContent": "Περιεχόμενο",
+    "sectionPeople": "Χρήστες",
+    "categoriesTitle": "Κατηγορίες",
+    "categoriesEmpty": "Δεν υπάρχουν κατηγορίες ακόμα.",
+    "usersTitle": "Χρήστες",
+    "usersEmpty": "Δεν υπάρχουν χρήστες ακόμα.",
+    "statsTitle": "Επισκόπηση",
+    "stats": {
+      "totalUsers": "Σύνολο χρηστών",
+      "totalContent": "Σύνολο υλικού",
+      "downloads": "Λήψεις",
+      "revenue": "Έσοδα"
+    },
+    "recentDownloads": "Πρόσφατες λήψεις",
+    "topLessons": "Κορυφαίο υλικό",
+    "noDownloads": "Δεν υπάρχουν λήψεις ακόμα.",
+    "modal": {
+      "create": "Δημιουργία",
+      "edit": "Επεξεργασία",
+      "save": "Αποθήκευση",
+      "cancel": "Ακύρωση",
+      "delete": "Διαγραφή",
+      "confirmDelete": "Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.",
+      "deleteTitle": "Επιβεβαίωση διαγραφής"
+    },
+    "field": {
+      "name": "Όνομα",
+      "order": "Σειρά",
+      "grade": "Τάξη",
+      "subject": "Μάθημα",
+      "title": "Τίτλος",
+      "description": "Περιγραφή",
+      "isFree": "Δωρεάν",
+      "price": "Τιμή (€)",
+      "thumbnailUrl": "URL εικόνας",
+      "content": "Περιεχόμενο",
+      "pdfUrl": "URL PDF",
+      "assignedTo": "Ανήκει σε",
+      "chapter": "Κεφάλαιο",
+      "lesson": "Υλικό",
+      "category": "Κατηγορία",
+      "isAdmin": "Διαχειριστής",
+      "email": "Email",
+      "joinedAt": "Εγγραφή",
+      "downloads": "Λήψεις",
+      "purchases": "Αγορές",
+      "stripeId": "Stripe ID"
+    },
+    "assignChapter": "Μέρος κεφαλαίου",
+    "assignCategory": "Αυτόνομη κατηγορία",
+    "assignSubject": "Αυτόνομο υλικό μαθήματος",
+    "grantAccess": "Χορήγηση πρόσβασης",
+    "grantSuccess": "Η πρόσβαση χορηγήθηκε",
+    "grantError": "Αποτυχία χορήγησης",
+    "isAdminToggleSuccess": "Ο ρόλος διαχειριστή ενημερώθηκε",
+    "userDetails": "Λεπτομέρειες χρήστη"
+  },
+  "pdf": {
+    "prev": "Προηγ",
+    "next": "Επόμ",
+    "loading": "Φόρτωση PDF…"
+  },
+  "search": {
+    "placeholder": "Αναζήτηση κεφαλαίων ή υλικού...",
+    "loading": "Γίνεται αναζήτηση...",
+    "type": {
+      "chapter": "Κεφάλαιο",
+      "lesson": "Υλικό"
+    },
+    "noResults": "Δεν βρέθηκαν αποτελέσματα"
+  },
+  "notes": {
+    "empty": "Δεν υπάρχουν ακόμη διαθέσιμες κατηγορίες."
+  },
+  "footer": {
+    "brand": "Μάθε Παιδί Μου Αρχαία",
+    "tagline": "Οργανωμένες σημειώσεις και μαθήματα για προετοιμασία στις εξετάσεις Αρχαίων Ελληνικών.",
+    "nav": "Πλοήγηση",
+    "resources": "Πόροι",
+    "contact": "Επικοινωνία",
+    "contactText": "Έχεις απορίες ή σχόλια; Είμαστε εδώ για να βοηθήσουμε.",
+    "contactLink": "Στείλε μήνυμα",
+    "copyright": "Με επιφύλαξη παντός δικαιώματος.",
+    "privacy": "Σχετικά",
+    "terms": "Επικοινωνία"
+  },
+  "header": {
+    "languageEl": "Εναλλαγή σε Ελληνικά",
+    "languageEn": "Εναλλαγή σε Αγγλικά",
+    "toggleTheme": "Εναλλαγή θέματος"
+  },
+  "auth": {
+    "logoutConfirm": {
+      "title": "Αποσύνδεση",
+      "description": "Είστε σίγουροι ότι θέλετε να αποσυνδεθείτε;",
+      "confirm": "Αποσύνδεση",
+      "cancel": "Ακύρωση",
+      "successToast": "Αποσυνδεθήκατε"
+    },
+    "login": {
+      "title": "Σύνδεση",
+      "subtitle": "Συνδέσου για να συνεχίσεις στα μαθήματά σου.",
+      "email": "Email",
+      "password": "Κωδικός πρόσβασης",
+      "submit": "Σύνδεση",
+      "submitting": "Γίνεται σύνδεση...",
+      "error": {
+        "generic": "Η σύνδεση δεν ήταν δυνατή",
+        "invalidCredentials": "Λάθος email ή κωδικός",
+        "oauthNotLinked": "Αυτό το email χρησιμοποιείται με διαφορετικό τρόπο σύνδεσης"
+      },
+      "google": "Σύνδεση με Google",
+      "success": "Συνδέθηκες",
+      "successToast": "Καλώς ήρθατε!",
+      "noAccount": "Δεν έχεις λογαριασμό;",
+      "registerLink": "Εγγραφή"
+    },
+    "logout": {
+      "success": "Αποσυνδέθηκες"
+    },
+    "back": "Πίσω",
+    "register": {
+      "title": "Εγγραφή",
+      "subtitle": "Δημιούργησε λογαριασμό μαθητή για να ξεκινήσεις.",
+      "google": "Εγγραφή με Google",
+      "email": "Email",
+      "password": "Κωδικός πρόσβασης",
+      "submit": "Εγγραφή",
+      "submitting": "Γίνεται εγγραφή...",
+      "success": "Ο λογαριασμός δημιουργήθηκε. Μπορείς τώρα να συνδεθείς.",
+      "error": {
+        "generic": "Η εγγραφή δεν ήταν δυνατή"
+      },
+      "hasAccount": "Έχεις ήδη λογαριασμό;",
+      "loginLink": "Σύνδεση"
+    }
+  }
 }

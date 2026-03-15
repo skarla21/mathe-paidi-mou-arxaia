@@ -9,11 +9,11 @@ useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.purchasesTitle')}` }))
 interface Purchase {
   id: string
   user_id: string
-  course_id: string
+  lesson_id: string
   stripe_session_id: string | null
   created_at: string
   users?: { name: string | null; email: string | null } | null
-  courses?: { title: string | null } | null
+  lessons?: { title: string | null } | null
 }
 
 const purchases = ref<Purchase[]>([])
@@ -33,10 +33,10 @@ async function fetchPurchases() {
 
 onMounted(fetchPurchases)
 
-async function grantAccess(userId: string, courseId: string) {
-  grantingId.value = `${userId}-${courseId}`
+async function grantAccess(userId: string, lessonId: string) {
+  grantingId.value = `${userId}-${lessonId}`
   try {
-    await $fetch('/api/admin/purchases/grant', { method: 'POST', body: { userId, courseId } })
+    await $fetch('/api/admin/purchases/grant', { method: 'POST', body: { userId, lessonId } })
     toast.success(t('admin.grantSuccess'))
     await fetchPurchases()
   } catch {
@@ -70,7 +70,7 @@ function copyStripeId(value: string | null | undefined) {
           <thead class="border-b bg-muted/50">
             <tr>
               <th scope="col" class="px-4 py-3 text-left font-medium">{{ t('admin.field.name') }}</th>
-              <th scope="col" class="px-4 py-3 text-left font-medium">{{ t('admin.field.course') }}</th>
+              <th scope="col" class="px-4 py-3 text-left font-medium">{{ t('admin.field.lesson') }}</th>
               <th scope="col" class="px-4 py-3 text-left font-medium">{{ t('admin.field.joinedAt') }}</th>
               <th scope="col" class="px-4 py-3 text-left font-medium">{{ t('admin.field.stripeId') }}</th>
               <th scope="col" class="px-4 py-3"/>
@@ -82,7 +82,7 @@ function copyStripeId(value: string | null | undefined) {
                 <div class="font-medium">{{ p.users?.name ?? '—' }}</div>
                 <div class="text-xs text-muted-foreground">{{ p.users?.email }}</div>
               </td>
-              <td class="px-4 py-3">{{ p.courses?.title ?? p.course_id }}</td>
+              <td class="px-4 py-3">{{ p.lessons?.title ?? p.lesson_id }}</td>
               <td class="px-4 py-3 text-xs text-muted-foreground">{{ new Date(p.created_at).toLocaleDateString('el-GR') }}</td>
               <td
                 class="px-4 py-3 text-xs text-muted-foreground font-mono cursor-pointer hover:text-primary"
@@ -95,8 +95,8 @@ function copyStripeId(value: string | null | undefined) {
                 <UiButton
                   size="sm"
                   variant="outline"
-                  :disabled="grantingId === `${p.user_id}-${p.course_id}`"
-                  @click="grantAccess(p.user_id, p.course_id)"
+                  :disabled="grantingId === `${p.user_id}-${p.lesson_id}`"
+                  @click="grantAccess(p.user_id, p.lesson_id)"
                 >{{ t('admin.grantAccess') }}</UiButton>
               </td>
             </tr>

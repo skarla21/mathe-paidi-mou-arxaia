@@ -14,12 +14,13 @@
     "language": "Language",
     "languageEl": "Ελληνικά",
     "languageEn": "English",
-    "myCourses": "My Courses",
+    "myCourses": "My Content",
     "register": "Register",
     "user": "User",
     "userMenu": "User menu",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close navigation menu"
+    "closeMenu": "Close navigation menu",
+    "mobileMenu": "Mobile navigation menu"
   },
   "home": {
     "section": {
@@ -34,7 +35,7 @@
       "badge": "Master Ancient Greek Exams",
       "title": "Prepare for Ancient Greek exams with structured notes and lessons.",
       "lead": "The ultimate platform for Greek high school students. Step-by-step guidance, curated notes, and interactive practice to help you ace your exams.",
-      "cta": "Explore Courses",
+      "cta": "Explore Chapters",
       "ctaSecondary": "View Free Notes"
     },
     "info": {
@@ -55,8 +56,8 @@
       "title": "Instructions of Use",
       "body": "Getting started is easy.",
       "step1": "Choose your grade from the list above.",
-      "step2": "Open a subject and its course or notes.",
-      "step3": "Read the lessons and follow the steps in each chapter."
+      "step2": "Open a subject and its chapter or notes.",
+      "step3": "Read the content and follow the steps in each chapter."
     },
     "more": {
       "title": "More",
@@ -80,27 +81,35 @@
   },
   "common": {
     "loading": "Loading...",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "close": "Close"
   },
-  "course": {
-    "buy": "Buy Course",
-    "free": "Free",
-    "redirecting": "Redirecting...",
-    "lessons": "Lessons",
-    "noLessonsYet": "No lessons yet.",
-    "checkoutError": "Checkout failed",
-    "title": "Course"
+  "chapter": {
+    "title": "Chapter",
+    "lessons": "Content",
+    "noLessonsYet": "No content yet."
   },
   "lesson": {
     "viewPdf": "View PDF",
     "loading": "Loading...",
-    "purchaseRequired": "Purchase the course to view the PDF.",
-    "title": "Lesson",
+    "purchaseRequired": "Buy this content to view the PDF.",
+    "title": "Content",
+    "buy": "Buy Content",
+    "free": "Free",
+    "redirecting": "Redirecting...",
+    "checkoutError": "Purchase failed",
+    "price": "Price",
     "paywall": {
-      "title": "Unlock this lesson",
-      "description": "Purchase the course to access all its lessons and PDF materials.",
-      "cta": "View Course"
+      "title": "Unlock this content",
+      "description": "Buy this content to access the PDF.",
+      "cta": "Buy this content"
     }
+  },
+  "category": {
+    "title": "Category",
+    "empty": "No content in this category yet.",
+    "lessons": "Content",
+    "noLessonsYet": "No content yet."
   },
   "about": {
     "title": "About",
@@ -151,15 +160,15 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "body": "Your purchased courses and progress.",
-    "myCourses": "My Courses",
-    "empty": "No purchased courses yet.",
-    "emptyCta": "Browse Courses",
-    "emptyHint": "Purchase a course to unlock all its lessons."
+    "body": "Your purchased content and progress.",
+    "myCourses": "My Content",
+    "empty": "No purchased content yet.",
+    "emptyCta": "Browse Content",
+    "emptyHint": "Buy content to unlock its PDF."
   },
   "grade": {
     "title": "Grade",
-    "subjectsAndCourses": "Subjects and courses",
+    "subjectsAndCourses": "Subjects and chapters",
     "free": "Free",
     "noSubjectsYet": "No subjects for this grade yet.",
     "titleWithName": "Grades"
@@ -167,7 +176,7 @@
   "subject": {
     "title": "Subject",
     "free": "Free",
-    "noCoursesYet": "No courses in this subject yet."
+    "noCoursesYet": "No chapters in this subject yet."
   },
   "admin": {
     "nav": "Admin",
@@ -175,23 +184,23 @@
     "overview": "Overview",
     "grades": "Grades",
     "subjects": "Subjects",
-    "courses": "Courses",
+    "chapters": "Chapters",
     "lessons": "Lessons",
     "uploads": "Uploads",
     "purchases": "Purchases",
     "overviewTitle": "Admin Overview",
-    "overviewBody": "Manage grades, subjects, courses, lessons, and view purchases.",
+    "overviewBody": "Manage grades, subjects, chapters, lessons, and view purchases.",
     "uploadsTitle": "Uploads",
     "uploadsBody": "Upload PDFs to Supabase Storage and attach to lessons.",
     "gradesTitle": "Grades",
     "gradesLoading": "Loading...",
     "gradesEmpty": "No grades. Create them via API or admin CRUD.",
-    "coursesTitle": "Courses",
+    "chaptersTitle": "Chapters",
     "subjectsTitle": "Subjects",
     "subjectsEmpty": "No subjects. Create the first one.",
     "lessonsTitle": "Lessons",
     "purchasesTitle": "Purchases",
-    "purchaseLine": "User {userId} – Course {courseId}",
+    "purchaseLine": "User {userId} – Content {lessonId}",
     "paid": "Paid",
     "categories": "Categories",
     "users": "Users",
@@ -204,7 +213,7 @@
     "statsTitle": "Overview",
     "stats": {
       "totalUsers": "Total Users",
-      "totalLessons": "Total Lessons",
+      "totalContent": "Total Content",
       "downloads": "Downloads",
       "revenue": "Revenue"
     },
@@ -233,7 +242,8 @@
       "content": "Content",
       "pdfUrl": "PDF URL",
       "assignedTo": "Assigned to",
-      "course": "Course",
+      "chapter": "Chapter",
+      "lesson": "Content",
       "category": "Category",
       "isAdmin": "Admin",
       "email": "Email",
@@ -242,8 +252,9 @@
       "purchases": "Purchases",
       "stripeId": "Stripe ID"
     },
-    "assignCourse": "Part of a course",
+    "assignChapter": "Part of a chapter",
     "assignCategory": "Standalone category",
+    "assignSubject": "Standalone subject lesson",
     "grantAccess": "Grant Access",
     "grantSuccess": "Access granted",
     "grantError": "Failed to grant access",
@@ -256,16 +267,16 @@
     "loading": "Loading PDF…"
   },
   "search": {
-    "placeholder": "Search for courses or notes...",
+    "placeholder": "Search for chapters or content...",
     "loading": "Searching...",
     "type": {
-      "course": "Course",
-      "lesson": "Lesson"
+      "chapter": "Chapter",
+      "lesson": "Content"
     },
     "noResults": "No results found"
   },
   "notes": {
-    "empty": "No notes available."
+    "empty": "No categories available yet."
   },
   "footer": {
     "brand": "Mathe Paidi Mou Arxaia",
@@ -314,6 +325,16 @@
       "success": "Signed out"
     },
     "back": "Back",
+    "name": "Full name",
+    "modal": {
+      "loginTab": "Login",
+      "registerTab": "Register"
+    },
+    "validation": {
+      "nameMin": "Name must be at least 2 characters",
+      "emailInvalid": "Please enter a valid email",
+      "passwordMin": "Password must be at least 6 characters"
+    },
     "register": {
       "title": "Register",
       "subtitle": "Create a student account to get started.",
@@ -322,9 +343,10 @@
       "password": "Password",
       "submit": "Register",
       "submitting": "Registering...",
-      "success": "Account created. You can now log in.",
+      "success": "Welcome! Your account has been created.",
       "error": {
-        "generic": "Unable to register"
+        "generic": "Unable to register",
+        "emailTaken": "This email is already registered"
       },
       "hasAccount": "Already have an account?",
       "loginLink": "Login"

@@ -15,7 +15,8 @@ const props = defineProps<{
   open: boolean
   lesson: {
     id: string; title: string; content: string | null; is_free: boolean
-    pdf_url: string | null; order: number; course_id: string | null; category_id: string | null
+    pdf_url: string | null; order: number; price: number
+    chapter_id: string | null; subject_id: string | null; category_id: string | null
   } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -24,12 +25,15 @@ const { t } = useI18n()
 const title = ref('')
 const content = ref('')
 const isFree = ref(true)
+const price = ref(0)
 const pdfUrl = ref('')
 const order = ref(0)
-const assignment = ref<'course' | 'category' | 'none'>('none')
-const courseId = ref('')
+const assignment = ref<'chapter' | 'subject' | 'category'>('chapter')
+const chapterId = ref('')
+const subjectId = ref('')
 const categoryId = ref('')
-const courses = ref<any[]>([])
+const chapters = ref<any[]>([])
+const subjects = ref<any[]>([])
 const categories = ref<any[]>([])
 const loading = ref(false)
 
@@ -38,16 +42,24 @@ watch(() => props.open, async (val) => {
   title.value = props.lesson?.title ?? ''
   content.value = props.lesson?.content ?? ''
   isFree.value = props.lesson?.is_free ?? true
+  price.value = props.lesson?.price ?? 0
   pdfUrl.value = props.lesson?.pdf_url ?? ''
   order.value = props.lesson?.order ?? 0
-  courseId.value = props.lesson?.course_id ?? ''
+  chapterId.value = props.lesson?.chapter_id ?? ''
+  subjectId.value = props.lesson?.subject_id ?? ''
   categoryId.value = props.lesson?.category_id ?? ''
-  assignment.value = props.lesson?.course_id ? 'course' : props.lesson?.category_id ? 'category' : 'none'
-  const [c, cat] = await Promise.all([
-    $fetch<any[]>('/api/admin/courses'),
+  assignment.value = props.lesson?.chapter_id
+    ? 'chapter'
+    : props.lesson?.subject_id
+      ? 'subject'
+      : 'category'
+  const [ch, sub, cat] = await Promise.all([
+    $fetch<any[]>('/api/admin/chapters'),
+    $fetch<any[]>('/api/admin/subjects'),
     $fetch<any[]>('/api/admin/categories'),
   ])
-  courses.value = c
+  chapters.value = ch
+  subjects.value = sub
   categories.value = cat
 })
 
@@ -56,8 +68,11 @@ async function onSubmit() {
   try {
     const body = {
       title: title.value, content: content.value || null,
-      is_free: isFree.value, pdf_url: pdfUrl.value || null, order: order.value,
-      course_id: assignment.value === 'course' ? courseId.value || null : null,
+      is_free: isFree.value,
+      price: isFree.value ? 0 : price.value,
+      pdf_url: pdfUrl.value || null, order: order.value,
+      chapter_id: assignment.value === 'chapter' ? chapterId.value || null : null,
+      subject_id: assignment.value === 'subject' ? subjectId.value || null : null,
       category_id: assignment.value === 'category' ? categoryId.value || null : null,
     }
     if (props.lesson) {
@@ -92,8 +107,12 @@ async function onSubmit() {
             <textarea v-model="content" rows="3" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
           <div class="flex items-center gap-2">
-            <input id="lesson-free" v-model="isFree" type="checkbox" class="h-4 w-4" >
+            <input id="lesson-free" v-model="isFree" type="checkbox" class="h-4 w-4">
             <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
+          </div>
+          <div v-if="!isFree" class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.price') }}</UiLabel>
+            <UiInput v-model.number="price" type="number" min="0" />
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.pdfUrl') }}</UiLabel>
@@ -107,21 +126,28 @@ async function onSubmit() {
             <UiLabel>{{ t('admin.field.assignedTo') }}</UiLabel>
             <div class="flex gap-4">
               <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="course" > {{ t('admin.assignCourse') }}
+                <input v-model="assignment" type="radio" value="chapter"> {{ t('admin.assignChapter') }}
               </label>
               <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="category" > {{ t('admin.assignCategory') }}
+                <input v-model="assignment" type="radio" value="subject"> {{ t('admin.assignSubject') }}
               </label>
               <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="none" > None
+                <input v-model="assignment" type="radio" value="category"> {{ t('admin.assignCategory') }}
               </label>
             </div>
           </div>
-          <div v-if="assignment === 'course'" class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.course') }}</UiLabel>
-            <select v-model="courseId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select course…</option>
-              <option v-for="c in courses" :key="c.id" :value="c.id">{{ c.title }}</option>
+          <div v-if="assignment === 'chapter'" class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
+            <select v-model="chapterId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="" disabled>Select chapter…</option>
+              <option v-for="c in chapters" :key="c.id" :value="c.id">{{ c.title }}</option>
+            </select>
+          </div>
+          <div v-if="assignment === 'subject'" class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+            <select v-model="subjectId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <option value="" disabled>Select subject…</option>
+              <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
           </div>
           <div v-if="assignment === 'category'" class="space-y-1.5">

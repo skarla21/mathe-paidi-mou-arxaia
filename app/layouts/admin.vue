@@ -8,7 +8,7 @@ const { t } = useI18n()
 const contentLinks = computed(() => [
   { to: '/admin/grades', label: t('admin.grades') },
   { to: '/admin/subjects', label: t('admin.subjects') },
-  { to: '/admin/courses', label: t('admin.courses') },
+  { to: '/admin/chapters', label: t('admin.chapters') },
   { to: '/admin/lessons', label: t('admin.lessons') },
   { to: '/admin/categories', label: t('admin.categories') },
 ])
@@ -24,6 +24,8 @@ const mobileMenuOpen = ref(false)
 <template>
   <div class="min-h-screen bg-muted/30 flex flex-col">
     <Toaster />
+    <AuthModal />
+    <EditProfileModal />
 
     <!-- Mobile top bar -->
     <header class="md:hidden flex items-center gap-3 px-4 py-3 bg-card border-b">

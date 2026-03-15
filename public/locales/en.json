@@ -1,136 +1,342 @@
 {
-  "nav.main": "Main",
-  "nav.notes": "Notes",
-  "nav.about": "About",
-  "nav.login": "Login",
-  "nav.profile": "Profile",
-
-  "brand.logo": "Learn Ancient Greek!",
-
-  "home.section.welcome": "Welcome",
-  "home.section.information": "Information",
-  "home.section.grades": "Grades overview",
-  "home.section.instructions": "Instructions",
-  "home.section.more": "More content",
-  "home.section.communication": "Communication",
-
-  "home.welcome.title": "Welcome",
-  "home.welcome.lead": "Educational content for the Greek public school system.",
-
-  "home.info.title": "Information",
-  "home.info.body": "Browse by grade and subject. Free and paid courses are available.",
-
-  "home.grades.title": "Grades overview",
-  "home.grades.cardHint": "View subjects and courses",
-  "home.grades.empty": "No grades yet.",
-
-  "home.instructions.title": "Instructions of use",
-  "home.instructions.body": "Use the Notes menu to navigate by grade and subject. Create an account to purchase paid courses.",
-
-  "home.more.title": "More content from the educator",
-  "home.more.body": "Additional materials will appear here.",
-
-  "home.communication.title": "Communication",
-  "home.communication.lead": "Send a message via the form below (FormSubmit).",
-  "home.communication.emailLabel": "Email",
-  "home.communication.messageLabel": "Message",
-  "home.communication.submit": "Send",
-
-  "search.placeholder": "Search…",
-  "search.loading": "Searching…",
-  "search.type.course": "Course",
-  "search.type.lesson": "Lesson",
-
-  "notes.empty": "No grades yet.",
-
-  "course.buy": "Buy course",
-  "course.free": "Free",
-  "course.loading": "Loading…",
-  "course.price.free": "Free",
-  "course.price.paid": "€{price}",
-  "course.redirecting": "Redirecting…",
-  "course.lessons.title": "Lessons",
-  "course.lessons.empty": "No lessons yet.",
-
-  "lesson.viewPdf": "View PDF",
-  "lesson.loading": "Loading…",
-  "lesson.pdf.locked": "Purchase the course to view the PDF.",
-
-  "admin.title": "Admin",
-  "admin.overview.title": "Admin overview",
-  "admin.overview.body": "Manage grades, subjects, courses, lessons, and view purchases.",
-  "admin.grades.title": "Grades",
-  "admin.grades.loading": "Loading…",
-  "admin.grades.empty": "No grades. Create them via API or admin CRUD.",
-  "admin.subjects.title": "Subjects",
-  "admin.courses.title": "Courses",
-  "admin.lessons.title": "Lessons",
-  "admin.uploads.title": "Uploads",
-  "admin.uploads.body": "Upload PDFs to Supabase Storage and attach them to lessons.",
-  "admin.purchases.title": "Purchases",
-  "admin.categories": "Categories",
-  "admin.users": "Users",
-  "admin.sectionContent": "Content",
-  "admin.sectionPeople": "People",
-  "admin.categoriesTitle": "Categories",
-  "admin.categoriesEmpty": "No categories yet.",
-  "admin.usersTitle": "Users",
-  "admin.usersEmpty": "No users yet.",
-  "admin.statsTitle": "Overview",
-  "admin.stats.totalUsers": "Total Users",
-  "admin.stats.totalLessons": "Total Lessons",
-  "admin.stats.downloads": "Downloads",
-  "admin.stats.revenue": "Revenue",
-  "admin.recentDownloads": "Recent Downloads",
-  "admin.topLessons": "Top Lessons",
-  "admin.noDownloads": "No downloads yet.",
-  "admin.modal.create": "Create",
-  "admin.modal.edit": "Edit",
-  "admin.modal.save": "Save",
-  "admin.modal.cancel": "Cancel",
-  "admin.modal.delete": "Delete",
-  "admin.modal.confirmDelete": "Are you sure? This cannot be undone.",
-  "admin.modal.deleteTitle": "Confirm Delete",
-  "admin.field.name": "Name",
-  "admin.field.order": "Order",
-  "admin.field.grade": "Grade",
-  "admin.field.subject": "Subject",
-  "admin.field.title": "Title",
-  "admin.field.description": "Description",
-  "admin.field.isFree": "Free",
-  "admin.field.price": "Price (€)",
-  "admin.field.thumbnailUrl": "Thumbnail URL",
-  "admin.field.content": "Content",
-  "admin.field.pdfUrl": "PDF URL",
-  "admin.field.assignedTo": "Assigned to",
-  "admin.field.course": "Course",
-  "admin.field.category": "Category",
-  "admin.field.isAdmin": "Admin",
-  "admin.field.email": "Email",
-  "admin.field.joinedAt": "Joined",
-  "admin.field.downloads": "Downloads",
-  "admin.field.purchases": "Purchases",
-  "admin.assignCourse": "Part of a course",
-  "admin.assignCategory": "Standalone category",
-  "admin.grantAccess": "Grant Access",
-  "admin.grantSuccess": "Access granted",
-  "admin.grantError": "Failed to grant access",
-  "admin.isAdminToggleSuccess": "Admin status updated",
-  "admin.userDetails": "User Details",
-
-  "auth.login.title": "Login",
-  "auth.login.lead": "Auth.js integration: configure your provider.",
-  "auth.register.title": "Register",
-  "auth.register.lead": "Auth.js integration: configure your provider.",
-  "auth.back": "Back",
-
-  "dashboard.title": "Dashboard",
-  "dashboard.body": "Your purchased courses and progress.",
-
-  "profile.title": "Profile",
-  "profile.body": "Language and theme preferences.",
-
-  "about.title": "About",
-  "about.heading": "About",
-  "about.body": "About the educator and this platform."
+  "brand": {
+    "logo": "Mathe Paidi Mou Arxaia!"
+  },
+  "nav": {
+    "main": "Main",
+    "notes": "Notes",
+    "about": "About",
+    "login": "Login",
+    "profile": "Profile",
+    "editProfile": "Edit profile",
+    "logout": "Log out",
+    "adminPanel": "Admin panel",
+    "language": "Language",
+    "languageEl": "Ελληνικά",
+    "languageEn": "English",
+    "myCourses": "My Content",
+    "register": "Register",
+    "user": "User",
+    "userMenu": "User menu",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "home": {
+    "section": {
+      "welcome": "Welcome",
+      "information": "Information",
+      "grades": "Grades",
+      "instructions": "Instructions of Use",
+      "more": "More",
+      "communication": "Communication"
+    },
+    "welcome": {
+      "badge": "Master Ancient Greek Exams",
+      "title": "Prepare for Ancient Greek exams with structured notes and lessons.",
+      "lead": "The ultimate platform for Greek high school students. Step-by-step guidance, curated notes, and interactive practice to help you ace your exams.",
+      "cta": "Explore Chapters",
+      "ctaSecondary": "View Free Notes"
+    },
+    "info": {
+      "title": "Information",
+      "body": "Here is what you need to know about the platform.",
+      "bullet1": "Structured notes for each grade, made for exam preparation.",
+      "bullet2": "Step-by-step lessons you can follow at your own pace.",
+      "bullet3": "Clear layout so you can find topics quickly.",
+      "extra": "All content is organized by grade and subject, so you can focus on what matters for your exams."
+    },
+    "grades": {
+      "title": "Grades",
+      "cardHint": "Select a grade to view its lessons.",
+      "empty": "No grades available yet.",
+      "emptyHint": "Grades will appear here once they are added."
+    },
+    "instructions": {
+      "title": "Instructions of Use",
+      "body": "Getting started is easy.",
+      "step1": "Choose your grade from the list above.",
+      "step2": "Open a subject and its chapter or notes.",
+      "step3": "Read the content and follow the steps in each chapter."
+    },
+    "more": {
+      "title": "More",
+      "body": "We keep improving the platform.",
+      "bullet1": "New material and topics are added over time.",
+      "bullet2": "Extra resources and explanations when they are ready."
+    },
+    "communication": {
+      "title": "Communication",
+      "lead": "Send a message if you have questions or need help.",
+      "emailLabel": "Email",
+      "messageLabel": "Message",
+      "emailSubject": "Message from mathe-paidi-mou-arxaia.com!",
+      "submit": "Send",
+      "note": "We will get back to you as soon as we can.",
+      "sending": "Sending...",
+      "successToast": "Message sent!",
+      "errorToast": "Failed to send. Please try again.",
+      "successMessage": "Your message has been sent. We will get back to you as soon as we can."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  },
+  "chapter": {
+    "title": "Chapter",
+    "lessons": "Content",
+    "noLessonsYet": "No content yet."
+  },
+  "lesson": {
+    "viewPdf": "View PDF",
+    "loading": "Loading...",
+    "purchaseRequired": "Buy this content to view the PDF.",
+    "title": "Content",
+    "buy": "Buy Content",
+    "free": "Free",
+    "redirecting": "Redirecting...",
+    "checkoutError": "Purchase failed",
+    "price": "Price",
+    "paywall": {
+      "title": "Unlock this content",
+      "description": "Buy this content to access the PDF.",
+      "cta": "Buy this content"
+    }
+  },
+  "category": {
+    "title": "Category",
+    "empty": "No content in this category yet.",
+    "lessons": "Content",
+    "noLessonsYet": "No content yet."
+  },
+  "about": {
+    "title": "About",
+    "body": "About the educator and this platform.",
+    "hero": {
+      "lead": "Everything you need to master Ancient Greek for your exams — structured notes, step-by-step lessons, and curated practice material."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "body": "We believe every student deserves clear, well-organised exam material. This platform was built to make Ancient Greek accessible — turning what feels like a daunting subject into a structured, achievable goal."
+    },
+    "platform": {
+      "title": "What We Offer",
+      "bullet1": "Structured notes organised by grade and subject",
+      "bullet2": "Step-by-step lessons you can follow at your own pace",
+      "bullet3": "Clear, exam-focused layout so you spend time learning, not searching"
+    },
+    "contact": {
+      "title": "Get in Touch",
+      "body": "Have a question, a suggestion, or need help? We are always happy to hear from students.",
+      "link": "Send a message"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "body": "Language and theme preferences.",
+    "edit": {
+      "title": "Edit Profile",
+      "name": "Name",
+      "avatar": "Profile picture",
+      "avatarHint": "JPEG, PNG or WebP, max 2MB",
+      "save": "Save",
+      "success": "Profile updated",
+      "passwordSection": "Change Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "provider": "Login method",
+      "joinedAt": "Member since",
+      "providerCredentials": "Email & password",
+      "providerGoogle": "Google account",
+      "passwordMismatch": "Passwords do not match",
+      "passwordWrong": "Current password is incorrect",
+      "passwordMin": "Password must be at least 8 characters",
+      "avatarTypeError": "Only JPEG, PNG and WebP images are allowed",
+      "avatarSizeError": "Image must be smaller than 2 MB"
+    }
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "body": "Your purchased content and progress.",
+    "myCourses": "My Content",
+    "empty": "No purchased content yet.",
+    "emptyCta": "Browse Content",
+    "emptyHint": "Buy content to unlock its PDF."
+  },
+  "grade": {
+    "title": "Grade",
+    "subjectsAndCourses": "Subjects and chapters",
+    "free": "Free",
+    "noSubjectsYet": "No subjects for this grade yet.",
+    "titleWithName": "Grades"
+  },
+  "subject": {
+    "title": "Subject",
+    "free": "Free",
+    "noCoursesYet": "No chapters in this subject yet."
+  },
+  "admin": {
+    "nav": "Admin",
+    "backToSite": "Back to site",
+    "overview": "Overview",
+    "grades": "Grades",
+    "subjects": "Subjects",
+    "chapters": "Chapters",
+    "lessons": "Lessons",
+    "uploads": "Uploads",
+    "purchases": "Purchases",
+    "overviewTitle": "Admin Overview",
+    "overviewBody": "Manage grades, subjects, chapters, lessons, and view purchases.",
+    "uploadsTitle": "Uploads",
+    "uploadsBody": "Upload PDFs to Supabase Storage and attach to lessons.",
+    "gradesTitle": "Grades",
+    "gradesLoading": "Loading...",
+    "gradesEmpty": "No grades. Create them via API or admin CRUD.",
+    "chaptersTitle": "Chapters",
+    "subjectsTitle": "Subjects",
+    "subjectsEmpty": "No subjects. Create the first one.",
+    "lessonsTitle": "Lessons",
+    "purchasesTitle": "Purchases",
+    "purchaseLine": "User {userId} – Content {lessonId}",
+    "paid": "Paid",
+    "categories": "Categories",
+    "users": "Users",
+    "sectionContent": "Content",
+    "sectionPeople": "People",
+    "categoriesTitle": "Categories",
+    "categoriesEmpty": "No categories yet.",
+    "usersTitle": "Users",
+    "usersEmpty": "No users yet.",
+    "statsTitle": "Overview",
+    "stats": {
+      "totalUsers": "Total Users",
+      "totalContent": "Total Content",
+      "downloads": "Downloads",
+      "revenue": "Revenue"
+    },
+    "recentDownloads": "Recent Downloads",
+    "topLessons": "Top Lessons",
+    "noDownloads": "No downloads yet.",
+    "modal": {
+      "create": "Create",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "confirmDelete": "Are you sure? This cannot be undone.",
+      "deleteTitle": "Confirm Delete"
+    },
+    "field": {
+      "name": "Name",
+      "order": "Order",
+      "grade": "Grade",
+      "subject": "Subject",
+      "title": "Title",
+      "description": "Description",
+      "isFree": "Free",
+      "price": "Price (€)",
+      "thumbnailUrl": "Thumbnail URL",
+      "content": "Content",
+      "pdfUrl": "PDF URL",
+      "assignedTo": "Assigned to",
+      "chapter": "Chapter",
+      "lesson": "Content",
+      "category": "Category",
+      "isAdmin": "Admin",
+      "email": "Email",
+      "joinedAt": "Joined",
+      "downloads": "Downloads",
+      "purchases": "Purchases",
+      "stripeId": "Stripe ID"
+    },
+    "assignChapter": "Part of a chapter",
+    "assignCategory": "Standalone category",
+    "assignSubject": "Standalone subject lesson",
+    "grantAccess": "Grant Access",
+    "grantSuccess": "Access granted",
+    "grantError": "Failed to grant access",
+    "isAdminToggleSuccess": "Admin status updated",
+    "userDetails": "User Details"
+  },
+  "pdf": {
+    "prev": "Prev",
+    "next": "Next",
+    "loading": "Loading PDF…"
+  },
+  "search": {
+    "placeholder": "Search for chapters or content...",
+    "loading": "Searching...",
+    "type": {
+      "chapter": "Chapter",
+      "lesson": "Content"
+    },
+    "noResults": "No results found"
+  },
+  "notes": {
+    "empty": "No categories available yet."
+  },
+  "footer": {
+    "brand": "Mathe Paidi Mou Arxaia",
+    "tagline": "Structured notes and lessons for Ancient Greek exam preparation.",
+    "nav": "Navigation",
+    "resources": "Resources",
+    "contact": "Contact",
+    "contactText": "Questions or feedback? We are here to help.",
+    "contactLink": "Send a message",
+    "copyright": "All rights reserved.",
+    "privacy": "About",
+    "terms": "Contact"
+  },
+  "header": {
+    "languageEl": "Switch to Greek",
+    "languageEn": "Switch to English",
+    "toggleTheme": "Toggle theme"
+  },
+  "auth": {
+    "logoutConfirm": {
+      "title": "Sign out",
+      "description": "Are you sure you want to sign out?",
+      "confirm": "Sign out",
+      "cancel": "Cancel",
+      "successToast": "You have been logged out"
+    },
+    "login": {
+      "title": "Login",
+      "subtitle": "Sign in to continue to your courses.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Login",
+      "submitting": "Logging in...",
+      "error": {
+        "generic": "Unable to login",
+        "invalidCredentials": "Email or password is incorrect",
+        "oauthNotLinked": "This email is already registered with a different login method"
+      },
+      "google": "Sign in with Google",
+      "success": "Signed in",
+      "successToast": "Welcome back!",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Register"
+    },
+    "logout": {
+      "success": "Signed out"
+    },
+    "back": "Back",
+    "register": {
+      "title": "Register",
+      "subtitle": "Create a student account to get started.",
+      "google": "Sign up with Google",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Register",
+      "submitting": "Registering...",
+      "success": "Account created. You can now log in.",
+      "error": {
+        "generic": "Unable to register"
+      },
+      "hasAccount": "Already have an account?",
+      "loginLink": "Login"
+    }
+  }
 }
