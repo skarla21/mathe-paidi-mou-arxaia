@@ -3,12 +3,29 @@ import { requireAuth } from "../../utils/requireAuth";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const BUCKET = "uploads";
 
 const EXT_MAP: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
 };
+
+function extractStoragePathFromUrl(
+  url: string,
+  supabaseUrl: string,
+): string | null {
+  const base = supabaseUrl.replace(/\/$/, "");
+  const prefix = "/storage/v1/object/public/" + BUCKET + "/";
+  if (!url.startsWith(base) || !url.includes(prefix)) return null;
+  const idx = url.indexOf(prefix);
+  const beforeQuery = url.split("?")[0];
+  if (idx < 0 || !beforeQuery) return null;
+  const pathPart = beforeQuery.slice(idx + prefix.length);
+  return pathPart && pathPart.startsWith("avatars/")
+    ? decodeURIComponent(pathPart)
+    : null;
+}
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event);
@@ -34,12 +51,34 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: "File too large (max 2MB)" });
   }
 
+  const supabase = serverSupabaseService();
+  const config = useRuntimeConfig();
+  const supabaseUrl = (config.public.supabaseUrl as string) || "";
+
+  const { data: userRow } = await supabase
+    .from("users")
+    .select("avatar_url")
+    .eq("id", userId)
+    .single();
+
+  const oldPath = userRow?.avatar_url
+    ? extractStoragePathFromUrl(userRow.avatar_url, supabaseUrl)
+    : null;
+
+  if (oldPath) {
+    const { error: removeError } = await supabase.storage
+      .from(BUCKET)
+      .remove([oldPath]);
+    if (removeError) {
+      console.warn("[avatar.post] Failed to delete old avatar:", removeError.message);
+    }
+  }
+
   const ext = EXT_MAP[file.type ?? ""] || "jpg";
   const path = `avatars/${userId}/${Date.now()}.${ext}`;
 
-  const supabase = serverSupabaseService();
   const { data: upload, error: uploadError } = await supabase.storage
-    .from("uploads")
+    .from(BUCKET)
     .upload(path, file.data, {
       contentType: file.type || "image/jpeg",
       upsert: false,
@@ -49,7 +88,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: uploadError.message });
   }
 
-  const { data: urlData } = supabase.storage.from("uploads").getPublicUrl(upload.path);
+  const { data: urlData } = supabase.storage
+    .from(BUCKET)
+    .getPublicUrl(upload.path);
   const avatar_url = urlData.publicUrl;
 
   const { error: updateError } = await supabase

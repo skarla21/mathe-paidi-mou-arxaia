@@ -34,6 +34,7 @@ import {
   BiPersonFill,
   BiEye,
   BiEyeSlash,
+  BiArrowRepeat,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -71,6 +72,7 @@ addIcons(
   BiPersonFill,
   BiEye,
   BiEyeSlash,
+  BiArrowRepeat,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

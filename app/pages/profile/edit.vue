@@ -9,7 +9,7 @@ import UiLabel from '~/components/ui/Label.vue'
 
 definePageMeta({ middleware: 'auth' })
 
-const { session, fetchSession } = useCurrentUser()
+const { session, fetchSession, updateUser } = useCurrentUser()
 const { t } = useI18n()
 
 useHead(() => ({ title: t('profile.edit.title') }))
@@ -19,8 +19,8 @@ onUnmounted(() => {
 })
 
 const name = ref('')
-const avatarFile = ref<File | null>(null)
 const avatarPreview = ref<string | null>(null)
+const avatarUploading = ref(false)
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -50,21 +50,46 @@ function onAvatarClick() {
   document.getElementById('avatar-input')?.click()
 }
 
-function onAvatarChange(e: Event) {
+async function onAvatarChange(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
     toast.error(t('profile.edit.avatarTypeError'))
+    input.value = ''
     return
   }
   if (file.size > 2 * 1024 * 1024) {
     toast.error(t('profile.edit.avatarSizeError'))
+    input.value = ''
     return
   }
   if (avatarPreview.value?.startsWith('blob:')) URL.revokeObjectURL(avatarPreview.value)
-  avatarFile.value = file
   avatarPreview.value = URL.createObjectURL(file)
+  avatarUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const result = await $fetch<{ avatar_url: string }>('/api/user/avatar', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    })
+    await fetchSession()
+    updateUser({ avatar_url: result.avatar_url })
+    avatarPreview.value = result.avatar_url
+  } catch (err: unknown) {
+    const error = err as { data?: { statusCode?: number; message?: string } }
+    const msg = error?.data?.message ?? ''
+    if (error?.data?.statusCode === 400 && (msg.includes('large') || msg.includes('2MB'))) {
+      toast.error(t('profile.edit.avatarSizeError'))
+    } else {
+      toast.error(t('common.error'))
+    }
+  } finally {
+    avatarUploading.value = false
+    input.value = ''
+  }
 }
 
 async function onSubmit() {
@@ -81,13 +106,6 @@ async function onSubmit() {
 
   loading.value = true
   try {
-    if (avatarFile.value) {
-      const formData = new FormData()
-      formData.append('file', avatarFile.value)
-      await $fetch('/api/user/avatar', { method: 'POST', body: formData, credentials: 'include' })
-      avatarFile.value = null
-    }
-
     const nameChanged = name.value.trim() !== (session.value.user?.name ?? '')
     const passwordChanged = isCredentials.value && newPassword.value.length > 0
 
@@ -98,9 +116,9 @@ async function onSubmit() {
         body.currentPassword = currentPassword.value
         body.newPassword = newPassword.value
       }
-      await $fetch('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
+      const profileResult = await $fetch<{ id: string; email: string; name: string | null; avatar_url: string | null }>('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
+      updateUser({ name: profileResult.name, avatar_url: profileResult.avatar_url })
     }
-
     await fetchSession()
     toast.success(t('profile.edit.success'))
     currentPassword.value = ''
@@ -109,8 +127,11 @@ async function onSubmit() {
   } catch (e: unknown) {
     const error = e as { data?: { statusCode?: number; message?: string } }
     const status = error?.data?.statusCode
-    if (status === 400 && error?.data?.message?.includes('password')) {
+    const msg = error?.data?.message ?? ''
+    if (status === 400 && msg.toLowerCase().includes('password')) {
       toast.error(t('profile.edit.passwordWrong'))
+    } else if (status === 400 && (msg.includes('large') || msg.includes('2MB'))) {
+      toast.error(t('profile.edit.avatarSizeError'))
     } else {
       toast.error(t('common.error'))
     }
@@ -136,14 +157,24 @@ async function onSubmit() {
             <div class="flex flex-col items-center gap-3 rounded-lg border bg-card p-4">
               <button
                 type="button"
-                class="relative flex size-20 items-center justify-center overflow-hidden rounded-full bg-muted hover:ring-2 hover:ring-primary/50 transition"
+                class="relative flex size-20 items-center justify-center overflow-hidden rounded-full bg-muted hover:ring-2 hover:ring-primary/50 transition disabled:pointer-events-none disabled:opacity-70"
                 :aria-label="t('profile.edit.avatar')"
+                :disabled="avatarUploading"
                 @click="onAvatarClick"
               >
                 <img v-if="avatarPreview" :src="avatarPreview" alt="" class="size-full object-cover" >
                 <VIcon v-else name="bi-person-circle" class="size-12 text-muted-foreground" />
-                <span class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium">
+                <span
+                  v-if="!avatarUploading"
+                  class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium"
+                >
                   {{ t('profile.edit.avatar') }}
+                </span>
+                <span
+                  v-else
+                  class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white"
+                >
+                  <VIcon name="bi-arrow-repeat" class="size-6 animate-spin" />
                 </span>
               </button>
               <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >

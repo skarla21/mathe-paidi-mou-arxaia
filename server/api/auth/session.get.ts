@@ -31,16 +31,21 @@ export default defineEventHandler(async (event) => {
   let created_at: string | null = null
   let provider: string = 'credentials'
 
+  let name: string | null = user.name ?? null
+  let avatar_url: string | null = user.avatar_url ?? null
+
   if (userId) {
     const supabase = serverSupabaseService()
     const { data: dbUser } = await supabase
       .from('users')
-      .select('created_at, provider')
+      .select('created_at, provider, name, avatar_url')
       .eq('id', userId)
       .single()
     if (dbUser) {
       created_at = dbUser.created_at ?? null
       provider = dbUser.provider ?? 'credentials'
+      name = dbUser.name ?? name
+      avatar_url = dbUser.avatar_url ?? avatar_url
     }
   }
 
@@ -49,8 +54,8 @@ export default defineEventHandler(async (event) => {
       id: userId,
       isAdmin: user.isAdmin ?? false,
       email: user.email,
-      name: user.name ?? null,
-      avatar_url: user.avatar_url ?? null,
+      name,
+      avatar_url,
       created_at,
       provider,
     },

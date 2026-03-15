@@ -19,8 +19,8 @@ const { session, fetchSession, updateUser } = useCurrentUser()
 const { t } = useI18n()
 
 const name = ref('')
-const avatarFile = ref<File | null>(null)
 const avatarPreview = ref<string | null>(null)
+const avatarUploading = ref(false)
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
@@ -52,7 +52,6 @@ watch(isOpen, (open) => {
   if (!open && avatarPreview.value?.startsWith('blob:')) {
     URL.revokeObjectURL(avatarPreview.value)
     avatarPreview.value = session.value.user?.avatar_url ?? null
-    avatarFile.value = null
   }
 })
 
@@ -60,21 +59,46 @@ function onAvatarClick() {
   document.getElementById('ep-avatar-input')?.click()
 }
 
-function onAvatarChange(e: Event) {
+async function onAvatarChange(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
     toast.error(t('profile.edit.avatarTypeError'))
+    input.value = ''
     return
   }
   if (file.size > 2 * 1024 * 1024) {
     toast.error(t('profile.edit.avatarSizeError'))
+    input.value = ''
     return
   }
   if (avatarPreview.value?.startsWith('blob:')) URL.revokeObjectURL(avatarPreview.value)
-  avatarFile.value = file
   avatarPreview.value = URL.createObjectURL(file)
+  avatarUploading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    const result = await $fetch<{ avatar_url: string }>('/api/user/avatar', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+    })
+    await fetchSession()
+    updateUser({ avatar_url: result.avatar_url })
+    avatarPreview.value = result.avatar_url
+  } catch (err: unknown) {
+    const error = err as { data?: { statusCode?: number; message?: string } }
+    const msg = error?.data?.message ?? ''
+    if (error?.data?.statusCode === 400 && (msg.includes('large') || msg.includes('2MB'))) {
+      toast.error(t('profile.edit.avatarSizeError'))
+    } else {
+      toast.error(t('common.error'))
+    }
+  } finally {
+    avatarUploading.value = false
+    input.value = ''
+  }
 }
 
 async function onSubmit() {
@@ -91,16 +115,6 @@ async function onSubmit() {
 
   loading.value = true
   try {
-    let avatarResult: { avatar_url: string } | null = null
-    let profileResult: { id: string; email: string; name: string | null; avatar_url: string | null } | null = null
-
-    if (avatarFile.value) {
-      const formData = new FormData()
-      formData.append('file', avatarFile.value)
-      avatarResult = await $fetch<{ avatar_url: string }>('/api/user/avatar', { method: 'POST', body: formData, credentials: 'include' })
-      avatarFile.value = null
-    }
-
     const nameChanged = name.value.trim() !== (session.value.user?.name ?? '')
     const passwordChanged = isCredentials.value && newPassword.value.length > 0
 
@@ -111,12 +125,10 @@ async function onSubmit() {
         body.currentPassword = currentPassword.value
         body.newPassword = newPassword.value
       }
-      profileResult = await $fetch<{ id: string; email: string; name: string | null; avatar_url: string | null }>('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
+      const profileResult = await $fetch<{ id: string; email: string; name: string | null; avatar_url: string | null }>('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
+      await fetchSession()
+      updateUser({ name: profileResult.name, avatar_url: profileResult.avatar_url })
     }
-
-    await fetchSession()
-    if (avatarResult) updateUser({ avatar_url: avatarResult.avatar_url })
-    if (profileResult) updateUser({ name: profileResult.name, avatar_url: profileResult.avatar_url })
     toast.success(t('profile.edit.success'))
     currentPassword.value = ''
     newPassword.value = ''
@@ -125,8 +137,11 @@ async function onSubmit() {
     console.error('[EditProfileModal] submit error:', e)
     const error = e as { data?: { statusCode?: number; message?: string } }
     const status = error?.data?.statusCode
-    if (status === 400 && error?.data?.message?.includes('password')) {
+    const msg = error?.data?.message ?? ''
+    if (status === 400 && msg.toLowerCase().includes('password')) {
       toast.error(t('profile.edit.passwordWrong'))
+    } else if (status === 400 && (msg.includes('large') || msg.includes('2MB'))) {
+      toast.error(t('profile.edit.avatarSizeError'))
     } else {
       toast.error(t('common.error'))
     }
@@ -167,11 +182,12 @@ async function onSubmit() {
               <div class="flex flex-col gap-4 sm:w-48 shrink-0">
 
                 <!-- Avatar -->
-                <div class="flex flex-col items-center gap-3 rounded-lg border bg-card p-4">
+                <div class="flex flex-col items-center gap-3 rounded-lg bg-card p-4">
                   <button
                     type="button"
-                    class="relative flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted hover:ring-2 hover:ring-primary/50 transition cursor-pointer"
+                    class="relative flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted hover:ring-2 hover:ring-primary/50 transition cursor-pointer disabled:pointer-events-none disabled:opacity-70"
                     :aria-label="t('profile.edit.avatar')"
+                    :disabled="avatarUploading"
                     @click="onAvatarClick"
                   >
                     <img v-if="avatarPreview" :src="avatarPreview" alt="" class="size-full object-cover" >
@@ -188,8 +204,17 @@ async function onSubmit() {
                       <circle cx="12" cy="8" r="4" fill="currentColor" />
                       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="currentColor" />
                     </svg>
-                    <span class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium">
+                    <span
+                      v-if="!avatarUploading"
+                      class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium"
+                    >
                       {{ t('profile.edit.avatar') }}
+                    </span>
+                    <span
+                      v-else
+                      class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white"
+                    >
+                      <VIcon name="bi-arrow-repeat" class="size-6 animate-spin" />
                     </span>
                   </button>
                   <input id="ep-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >
