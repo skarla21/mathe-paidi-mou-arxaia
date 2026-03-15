@@ -32,6 +32,8 @@ import {
   BiDownload,
   BiCurrencyEuro,
   BiPersonFill,
+  BiEye,
+  BiEyeSlash,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -67,6 +69,8 @@ addIcons(
   BiDownload,
   BiCurrencyEuro,
   BiPersonFill,
+  BiEye,
+  BiEyeSlash,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

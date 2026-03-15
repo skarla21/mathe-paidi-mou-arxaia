@@ -19,36 +19,44 @@ function select(code: 'el' | 'en') {
     <UiPopoverTrigger as-child>
       <button
         type="button"
-        class="rounded-lg bg-muted px-2 py-1.5 flex items-center gap-1 transition-colors hover:bg-muted/80"
+        class="rounded-lg bg-muted px-2 py-1.5 flex items-center gap-1 transition-colors hover:bg-muted/80 cursor-pointer"
         :aria-label="locale === 'el' ? t('header.languageEn') : t('header.languageEl')"
       >
         <img
           :src="`https://flagcdn.com/w20/${locale === 'el' ? 'gr' : 'gb'}.png`"
           :srcset="`https://flagcdn.com/w40/${locale === 'el' ? 'gr' : 'gb'}.png 2x`"
           :alt="locale === 'el' ? 'GR' : 'GB'"
-          class="w-5 h-auto rounded-sm"
+          class="w-5 h-auto rounded-sm object-contain"
           aria-hidden="true"
         >
         <VIcon name="bi-chevron-down" class="size-2.5 text-muted-foreground" aria-hidden="true" />
       </button>
     </UiPopoverTrigger>
-    <UiPopoverContent align="end" :side-offset="6" class="w-auto p-2">
-      <div class="flex gap-2">
+    <UiPopoverContent align="end" :side-offset="6" class="min-w-0 w-fit p-1.5 rounded-lg shadow-xl border border-border/80 bg-card/95 backdrop-blur-sm">
+      <div class="flex flex-col gap-0.5">
         <button
           v-for="lang in langs"
           :key="lang.code"
           type="button"
-          class="flex size-8 items-center justify-center rounded-md text-xl transition-opacity"
-          :class="locale === lang.code ? 'ring-2 ring-primary' : 'opacity-50 hover:opacity-80'"
+          class="flex items-center gap-3 rounded-md px-3 py-2.5 text-left transition-colors cursor-pointer min-w-0"
+          :class="locale === lang.code
+            ? 'bg-accent/50 text-accent-foreground ring-1 ring-primary/30'
+            : 'text-muted-foreground hover:bg-accent/30 hover:text-foreground'"
           :aria-label="t(lang.ariaKey)"
           @click="select(lang.code)"
         >
-          <img
-            :src="`https://flagcdn.com/w40/${lang.country}.png`"
-            :srcset="`https://flagcdn.com/w80/${lang.country}.png 2x`"
-            :alt="lang.country.toUpperCase()"
-            class="w-6 h-auto rounded-sm"
-          >
+          <span class="shrink-0 w-8 flex items-center overflow-hidden rounded-sm">
+            <img
+              :src="`https://flagcdn.com/w40/${lang.country}.png`"
+              :srcset="`https://flagcdn.com/w80/${lang.country}.png 2x`"
+              :alt="lang.country.toUpperCase()"
+              class="w-8 h-auto object-contain block"
+              loading="lazy"
+            >
+          </span>
+          <span class="font-heading text-sm font-medium truncate">
+            {{ t(`nav.language${lang.code === 'el' ? 'El' : 'En'}`) }}
+          </span>
         </button>
       </div>
     </UiPopoverContent>

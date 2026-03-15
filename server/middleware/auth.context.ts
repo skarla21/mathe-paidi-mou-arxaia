@@ -10,12 +10,11 @@ export default defineEventHandler(async (event) => {
 
   try {
     const authOptions = getAuthOptions();
-    const url = new URL("/api/auth/session", getRequestURL(event).origin);
+    const request = event.node.req;
+    const url = new URL("/api/auth/session", `https://${request.headers.host}`);
     const authRequest = new Request(url.toString(), {
       method: "GET",
-      headers: {
-        cookie: getRequestHeader(event, "cookie") ?? "",
-      },
+      headers: request.headers as unknown as HeadersInit,
     });
 
     const response = await Auth(authRequest, authOptions);

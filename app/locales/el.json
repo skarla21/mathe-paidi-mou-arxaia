@@ -82,7 +82,9 @@
   "common": {
     "loading": "Φόρτωση...",
     "error": "Κάτι πήγε στραβά",
-    "close": "Κλείσιμο"
+    "close": "Κλείσιμο",
+    "passwordShow": "Εμφάνιση κωδικού",
+    "passwordHide": "Απόκρυψη κωδικού"
   },
   "chapter": {
     "title": "Κεφάλαιο",

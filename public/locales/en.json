@@ -80,7 +80,10 @@
   },
   "common": {
     "loading": "Loading...",
-    "error": "Something went wrong"
+    "error": "Something went wrong",
+    "close": "Close",
+    "passwordShow": "Show password",
+    "passwordHide": "Hide password"
   },
   "chapter": {
     "title": "Chapter",

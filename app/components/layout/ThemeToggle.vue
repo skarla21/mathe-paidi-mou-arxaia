@@ -8,28 +8,28 @@ const { t } = useI18n()
     type="button"
     role="switch"
     :aria-checked="colorMode === 'dark'"
-    class="rounded-lg bg-muted px-2 py-1.5 flex items-center transition-colors hover:bg-muted/80"
+    class="rounded-lg px-2 py-1.5 flex items-center transition-colors cursor-pointer"
     :aria-label="t('header.toggleTheme')"
     @click="toggle"
   >
     <div
-      class="relative h-4 w-7 rounded-full transition-colors"
+      class="relative h-5 w-9 rounded-full transition-colors"
       :class="colorMode === 'dark' ? 'bg-primary' : 'bg-border'"
     >
       <span
-        class="absolute top-0.5 h-3 w-3 rounded-full bg-background shadow-sm transition-transform flex items-center justify-center"
-        :class="colorMode === 'dark' ? 'translate-x-3.5' : 'translate-x-0.5'"
+        class="absolute top-0.5 h-4 w-4 rounded-full bg-background shadow-sm transition-transform flex items-center justify-center"
+        :class="colorMode === 'dark' ? 'translate-x-4' : 'translate-x-0.5'"
       >
         <VIcon
           v-if="colorMode === 'dark'"
           name="bi-moon-fill"
-          class="size-2.5 text-blue-400"
+          class="size-3 text-blue-400"
           aria-hidden="true"
         />
         <VIcon
           v-else
           name="bi-sun-fill"
-          class="size-2.5 text-amber-500"
+          class="size-3 text-amber-500"
           aria-hidden="true"
         />
       </span>

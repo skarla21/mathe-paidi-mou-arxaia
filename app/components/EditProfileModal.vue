@@ -11,10 +11,11 @@ import UiDialogClose from '~/components/ui/dialog/DialogClose.vue'
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiInput from '~/components/ui/Input.vue'
+import UiPasswordInput from '~/components/ui/PasswordInput.vue'
 import UiLabel from '~/components/ui/Label.vue'
 
 const { isOpen, close } = useEditProfileModal()
-const { session, fetchSession } = useCurrentUser()
+const { session, fetchSession, updateUser } = useCurrentUser()
 const { t } = useI18n()
 
 const name = ref('')
@@ -90,10 +91,13 @@ async function onSubmit() {
 
   loading.value = true
   try {
+    let avatarResult: { avatar_url: string } | null = null
+    let profileResult: { id: string; email: string; name: string | null; avatar_url: string | null } | null = null
+
     if (avatarFile.value) {
       const formData = new FormData()
       formData.append('file', avatarFile.value)
-      await $fetch<{ avatar_url: string }>('/api/user/avatar', { method: 'POST', body: formData, credentials: 'include' })
+      avatarResult = await $fetch<{ avatar_url: string }>('/api/user/avatar', { method: 'POST', body: formData, credentials: 'include' })
       avatarFile.value = null
     }
 
@@ -107,10 +111,12 @@ async function onSubmit() {
         body.currentPassword = currentPassword.value
         body.newPassword = newPassword.value
       }
-      await $fetch<{ id: string; email: string; name: string | null; avatar_url: string | null }>('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
+      profileResult = await $fetch<{ id: string; email: string; name: string | null; avatar_url: string | null }>('/api/user/profile', { method: 'PATCH', body, credentials: 'include' })
     }
 
     await fetchSession()
+    if (avatarResult) updateUser({ avatar_url: avatarResult.avatar_url })
+    if (profileResult) updateUser({ name: profileResult.name, avatar_url: profileResult.avatar_url })
     toast.success(t('profile.edit.success'))
     currentPassword.value = ''
     newPassword.value = ''
@@ -144,7 +150,7 @@ async function onSubmit() {
             <UiDialogClose as-child>
               <button
                 type="button"
-                class="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                class="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
                 :aria-label="t('common.close')"
               >
                 <VIcon name="bi-x" class="size-5" aria-hidden="true" />
@@ -164,7 +170,7 @@ async function onSubmit() {
                 <div class="flex flex-col items-center gap-3 rounded-lg border bg-card p-4">
                   <button
                     type="button"
-                    class="relative flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted hover:ring-2 hover:ring-primary/50 transition"
+                    class="relative flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted hover:ring-2 hover:ring-primary/50 transition cursor-pointer"
                     :aria-label="t('profile.edit.avatar')"
                     @click="onAvatarClick"
                   >
@@ -222,15 +228,15 @@ async function onSubmit() {
                     <p class="text-sm font-semibold">{{ t('profile.edit.passwordSection') }}</p>
                     <div class="space-y-2">
                       <UiLabel for="ep-current-password">{{ t('profile.edit.currentPassword') }}</UiLabel>
-                      <UiInput id="ep-current-password" v-model="currentPassword" type="password" autocomplete="current-password" />
+                      <UiPasswordInput id="ep-current-password" v-model="currentPassword" autocomplete="current-password" />
                     </div>
                     <div class="space-y-2">
                       <UiLabel for="ep-new-password">{{ t('profile.edit.newPassword') }}</UiLabel>
-                      <UiInput id="ep-new-password" v-model="newPassword" type="password" autocomplete="new-password" />
+                      <UiPasswordInput id="ep-new-password" v-model="newPassword" autocomplete="new-password" />
                     </div>
                     <div class="space-y-2">
                       <UiLabel for="ep-confirm-password">{{ t('profile.edit.confirmPassword') }}</UiLabel>
-                      <UiInput id="ep-confirm-password" v-model="confirmPassword" type="password" autocomplete="new-password" />
+                      <UiPasswordInput id="ep-confirm-password" v-model="confirmPassword" autocomplete="new-password" />
                     </div>
                   </div>
                 </template>
