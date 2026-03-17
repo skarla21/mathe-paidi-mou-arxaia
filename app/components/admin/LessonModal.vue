@@ -7,6 +7,7 @@ import UiDialogContent from '~/components/ui/dialog/DialogContent.vue'
 import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
 import UiDialogFooter from '~/components/ui/dialog/DialogFooter.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
+import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
@@ -32,9 +33,9 @@ const assignment = ref<'chapter' | 'subject' | 'category'>('chapter')
 const chapterId = ref('')
 const subjectId = ref('')
 const categoryId = ref('')
-const chapters = ref<any[]>([])
-const subjects = ref<any[]>([])
-const categories = ref<any[]>([])
+const chapters = ref<{ id: string; title: string }[]>([])
+const subjects = ref<{ id: string; name: string }[]>([])
+const categories = ref<{ id: string; name: string }[]>([])
 const loading = ref(false)
 
 watch(() => props.open, async (val) => {
@@ -54,9 +55,9 @@ watch(() => props.open, async (val) => {
       ? 'subject'
       : 'category'
   const [ch, sub, cat] = await Promise.all([
-    $fetch<any[]>('/api/admin/chapters'),
-    $fetch<any[]>('/api/admin/subjects'),
-    $fetch<any[]>('/api/admin/categories'),
+    $fetch<{ id: string; title: string }[]>('/api/admin/chapters'),
+    $fetch<{ id: string; name: string }[]>('/api/admin/subjects'),
+    $fetch<{ id: string; name: string }[]>('/api/admin/categories'),
   ])
   chapters.value = ch
   subjects.value = sub
@@ -97,6 +98,7 @@ async function onSubmit() {
       <UiDialogContent class="max-w-xl max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
           <UiDialogTitle>{{ props.lesson ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.lessons') }}</UiDialogTitle>
+          <UiDialogDescription class="sr-only">{{ t('admin.modal.lessonDescription') }}</UiDialogDescription>
         </UiDialogHeader>
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">

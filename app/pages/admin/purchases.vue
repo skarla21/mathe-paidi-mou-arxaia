@@ -49,7 +49,7 @@ async function grantAccess(userId: string, lessonId: string) {
 function copyStripeId(value: string | null | undefined) {
   if (!value || !import.meta.client) return
   navigator.clipboard.writeText(value)
-  toast.success(t('admin.grantSuccess'))
+  toast.success(t('admin.copiedToClipboard'))
 }
 </script>
 
@@ -83,7 +83,7 @@ function copyStripeId(value: string | null | undefined) {
                 <div class="text-xs text-muted-foreground">{{ p.users?.email }}</div>
               </td>
               <td class="px-4 py-3">{{ p.lessons?.title ?? p.lesson_id }}</td>
-              <td class="px-4 py-3 text-xs text-muted-foreground">{{ new Date(p.created_at).toLocaleDateString('el-GR') }}</td>
+              <td class="px-4 py-3 text-xs text-muted-foreground">{{ new Date(p.created_at).toLocaleDateString() }}</td>
               <td
                 class="px-4 py-3 text-xs text-muted-foreground font-mono cursor-pointer hover:text-primary"
                 :title="p.stripe_session_id ?? undefined"

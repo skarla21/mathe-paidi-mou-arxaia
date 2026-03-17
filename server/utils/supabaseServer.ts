@@ -10,7 +10,7 @@ export function serverSupabaseService() {
   return createClient(url, key)
 }
 
-export function serverSupabaseAnon(_event: { req: { headers: { get: (n: string) => string | null } } }) {
+export function serverSupabaseAnon() {
   const config = useRuntimeConfig()
   const url = config.public.supabaseUrl as string
   const key = config.public.supabaseAnonKey as string

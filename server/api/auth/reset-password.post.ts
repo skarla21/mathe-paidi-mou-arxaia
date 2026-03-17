@@ -1,16 +1,17 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { hashToken } from '../../utils/tokenHash'
 import { hashPassword } from '../../utils/password'
+import { PASSWORD_MIN_LENGTH } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ token?: string; newPassword?: string }>(event)
   const token = body.token
   const newPassword = body.newPassword
 
-  if (!token || !newPassword || newPassword.length < 6) {
+  if (!token || !newPassword || newPassword.length < PASSWORD_MIN_LENGTH) {
     throw createError({
       statusCode: 400,
-      message: 'Token and password (min 6 chars) are required',
+      message: 'Token and password (min 8 chars) are required',
     })
   }
 
@@ -31,10 +32,13 @@ export default defineEventHandler(async (event) => {
 
   const passwordHash = await hashPassword(newPassword)
   await supabase.from('users').update({ password_hash: passwordHash }).eq('id', row.user_id)
+
+  // Invalidate ALL unused reset tokens for this user (prevents token reuse)
   await supabase
     .from('password_reset_tokens')
     .update({ used_at: new Date().toISOString() })
-    .eq('token_hash', tokenHash)
+    .eq('user_id', row.user_id)
+    .is('used_at', null)
 
   return { ok: true }
 })

@@ -35,10 +35,21 @@ export default defineEventHandler(async (event) => {
   if (existing) {
     return { received: true }
   }
-  await supabase.from('purchases').insert({
+
+  const { data: lessonExists } = await supabase.from('lessons').select('id').eq('id', lessonId).maybeSingle()
+  if (!lessonExists) {
+    console.error('Webhook: lessonId not found in DB:', lessonId)
+    throw createError({ statusCode: 400, message: 'Lesson not found' })
+  }
+
+  const { error: insertError } = await supabase.from('purchases').insert({
     user_id: userId,
     lesson_id: lessonId,
     stripe_session_id: session.id,
   })
+  if (insertError) {
+    console.error('Purchase insert failed:', insertError)
+    throw createError({ statusCode: 500, message: 'Failed to record purchase' })
+  }
   return { received: true }
 })

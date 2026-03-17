@@ -13,6 +13,7 @@ import UiLabel from "~/components/ui/Label.vue";
 definePageMeta({ hideLayoutFooter: true })
 
 const { t } = useI18n();
+useHead(() => ({ title: t('home.pageTitle') }));
 const route = useRoute();
 const {
   revealSection,

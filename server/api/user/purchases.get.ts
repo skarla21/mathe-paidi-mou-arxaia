@@ -11,7 +11,10 @@ export default defineEventHandler(async (event) => {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[user/purchases.get]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
 
-  return (data ?? []).map((p: any) => p.lessons).filter(Boolean)
+  return (data ?? []).map((p: Record<string, unknown>) => p.lessons).filter(Boolean)
 })

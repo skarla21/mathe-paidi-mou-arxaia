@@ -1,6 +1,10 @@
 import { sendContactEmail } from "../utils/email";
+import { checkRateLimit } from "../utils/rateLimit";
+import { EMAIL_REGEX } from "../utils/validation";
 
 export default defineEventHandler(async (event) => {
+  checkRateLimit(event, { name: 'contact', maxRequests: 3, windowMs: 60 * 1000 })
+
   const body = await readBody<{ email: string; message: string }>(event);
 
   if (!body.email || !body.message) {
@@ -10,10 +14,11 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+  if (!EMAIL_REGEX.test(body.email)) {
     throw createError({ statusCode: 400, message: "Invalid email address" });
   }
 
+  const sanitizedEmail = body.email.replace(/[\r\n]/g, '')
   const config = useRuntimeConfig();
   const contactEmail = (config.contactEmail as string) || "antwnis_skarlatos@yahoo.com";
   const subject = "Μήνυμα από το mathe-paidi-mou-arxaia.com!";
@@ -27,7 +32,7 @@ export default defineEventHandler(async (event) => {
   try {
     await sendContactEmail({
       to: contactEmail,
-      replyTo: body.email,
+      replyTo: sanitizedEmail,
       subject,
       html,
     });

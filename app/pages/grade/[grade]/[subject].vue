@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import UiCard from "~/components/ui/Card.vue";
 import UiCardContent from "~/components/ui/CardContent.vue";
+import type { Grade, Subject, Chapter, Lesson } from "~/types/database";
 
 const route = useRoute();
 const gradeId = route.params.grade as string;
 const subjectId = route.params.subject as string;
 const { t } = useI18n();
 
-const grade = ref<{ id: string; name: string } | null>(null);
-const subject = ref<{ id: string; name: string; grade_id: string } | null>(
-  null,
-);
-const chapters = ref<any[]>([]);
-const standaloneLesson = ref<any[]>([]);
+const grade = ref<Grade | null>(null);
+const subject = ref<Subject | null>(null);
+const chapters = ref<Chapter[]>([]);
+const standaloneLesson = ref<Lesson[]>([]);
 
 const { data: gradesData } = await useFetch("/api/grades");
 const { data: subjectsData } = await useFetch("/api/subjects", {
@@ -26,11 +25,11 @@ const { data: lessonsData } = await useFetch("/api/lessons", {
 });
 
 grade.value =
-  (gradesData.value as any[])?.find((g: any) => g.id === gradeId) ?? null;
+  (gradesData.value as Grade[] | null)?.find((g) => g.id === gradeId) ?? null;
 subject.value =
-  (subjectsData.value as any[])?.find((s: any) => s.id === subjectId) ?? null;
-chapters.value = (chaptersData.value as any[]) ?? [];
-standaloneLesson.value = (lessonsData.value as any[]) ?? [];
+  (subjectsData.value as Subject[] | null)?.find((s) => s.id === subjectId) ?? null;
+chapters.value = (chaptersData.value as Chapter[] | null) ?? [];
+standaloneLesson.value = (lessonsData.value as Lesson[] | null) ?? [];
 
 useHead(() => ({
   title: subject.value
@@ -43,9 +42,11 @@ useHead(() => ({
   <div class="container py-8 px-4">
     <NuxtLink
       :to="`/grade/${gradeId}`"
-      class="text-sm text-muted-foreground hover:underline"
-      >← {{ grade?.name }}</NuxtLink
+      class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
     >
+      <VIcon name="bi-arrow-left" class="size-3.5" aria-hidden="true" />
+      {{ grade?.name }}
+    </NuxtLink>
     <h1 class="text-3xl font-bold mt-2 font-heading">
       {{ subject?.name ?? t("subject.title") }}
     </h1>

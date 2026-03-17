@@ -23,6 +23,7 @@
     "mobileMenu": "Mobile navigation menu"
   },
   "home": {
+    "pageTitle": "Mathe Paidi Mou Arxaia — Ancient Greek Exam Prep",
     "section": {
       "welcome": "Welcome",
       "information": "Information",
@@ -240,7 +241,12 @@
       "cancel": "Cancel",
       "delete": "Delete",
       "confirmDelete": "Are you sure? This cannot be undone.",
-      "deleteTitle": "Confirm Delete"
+      "deleteTitle": "Confirm Delete",
+      "gradeDescription": "Create or edit a grade entry.",
+      "categoryDescription": "Create or edit a content category.",
+      "subjectDescription": "Create or edit a subject and assign it to a grade.",
+      "chapterDescription": "Create or edit a chapter and assign it to a subject.",
+      "lessonDescription": "Create or edit a lesson and assign it to a chapter, subject, or category."
     },
     "field": {
       "name": "Name",
@@ -282,6 +288,7 @@
     "grantAccess": "Grant Access",
     "grantSuccess": "Access granted",
     "grantError": "Failed to grant access",
+    "copiedToClipboard": "Copied to clipboard",
     "isAdminToggleSuccess": "Admin status updated",
     "userDetails": "User Details"
   },

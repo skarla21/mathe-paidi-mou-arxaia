@@ -13,22 +13,23 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminLessonModal from '~/components/admin/LessonModal.vue'
+import type { Lesson } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.lessonsTitle')}` }))
 
-const lessons = ref<any[]>([])
+const lessons = ref<Lesson[]>([])
 const loading = ref(true)
 const modalOpen = ref(false)
-const editingLesson = ref<any>(null)
+const editingLesson = ref<Lesson | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
 
 async function fetchLessons() {
   loading.value = true
-  try { lessons.value = await $fetch<any[]>('/api/admin/lessons') }
+  try { lessons.value = await $fetch<Lesson[]>('/api/admin/lessons') }
   catch {
     lessons.value = []
     toast.error(t('common.error'))
@@ -39,7 +40,7 @@ async function fetchLessons() {
 onMounted(fetchLessons)
 
 function openCreate() { editingLesson.value = null; modalOpen.value = true }
-function openEdit(l: any) { editingLesson.value = l; modalOpen.value = true }
+function openEdit(l: Lesson) { editingLesson.value = l; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
 
 async function confirmDelete() {

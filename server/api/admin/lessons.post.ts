@@ -25,6 +25,9 @@ export default defineEventHandler(async (event) => {
     subject_id: body.subject_id ?? null,
     category_id: body.category_id ?? null,
   }).select().single()
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/lessons.post]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data
 })

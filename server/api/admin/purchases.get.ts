@@ -8,6 +8,9 @@ export default defineEventHandler(async (event) => {
     .from('purchases')
     .select('*, users(name, email), lessons(title)')
     .order('created_at', { ascending: false })
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/purchases.get]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data ?? []
 })

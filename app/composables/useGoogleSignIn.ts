@@ -5,6 +5,8 @@
  */
 export function useGoogleSignIn() {
   async function signInWithGoogle(callbackUrl = "/") {
+    if (!import.meta.client) return
+
     const { csrfToken } = await $fetch<{ csrfToken: string }>("/api/auth/csrf", {
       credentials: "include",
     });

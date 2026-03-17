@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { AVATAR_MAX_SIZE, PASSWORD_MIN_LENGTH } from '~/lib/validation'
 import UiButton from '~/components/ui/Button.vue'
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
@@ -94,7 +95,7 @@ async function onAvatarChange(e: Event) {
     input.value = ''
     return
   }
-  if (file.size > 2 * 1024 * 1024) {
+  if (file.size > AVATAR_MAX_SIZE) {
     toast.error(t('profile.edit.avatarSizeError'))
     input.value = ''
     return
@@ -129,7 +130,7 @@ async function onAvatarChange(e: Event) {
 
 async function onSubmit() {
   if (isCredentials.value && newPassword.value) {
-    if (newPassword.value.length < 8) {
+    if (newPassword.value.length < PASSWORD_MIN_LENGTH) {
       toast.error(t('profile.edit.passwordMin'))
       return
     }

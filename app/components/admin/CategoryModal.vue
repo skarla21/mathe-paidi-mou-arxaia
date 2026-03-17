@@ -7,6 +7,7 @@ import UiDialogContent from '~/components/ui/dialog/DialogContent.vue'
 import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
 import UiDialogFooter from '~/components/ui/dialog/DialogFooter.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
+import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
@@ -56,6 +57,7 @@ async function onSubmit() {
       <UiDialogContent>
         <UiDialogHeader>
           <UiDialogTitle>{{ props.category ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.categories') }}</UiDialogTitle>
+          <UiDialogDescription class="sr-only">{{ t('admin.modal.categoryDescription') }}</UiDialogDescription>
         </UiDialogHeader>
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">

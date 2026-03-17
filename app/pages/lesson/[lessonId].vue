@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import DOMPurify from 'dompurify'
 import { toast } from 'vue-sonner'
 import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -39,14 +38,22 @@ if (data.value) {
   canAccessContent.value = can_access_content
 }
 
-const safeContent = computed(() => {
-  const html = lesson.value?.content
-  if (!html) return ''
-  if (import.meta.client) {
-    return DOMPurify.sanitize(html, { ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'] })
-  }
-  return ''
-})
+const safeContent = ref('')
+
+watch(
+  () => lesson.value?.content,
+  async (html) => {
+    if (!import.meta.client || !html) {
+      safeContent.value = ''
+      return
+    }
+    const DOMPurify = (await import('dompurify')).default
+    safeContent.value = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'],
+    })
+  },
+  { immediate: true }
+)
 
 async function buyLesson() {
   purchasing.value = true

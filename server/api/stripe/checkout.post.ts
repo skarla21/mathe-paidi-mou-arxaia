@@ -1,14 +1,12 @@
 import Stripe from 'stripe'
+import { requireAuth } from '../../utils/requireAuth'
 
 export default defineEventHandler(async (event) => {
+  const userId = requireAuth(event)
   const body = await readBody(event).catch(() => ({}))
   const lessonId = body?.lessonId as string
   if (!lessonId) {
     throw createError({ statusCode: 400, message: 'lessonId required' })
-  }
-  const userId = event.context.auth?.userId ?? null
-  if (!userId) {
-    throw createError({ statusCode: 401, message: 'Login required' })
   }
   const config = useRuntimeConfig()
   const secret = config.stripeSecretKey as string

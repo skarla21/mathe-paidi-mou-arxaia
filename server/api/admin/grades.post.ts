@@ -8,6 +8,9 @@ export default defineEventHandler(async (event) => {
   const supabase = serverSupabaseService()
   const { data, error } = await supabase
     .from('grades').insert({ name: name.trim(), order: order ?? 0 }).select().single()
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/grades.post]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data
 })

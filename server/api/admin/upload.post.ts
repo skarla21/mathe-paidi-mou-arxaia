@@ -17,6 +17,11 @@ export default defineEventHandler(async (event) => {
   if (!ALLOWED_TYPES.includes(file.type || '')) {
     throw createError({ statusCode: 400, message: 'Only PDF allowed' })
   }
+  // Validate PDF magic bytes
+  const header = new TextDecoder().decode(file.data.slice(0, 5))
+  if (header !== '%PDF-') {
+    throw createError({ statusCode: 400, message: 'Invalid PDF file' })
+  }
   if (file.data.length > MAX_SIZE) {
     throw createError({ statusCode: 400, message: 'File too large (max 10MB)' })
   }

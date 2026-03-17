@@ -3,16 +3,17 @@ import { toast } from 'vue-sonner'
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiCardHeader from '~/components/ui/CardHeader.vue'
+import type { AdminStats } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: t('admin.statsTitle') }))
 
-const stats = ref<any>(null)
+const stats = ref<AdminStats | null>(null)
 const loading = ref(true)
 
 onMounted(async () => {
-  try { stats.value = await $fetch<any>('/api/admin/stats') }
+  try { stats.value = await $fetch<AdminStats>('/api/admin/stats') }
   catch {
     stats.value = null
     toast.error(t('common.error'))
@@ -74,7 +75,7 @@ v-for="card in [
             <ul v-else class="space-y-2">
               <li v-for="(l, i) in stats.topLessons" :key="l.lesson_id" class="flex items-center justify-between text-sm">
                 <span class="flex items-center gap-2">
-                  <span class="text-xs text-muted-foreground w-4">{{ (i as number) + 1 }}.</span>
+                  <span class="text-xs text-muted-foreground w-4">{{ i + 1 }}.</span>
                   <span class="truncate">{{ l.title }}</span>
                 </span>
                 <span class="ml-2 shrink-0 font-medium">{{ l.count }}</span>

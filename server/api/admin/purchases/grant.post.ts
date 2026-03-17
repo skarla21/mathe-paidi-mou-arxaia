@@ -14,6 +14,9 @@ export default defineEventHandler(async (event) => {
     .maybeSingle()
   if (existing) return { ok: true }
   const { error } = await supabase.from('purchases').insert({ user_id: userId, lesson_id: lessonId, stripe_session_id: null })
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/purchases/grant.post]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return { ok: true }
 })

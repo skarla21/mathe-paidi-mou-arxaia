@@ -8,12 +8,14 @@ import UiDialogFooter from '~/components/ui/dialog/DialogFooter.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
 import UiButton from '~/components/ui/Button.vue'
 
+import type { Purchase, Download } from '~/types/database'
+
 const props = defineProps<{ open: boolean; userId: string | null }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
 
-const purchases = ref<any[]>([])
-const downloads = ref<any[]>([])
+const purchases = ref<Purchase[]>([])
+const downloads = ref<Download[]>([])
 const loading = ref(false)
 
 watch(() => props.open, async (val) => {
@@ -21,8 +23,8 @@ watch(() => props.open, async (val) => {
   loading.value = true
   try {
     const [p, d] = await Promise.all([
-      $fetch<any[]>(`/api/admin/users/${props.userId}/purchases`),
-      $fetch<any[]>(`/api/admin/users/${props.userId}/downloads`),
+      $fetch<Purchase[]>(`/api/admin/users/${props.userId}/purchases`),
+      $fetch<Download[]>(`/api/admin/users/${props.userId}/downloads`),
     ])
     purchases.value = p
     downloads.value = d

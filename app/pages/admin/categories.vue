@@ -12,22 +12,23 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminCategoryModal from '~/components/admin/CategoryModal.vue'
+import type { Category } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.categoriesTitle')}` }))
 
-const categories = ref<any[]>([])
+const categories = ref<Category[]>([])
 const loading = ref(true)
 const modalOpen = ref(false)
-const editingCategory = ref<any>(null)
+const editingCategory = ref<Category | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
 
 async function fetchCategories() {
   loading.value = true
-  try { categories.value = await $fetch<any[]>('/api/admin/categories') }
+  try { categories.value = await $fetch<Category[]>('/api/admin/categories') }
   catch {
     categories.value = []
     toast.error(t('common.error'))
@@ -38,7 +39,7 @@ async function fetchCategories() {
 onMounted(fetchCategories)
 
 function openCreate() { editingCategory.value = null; modalOpen.value = true }
-function openEdit(c: any) { editingCategory.value = c; modalOpen.value = true }
+function openEdit(c: Category) { editingCategory.value = c; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
 
 async function confirmDelete() {

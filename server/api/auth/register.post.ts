@@ -3,8 +3,12 @@ import { serverSupabaseService } from '../../utils/supabaseServer'
 import { hashPassword } from '../../utils/password'
 import { hashToken } from '../../utils/tokenHash'
 import { sendVerificationEmail } from '../../utils/email'
+import { checkRateLimit } from '../../utils/rateLimit'
+import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
+  checkRateLimit(event, { name: 'register', maxRequests: 5, windowMs: 60 * 1000 })
+
   const body = await readBody<{ email?: string; password?: string; name?: string }>(event)
 
   const name = body.name?.trim() ?? ''
@@ -12,8 +16,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Email, password and name (min 2 chars) are required' })
   }
 
-  if (body.password.length < 6) {
-    throw createError({ statusCode: 400, message: 'Password must be at least 6 characters' })
+  if (!EMAIL_REGEX.test(body.email)) {
+    throw createError({ statusCode: 400, message: 'Invalid email address' })
+  }
+
+  if (body.password.length < PASSWORD_MIN_LENGTH) {
+    throw createError({ statusCode: 400, message: 'Password must be at least 8 characters' })
   }
 
   const email = body.email.toLowerCase().trim()
@@ -22,7 +30,8 @@ export default defineEventHandler(async (event) => {
 
   const { data: existing } = await supabase.from('users').select('id').eq('email', email).maybeSingle()
   if (existing) {
-    throw createError({ statusCode: 409, message: 'EMAIL_TAKEN' })
+    // Return generic success to prevent user enumeration — do NOT reveal email is taken
+    return { ok: true }
   }
 
   const password = body.password

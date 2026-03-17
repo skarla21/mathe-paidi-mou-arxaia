@@ -1,6 +1,7 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAuth } from '../../utils/requireAuth'
 import { hashPassword, verifyPassword } from '../../utils/password'
+import { PASSWORD_MIN_LENGTH } from '../../utils/validation'
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event)
@@ -25,7 +26,7 @@ export default defineEventHandler(async (event) => {
     if (!body.currentPassword || !body.newPassword) {
       throw createError({ statusCode: 400, message: 'Both currentPassword and newPassword are required' })
     }
-    if (typeof body.newPassword !== 'string' || body.newPassword.length < 8) {
+    if (typeof body.newPassword !== 'string' || body.newPassword.length < PASSWORD_MIN_LENGTH) {
       throw createError({ statusCode: 400, message: 'New password must be at least 8 characters' })
     }
 
@@ -62,7 +63,8 @@ export default defineEventHandler(async (event) => {
     .single()
 
   if (error) {
-    throw createError({ statusCode: 500, message: error.message })
+    console.error('[user/profile.patch]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
   }
 
   return data

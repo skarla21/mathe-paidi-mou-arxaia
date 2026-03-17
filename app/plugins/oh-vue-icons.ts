@@ -35,6 +35,10 @@ import {
   BiEye,
   BiEyeSlash,
   BiArrowRepeat,
+  BiExclamationCircle,
+  BiCheckCircleFill,
+  BiEnvelopeExclamation,
+  BiArrowLeft,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -73,6 +77,10 @@ addIcons(
   BiEye,
   BiEyeSlash,
   BiArrowRepeat,
+  BiExclamationCircle,
+  BiCheckCircleFill,
+  BiEnvelopeExclamation,
+  BiArrowLeft,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

@@ -19,6 +19,9 @@ export default defineEventHandler(async (event) => {
     thumbnail_url: body.thumbnail_url ?? null,
     order: body.order ?? 0,
   }).select().single()
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/chapters.post]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data
 })

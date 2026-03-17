@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '~/lib/validation'
 
 const { t } = useI18n()
 const { isOpen, activeTab, loginSubView, pendingRedirect, close, openForgot, backToLogin } = useAuthModal()
@@ -41,9 +42,8 @@ async function onGoogleLogin() {
 
 async function onLoginSubmit() {
   loginErrors.value = {}
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(loginEmail.value)) loginErrors.value.email = t('auth.validation.emailInvalid')
-  if (loginPassword.value.length < 6) loginErrors.value.password = t('auth.validation.passwordMin')
+  if (!EMAIL_REGEX.test(loginEmail.value)) loginErrors.value.email = t('auth.validation.emailInvalid')
+  if (loginPassword.value.length < PASSWORD_MIN_LENGTH) loginErrors.value.password = t('auth.validation.passwordMin')
   if (Object.keys(loginErrors.value).length > 0) return
 
   loginLoading.value = true
@@ -81,8 +81,7 @@ async function onLoginSubmit() {
 
 async function onForgotSubmit() {
   forgotError.value = ''
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  if (!emailRegex.test(forgotEmail.value)) {
+  if (!EMAIL_REGEX.test(forgotEmail.value)) {
     forgotError.value = t('auth.validation.emailInvalid')
     return
   }
@@ -107,10 +106,9 @@ async function onForgotSubmit() {
 
 async function onRegisterSubmit() {
   registerErrors.value = {}
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (registerName.value.trim().length < 2) registerErrors.value.name = t('auth.validation.nameMin')
-  if (!emailRegex.test(registerEmail.value)) registerErrors.value.email = t('auth.validation.emailInvalid')
-  if (registerPassword.value.length < 6) registerErrors.value.password = t('auth.validation.passwordMin')
+  if (!EMAIL_REGEX.test(registerEmail.value)) registerErrors.value.email = t('auth.validation.emailInvalid')
+  if (registerPassword.value.length < PASSWORD_MIN_LENGTH) registerErrors.value.password = t('auth.validation.passwordMin')
   if (Object.keys(registerErrors.value).length > 0) return
 
   registerLoading.value = true

@@ -12,22 +12,23 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminSubjectModal from '~/components/admin/SubjectModal.vue'
+import type { Subject } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.subjectsTitle')}` }))
 
-const subjects = ref<any[]>([])
+const subjects = ref<Subject[]>([])
 const loading = ref(true)
 const modalOpen = ref(false)
-const editingSubject = ref<any>(null)
+const editingSubject = ref<Subject | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
 
 async function fetchSubjects() {
   loading.value = true
-  try { subjects.value = await $fetch<any[]>('/api/admin/subjects') }
+  try { subjects.value = await $fetch<Subject[]>('/api/admin/subjects') }
   catch {
     subjects.value = []
     toast.error(t('common.error'))
@@ -38,7 +39,7 @@ async function fetchSubjects() {
 onMounted(fetchSubjects)
 
 function openCreate() { editingSubject.value = null; modalOpen.value = true }
-function openEdit(s: any) { editingSubject.value = s; modalOpen.value = true }
+function openEdit(s: Subject) { editingSubject.value = s; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
 
 async function confirmDelete() {

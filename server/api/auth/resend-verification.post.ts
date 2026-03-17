@@ -3,10 +3,13 @@ import { serverSupabaseService } from '../../utils/supabaseServer'
 import { hashToken } from '../../utils/tokenHash'
 import { sendVerificationEmail } from '../../utils/email'
 import { requireAuth } from '../../utils/requireAuth'
+import { checkRateLimit } from '../../utils/rateLimit'
 
 const RESEND_COOLDOWN_MS = 60_000
 
 export default defineEventHandler(async (event) => {
+  checkRateLimit(event, { name: 'resend-verification', maxRequests: 5, windowMs: 60 * 60 * 1000 })
+
   const userId = requireAuth(event)
   const supabase = serverSupabaseService()
 

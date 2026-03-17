@@ -7,6 +7,9 @@ export default defineEventHandler(async (event) => {
   if (!name?.trim() || !grade_id) throw createError({ statusCode: 400, message: 'name and grade_id required' })
   const supabase = serverSupabaseService()
   const { data, error } = await supabase.from('subjects').insert({ name: name.trim(), grade_id }).select().single()
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  if (error) {
+    console.error('[admin/subjects.post]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data
 })

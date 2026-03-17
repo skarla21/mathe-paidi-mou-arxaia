@@ -1,4 +1,4 @@
-import { serverSupabaseService } from '../utils/supabaseServer'
+import { serverSupabaseAnon } from '../utils/supabaseServer'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
   if (!q || q.length < 2) {
     return []
   }
-  const supabase = serverSupabaseService()
+  const supabase = serverSupabaseAnon()
   const pattern = `%${q}%`
   const [chaptersRes, lessonsRes] = await Promise.all([
     supabase.from('chapters').select('id, title').ilike('title', pattern).limit(10),

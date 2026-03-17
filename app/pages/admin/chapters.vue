@@ -12,22 +12,23 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminChapterModal from '~/components/admin/ChapterModal.vue'
+import type { Chapter } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.chaptersTitle')}` }))
 
-const chapters = ref<any[]>([])
+const chapters = ref<Chapter[]>([])
 const loading = ref(true)
 const modalOpen = ref(false)
-const editingChapter = ref<any>(null)
+const editingChapter = ref<Chapter | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
 
 async function fetchChapters() {
   loading.value = true
-  try { chapters.value = await $fetch<any[]>('/api/admin/chapters') }
+  try { chapters.value = await $fetch<Chapter[]>('/api/admin/chapters') }
   catch {
     chapters.value = []
     toast.error(t('common.error'))
@@ -38,7 +39,7 @@ async function fetchChapters() {
 onMounted(fetchChapters)
 
 function openCreate() { editingChapter.value = null; modalOpen.value = true }
-function openEdit(c: any) { editingChapter.value = c; modalOpen.value = true }
+function openEdit(c: Chapter) { editingChapter.value = c; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
 
 async function confirmDelete() {

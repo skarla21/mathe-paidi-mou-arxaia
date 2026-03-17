@@ -2,18 +2,19 @@
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
 import AdminUserDetailModal from '~/components/admin/UserDetailModal.vue'
+import type { User } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.usersTitle')}` }))
 
-const users = ref<any[]>([])
+const users = ref<User[]>([])
 const loading = ref(true)
 const detailUserId = ref<string | null>(null)
 
 async function fetchUsers() {
   loading.value = true
-  try { users.value = await $fetch<any[]>('/api/admin/users') }
+  try { users.value = await $fetch<User[]>('/api/admin/users') }
   catch {
     users.value = []
     toast.error(t('common.error'))
@@ -23,7 +24,7 @@ async function fetchUsers() {
 
 onMounted(fetchUsers)
 
-async function toggleAdmin(user: any) {
+async function toggleAdmin(user: User) {
   try {
     await $fetch(`/api/admin/users/${user.id}`, { method: 'PATCH', body: { isAdmin: !user.isAdmin } })
     user.isAdmin = !user.isAdmin
@@ -69,6 +70,9 @@ async function toggleAdmin(user: any) {
             <td class="px-4 py-3 text-center">
               <button
                 type="button"
+                role="switch"
+                :aria-checked="u.isAdmin"
+                :aria-label="t('admin.field.isAdmin')"
                 class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
                 :class="u.isAdmin ? 'bg-primary' : 'bg-border'"
                 @click="toggleAdmin(u)"

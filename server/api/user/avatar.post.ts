@@ -47,6 +47,15 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Validate image magic bytes
+  const bytes = new Uint8Array(file.data)
+  const isJpeg = bytes[0] === 0xFF && bytes[1] === 0xD8
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
+  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  if (!isJpeg && !isPng && !isWebp) {
+    throw createError({ statusCode: 400, message: "Invalid image file" })
+  }
+
   if (file.data.length > MAX_SIZE) {
     throw createError({ statusCode: 400, message: "File too large (max 2MB)" });
   }
@@ -85,7 +94,8 @@ export default defineEventHandler(async (event) => {
     });
 
   if (uploadError) {
-    throw createError({ statusCode: 500, message: uploadError.message });
+    console.error('[user/avatar.post] Upload failed:', uploadError.message)
+    throw createError({ statusCode: 500, message: 'File upload failed' });
   }
 
   const { data: urlData } = supabase.storage
@@ -99,7 +109,8 @@ export default defineEventHandler(async (event) => {
     .eq("id", userId);
 
   if (updateError) {
-    throw createError({ statusCode: 500, message: updateError.message });
+    console.error('[user/avatar.post] DB update failed:', updateError.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' });
   }
 
   return { avatar_url };

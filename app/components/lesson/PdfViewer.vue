@@ -11,7 +11,7 @@ const pageNum = ref(1)
 const totalPages = ref(0)
 const scale = ref(1.2)
 const loading = ref(true)
-let pdfDoc: any = null
+let pdfDoc: import('pdfjs-dist').PDFDocumentProxy | null = null
 let pdfjs: typeof import('pdfjs-dist') | null = null
 
 async function loadPdf() {
@@ -45,7 +45,7 @@ async function renderPage() {
   canvas.width = viewport.width
   container.value.innerHTML = ''
   container.value.appendChild(canvas)
-  await page.render({ canvasContext: ctx, viewport }).promise
+  await page.render({ canvasContext: ctx, viewport, canvas } as Parameters<typeof page.render>[0]).promise
 }
 
 function prev() {

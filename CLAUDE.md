@@ -40,7 +40,7 @@ Skills provide **design principles, workflows, and quality standards**. Agents p
 | PDF rendering | pdfjs-dist (dynamic import, client-only)                   |
 | Icons         | oh-vue-icons, Bootstrap icon set — `<VIcon name="bi-*" />` |
 | Toasts        | vue-sonner — `toast.*()`                                   |
-| Email         | Resend (contact form, verification, password reset)       |
+| Email         | Resend (contact form, verification, password reset)        |
 | i18n          | Custom `useI18n()` composable — NOT Nuxt i18n module       |
 | Theme         | Custom `useTheme()` composable — class on `<html>`         |
 
@@ -195,15 +195,6 @@ Tables: `users`, `grades`, `subjects`, `courses`, `lessons`, `purchases`
 const supabase = serverSupabaseService(); // admin/server — bypasses RLS
 const supabase = serverSupabaseAnon(); // public reads — respects RLS
 ```
-
----
-
-## Known Critical TODOs
-
-1. **Admin routes unprotected** — add `requireAdmin(event)` to ALL `/server/api/admin/*` handlers
-2. **i18n violations** — migrate hardcoded strings in course, lesson, admin, profile, dashboard pages
-3. **`alert()` in course/[courseId].vue** — replace with `toast.error(t('...'))`
-4. **`useHead` hardcoded titles** — use `useHead(() => ({ title: t('page.title') }))`
 
 ---
 

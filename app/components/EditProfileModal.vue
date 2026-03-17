@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
+import { AVATAR_MAX_SIZE, PASSWORD_MIN_LENGTH } from '~/lib/validation'
 import UiButton from '~/components/ui/Button.vue'
 import UiDialog from '~/components/ui/dialog/Dialog.vue'
 import UiDialogPortal from '~/components/ui/dialog/DialogPortal.vue'
 import UiDialogOverlay from '~/components/ui/dialog/DialogOverlay.vue'
 import UiDialogContent from '~/components/ui/dialog/DialogContent.vue'
+import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
 import UiDialogClose from '~/components/ui/dialog/DialogClose.vue'
@@ -90,7 +92,7 @@ async function onAvatarChange(e: Event) {
     input.value = ''
     return
   }
-  if (file.size > 2 * 1024 * 1024) {
+  if (file.size > AVATAR_MAX_SIZE) {
     toast.error(t('profile.edit.avatarSizeError'))
     input.value = ''
     return
@@ -125,7 +127,7 @@ async function onAvatarChange(e: Event) {
 
 async function onSubmit() {
   if (isCredentials.value && newPassword.value) {
-    if (newPassword.value.length < 8) {
+    if (newPassword.value.length < PASSWORD_MIN_LENGTH) {
       toast.error(t('profile.edit.passwordMin'))
       return
     }
@@ -178,7 +180,7 @@ async function onSubmit() {
     <UiDialogPortal>
       <UiDialogOverlay />
       <UiDialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
-
+        <UiDialogDescription class="sr-only">{{ t('profile.edit.title') }}</UiDialogDescription>
         <UiDialogHeader>
           <div class="flex items-center justify-between mb-4">
             <UiDialogTitle class="text-xl font-bold font-heading">

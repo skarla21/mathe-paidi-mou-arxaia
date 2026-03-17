@@ -12,22 +12,23 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminGradeModal from '~/components/admin/GradeModal.vue'
+import type { Grade } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.gradesTitle')}` }))
 
-const grades = ref<any[]>([])
+const grades = ref<Grade[]>([])
 const loading = ref(true)
 const modalOpen = ref(false)
-const editingGrade = ref<any>(null)
+const editingGrade = ref<Grade | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
 
 async function fetchGrades() {
   loading.value = true
-  try { grades.value = await $fetch<any[]>('/api/admin/grades') }
+  try { grades.value = await $fetch<Grade[]>('/api/admin/grades') }
   catch {
     grades.value = []
     toast.error(t('common.error'))
@@ -38,7 +39,7 @@ async function fetchGrades() {
 onMounted(fetchGrades)
 
 function openCreate() { editingGrade.value = null; modalOpen.value = true }
-function openEdit(g: any) { editingGrade.value = g; modalOpen.value = true }
+function openEdit(g: Grade) { editingGrade.value = g; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
 
 async function confirmDelete() {

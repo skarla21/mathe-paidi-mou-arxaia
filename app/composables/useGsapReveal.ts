@@ -1,16 +1,17 @@
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-
-if (import.meta.client) {
-  gsap.registerPlugin(ScrollTrigger)
-}
-
 export function useGsapReveal() {
-  function revealSection(
+  async function getGsap() {
+    const { default: gsap } = await import('gsap')
+    const { ScrollTrigger } = await import('gsap/ScrollTrigger')
+    gsap.registerPlugin(ScrollTrigger)
+    return { gsap, ScrollTrigger }
+  }
+
+  async function revealSection(
     el: HTMLElement | string,
     opts?: { y?: number; duration?: number; stagger?: number; ease?: string; scroller?: HTMLElement }
   ) {
-    if (import.meta.server) return
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
     if (!target) return
@@ -38,12 +39,13 @@ export function useGsapReveal() {
     )
   }
 
-  function revealStagger(
+  async function revealStagger(
     container: HTMLElement | string,
     childSelector: string,
     opts?: { y?: number; duration?: number; stagger?: number; ease?: string; scroller?: HTMLElement }
   ) {
-    if (import.meta.server) return
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const el: HTMLElement | null =
       typeof container === 'string' ? document.querySelector<HTMLElement>(container) : container
     if (!el) return
@@ -73,12 +75,13 @@ export function useGsapReveal() {
     )
   }
 
-  function animateHero(
+  async function animateHero(
     title: HTMLElement | string,
     lead: HTMLElement | string,
     cta?: HTMLElement | string
   ) {
-    if (import.meta.server) return
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const t: HTMLElement | null =
       typeof title === 'string' ? document.querySelector<HTMLElement>(title) : title
     const l: HTMLElement | null =
@@ -95,16 +98,18 @@ export function useGsapReveal() {
     }
   }
 
-  function iconWiggle(el: HTMLElement | string) {
-    if (import.meta.server) return
+  async function iconWiggle(el: HTMLElement | string) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
     if (!target) return
     gsap.to(target, { rotation: 3, duration: 0.1, yoyo: true, repeat: 1, ease: 'power2.inOut' })
   }
 
-  function animateBadge(el: HTMLElement | string) {
-    if (import.meta.server) return
+  async function animateBadge(el: HTMLElement | string) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
     if (!target) return
@@ -115,8 +120,9 @@ export function useGsapReveal() {
     )
   }
 
-  function parallaxBlobs(container: HTMLElement | string, scroller?: HTMLElement) {
-    if (import.meta.server) return
+  async function parallaxBlobs(container: HTMLElement | string, scroller?: HTMLElement) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const el: HTMLElement | null =
       typeof container === 'string' ? document.querySelector<HTMLElement>(container) : container
     if (!el) return
@@ -130,8 +136,9 @@ export function useGsapReveal() {
     gsap.to(el, { y: 80, scrollTrigger })
   }
 
-  function heroFadeOnScroll(heroEl: HTMLElement | string, scroller?: HTMLElement) {
-    if (import.meta.server) return
+  async function heroFadeOnScroll(heroEl: HTMLElement | string, scroller?: HTMLElement) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof heroEl === 'string' ? document.querySelector<HTMLElement>(heroEl) : heroEl
     if (!target) return
@@ -145,8 +152,9 @@ export function useGsapReveal() {
     gsap.to(target, { opacity: 0, scrollTrigger })
   }
 
-  function dropdownEnter(el: HTMLElement | string) {
-    if (import.meta.server) return
+  async function dropdownEnter(el: HTMLElement | string) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
     if (!target) return
@@ -157,8 +165,9 @@ export function useGsapReveal() {
     )
   }
 
-  function dropdownExit(el: HTMLElement | string, onComplete?: () => void) {
-    if (import.meta.server) return
+  async function dropdownExit(el: HTMLElement | string, onComplete?: () => void) {
+    if (!import.meta.client) return
+    const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
     if (!target) return
@@ -182,7 +191,5 @@ export function useGsapReveal() {
     heroFadeOnScroll,
     dropdownEnter,
     dropdownExit,
-    gsap,
-    ScrollTrigger,
   }
 }

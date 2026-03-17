@@ -4,6 +4,7 @@ import { requireAdmin } from '../../../utils/requireAdmin'
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
+  if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
   const body = await readBody<{
     title?: string; content?: string; is_free?: boolean; price?: number
     pdf_url?: string; order?: number
@@ -32,7 +33,10 @@ export default defineEventHandler(async (event) => {
   if (body.category_id !== undefined) updates.category_id = body.category_id
   if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Nothing to update' })
   const supabase = serverSupabaseService()
-  const { data, error } = await supabase.from('lessons').update(updates).eq('id', id!).select().single()
-  if (error) throw createError({ statusCode: 500, message: error.message })
+  const { data, error } = await supabase.from('lessons').update(updates).eq('id', id).select().single()
+  if (error) {
+    console.error('[admin/lessons/[id].patch]', error.message)
+    throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
   return data
 })

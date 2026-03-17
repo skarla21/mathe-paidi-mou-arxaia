@@ -2,7 +2,8 @@ import { Auth } from "@auth/core";
 import { getAuthOptions } from "../utils/authOptions";
 
 export default defineEventHandler(async (event) => {
-  if (event.path?.startsWith("/api/auth")) {
+  // Skip only for session endpoint to avoid recursion when resolving session
+  if (event.path === "/api/auth/session") {
     return;
   }
 
