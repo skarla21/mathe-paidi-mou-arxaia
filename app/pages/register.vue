@@ -12,18 +12,20 @@ definePageMeta({
 })
 
 const { t } = useI18n()
+const { signInWithGoogle } = useGoogleSignIn()
 
 useHead(() => ({
   title: t('auth.register.title'),
 }))
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const pendingToast = useState<string | null>('pendingToast', () => null)
 
 async function onGoogleSignup() {
-  await navigateTo('/api/auth/signin/google', { external: true })
+  await signInWithGoogle("/")
 }
 
 async function onSubmit() {
@@ -32,6 +34,7 @@ async function onSubmit() {
     const result = await $fetch<{ error?: string }>('/api/auth/register', {
       method: 'POST',
       body: {
+        name: name.value.trim(),
         email: email.value,
         password: password.value,
       },
@@ -100,6 +103,11 @@ async function onSubmit() {
         </UiCardHeader>
         <UiCardContent class="space-y-4 pt-0">
           <form class="space-y-4" @submit.prevent="onSubmit">
+            <div class="space-y-2">
+              <UiLabel for="name">{{ t('auth.register.name') }}</UiLabel>
+              <UiInput id="name" v-model="name" type="text" required minlength="2" />
+            </div>
+
             <div class="space-y-2">
               <UiLabel for="email">{{ t('auth.register.email') }}</UiLabel>
               <UiInput id="email" v-model="email" type="email" required />

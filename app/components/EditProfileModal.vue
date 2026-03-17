@@ -28,6 +28,28 @@ const loading = ref(false)
 
 const provider = computed(() => session.value.user?.provider ?? 'credentials')
 const isCredentials = computed(() => provider.value === 'credentials')
+const emailVerified = computed(() => !!session.value.user?.email_verified)
+const resendVerificationLoading = ref(false)
+
+async function resendVerification() {
+  resendVerificationLoading.value = true
+  try {
+    await $fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'include' })
+    await fetchSession()
+    toast.success(t('auth.verification.resendSuccess'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string; statusCode?: number }; statusCode?: number } | null
+    const status = err?.statusCode ?? err?.data?.statusCode
+    const msg = err?.data?.message ?? ''
+    if (status === 429) {
+      toast.error(t('auth.verification.resendCooldown'))
+    } else {
+      toast.error(msg === 'Email already verified' ? t('auth.verification.verified') : (msg || t('auth.verification.resendError')))
+    }
+  } finally {
+    resendVerificationLoading.value = false
+  }
+}
 
 const joinedAt = computed(() => {
   const raw = session.value.user?.created_at
@@ -237,6 +259,28 @@ async function onSubmit() {
                   <div v-if="joinedAt" class="flex items-center gap-2 text-foreground">
                     <VIcon name="bi-journal-bookmark" class="size-4 shrink-0 text-muted-foreground" />
                     <span class="text-xs">{{ t('profile.edit.joinedAt') }}: {{ joinedAt }}</span>
+                  </div>
+                  <div v-if="isCredentials" class="flex flex-col gap-1.5">
+                    <div v-if="emailVerified" class="flex items-center gap-2 text-foreground">
+                      <VIcon name="bi-check-circle-fill" class="size-4 shrink-0 text-green-600 dark:text-green-500" />
+                      <span class="text-xs">{{ t('auth.verification.verified') }}</span>
+                    </div>
+                    <template v-else>
+                      <div class="flex items-center gap-2 text-foreground">
+                        <VIcon name="bi-exclamation-circle" class="size-4 shrink-0 text-amber-600 dark:text-amber-500" />
+                        <span class="text-xs">{{ t('auth.verification.notVerified') }}</span>
+                      </div>
+                      <UiButton
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        class="h-7 text-xs"
+                        :disabled="resendVerificationLoading"
+                        @click="resendVerification"
+                      >
+                        {{ resendVerificationLoading ? t('common.loading') : t('auth.verification.resendVerification') }}
+                      </UiButton>
+                    </template>
                   </div>
                 </div>
               </div>

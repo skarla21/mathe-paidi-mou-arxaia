@@ -42,7 +42,7 @@ onMounted(ensure);
 function onLogoHover() {
   if (import.meta.client && logoRef.value) {
     const { iconWiggle } = useGsapReveal();
-    iconWiggle(logoRef.value);
+    iconWiggle(logoRef.value as HTMLElement);
   }
 }
 

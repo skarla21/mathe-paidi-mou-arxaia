@@ -89,7 +89,7 @@ const mobileMenuOpen = ref(false)
         <div class="p-4 border-b">
           <NuxtLink to="/admin" class="font-heading font-semibold text-lg">{{ t('admin.nav') }}</NuxtLink>
         </div>
-        <nav aria-label="Admin navigation" class="p-2 flex-1 space-y-4">
+        <nav :aria-label="t('admin.navAria')" class="p-2 flex-1 space-y-4">
           <div>
             <NuxtLink
               to="/admin"

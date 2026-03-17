@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DOMPurify from 'dompurify'
 import { toast } from 'vue-sonner'
 import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
 import UiButton from '~/components/ui/Button.vue'
@@ -18,6 +19,7 @@ interface Lesson {
 
 interface LessonResponse extends Lesson {
   can_access: boolean
+  can_access_content: boolean
 }
 
 const route = useRoute()
@@ -26,26 +28,25 @@ const { t } = useI18n()
 
 const lesson = ref<Lesson | null>(null)
 const canAccess = ref(false)
+const canAccessContent = ref(false)
 const purchasing = ref(false)
 
 const { data } = await useFetch<LessonResponse>(`/api/lessons/${lessonId}`)
 if (data.value) {
-  const { can_access, ...rest } = data.value
+  const { can_access, can_access_content, ...rest } = data.value
   lesson.value = rest
   canAccess.value = can_access
+  canAccessContent.value = can_access_content
 }
 
-// Minimal sanitization — strips script tags and event handlers
-function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/\s+on\w+="[^"]*"/gi, '')
-    .replace(/\s+on\w+='[^']*'/gi, '')
-}
-
-const safeContent = computed(() =>
-  lesson.value?.content ? sanitizeHtml(lesson.value.content) : '',
-)
+const safeContent = computed(() => {
+  const html = lesson.value?.content
+  if (!html) return ''
+  if (import.meta.client) {
+    return DOMPurify.sanitize(html, { ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'blockquote', 'code', 'pre'] })
+  }
+  return ''
+})
 
 async function buyLesson() {
   purchasing.value = true
@@ -89,13 +90,41 @@ onMounted(() => {
       <h1 id="lesson-title" class="font-heading text-3xl font-bold">
         {{ lesson.title }}
       </h1>
-      <div
-        v-if="safeContent"
-        class="mt-4 prose dark:prose-invert max-w-none"
-        v-html="safeContent"
-      />
-      <div v-if="canAccess && lesson.pdf_url" class="mt-8">
+      <ClientOnly v-if="lesson.content">
+        <div
+          v-if="safeContent"
+          class="mt-4 prose dark:prose-invert max-w-none"
+          v-html="safeContent"
+        />
+        <template #fallback>
+          <div class="mt-4 h-64 animate-pulse rounded-xl bg-muted" />
+        </template>
+      </ClientOnly>
+      <div v-if="canAccess && canAccessContent && lesson.pdf_url" class="mt-8">
         <LessonPdfViewer :src="lesson.pdf_url" />
+      </div>
+      <div
+        v-else-if="canAccess && !canAccessContent && lesson.pdf_url"
+        class="mt-8 flex flex-col items-center gap-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-8 text-center max-w-md"
+      >
+        <span
+          class="flex size-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-500"
+        >
+          <VIcon name="bi-envelope-exclamation" class="size-7" aria-hidden="true" />
+        </span>
+        <div>
+          <h3 class="font-heading text-xl font-bold text-foreground">
+            {{ t('lesson.verifyToAccessContent') }}
+          </h3>
+          <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
+            {{ t('lesson.verifyToAccessContentDescription') }}
+          </p>
+        </div>
+        <NuxtLink to="/profile/edit">
+          <UiButton variant="outline">
+            {{ t('nav.editProfile') }}
+          </UiButton>
+        </NuxtLink>
       </div>
       <div
         v-else-if="lesson.pdf_url && !canAccess"

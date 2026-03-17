@@ -29,7 +29,10 @@ const deleteLoading = ref(false)
 async function fetchLessons() {
   loading.value = true
   try { lessons.value = await $fetch<any[]>('/api/admin/lessons') }
-  catch { lessons.value = [] }
+  catch {
+    lessons.value = []
+    toast.error(t('common.error'))
+  }
   finally { loading.value = false }
 }
 
@@ -46,8 +49,9 @@ async function confirmDelete() {
     await $fetch(`/api/admin/lessons/${deletingId.value}`, { method: 'DELETE' })
     await fetchLessons()
     deleteDialogOpen.value = false
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     deleteLoading.value = false
   }
@@ -68,18 +72,18 @@ async function confirmDelete() {
             <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.title') }}</th>
             <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.assignedTo') }}</th>
             <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.isFree') }}</th>
-            <th class="px-4 py-3 text-center font-medium">PDF</th>
+            <th class="px-4 py-3 text-center font-medium">{{ t('admin.field.pdf') }}</th>
             <th class="px-4 py-3 text-right font-medium"/>
           </tr>
         </thead>
         <tbody>
           <tr v-for="l in lessons" :key="l.id" class="border-b last:border-0 hover:bg-muted/30">
             <td class="px-4 py-3 font-medium">{{ l.title }}</td>
-            <td class="px-4 py-3 text-muted-foreground">{{ l.chapters?.title ?? l.subjects?.name ?? l.categories?.name ?? '—' }}</td>
+            <td class="px-4 py-3 text-muted-foreground">{{ l.chapters?.title ?? l.subjects?.name ?? l.categories?.name ?? t('common.empty') }}</td>
             <td class="px-4 py-3">
               <UiBadge :variant="l.is_free ? 'secondary' : 'default'">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</UiBadge>
             </td>
-            <td class="px-4 py-3 text-center">{{ l.pdf_url ? '✓' : '✗' }}</td>
+            <td class="px-4 py-3 text-center">{{ l.pdf_url ? t('admin.field.yes') : t('admin.field.no') }}</td>
             <td class="px-4 py-3 text-right space-x-2">
               <UiButton size="sm" variant="outline" @click="openEdit(l)">{{ t('admin.modal.edit') }}</UiButton>
               <UiButton size="sm" variant="destructive" @click="openDelete(l.id)">{{ t('admin.modal.delete') }}</UiButton>

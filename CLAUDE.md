@@ -40,6 +40,7 @@ Skills provide **design principles, workflows, and quality standards**. Agents p
 | PDF rendering | pdfjs-dist (dynamic import, client-only)                   |
 | Icons         | oh-vue-icons, Bootstrap icon set — `<VIcon name="bi-*" />` |
 | Toasts        | vue-sonner — `toast.*()`                                   |
+| Email         | Resend (contact form, verification, password reset)       |
 | i18n          | Custom `useI18n()` composable — NOT Nuxt i18n module       |
 | Theme         | Custom `useTheme()` composable — class on `<html>`         |
 
@@ -79,10 +80,10 @@ public/locales/  # en.json, el.json (server-side copies)
 ## Dev Commands
 
 ```bash
-npm run dev        # start dev server at http://localhost:3000
-npm run build      # production build
-npm run preview    # preview production build
-npm run check      # typecheck + eslint fix (run after every new feature)
+pnpm dev           # start dev server at http://localhost:3000
+pnpm build         # production build
+pnpm preview       # preview production build
+pnpm check         # typecheck + eslint fix (run after every new feature)
 ```
 
 Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_` for server-only.
@@ -92,7 +93,7 @@ Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_`
 ## CRITICAL — Git / Remote Rules
 
 - **NEVER push to the remote repository** — commits are local-only. Do NOT run `git push`, `git push --force`, or any command that publishes to a remote.
-- **After every new feature**, run `npm run check` (typecheck + ESLint fix) before committing.
+- **After every new feature**, run `pnpm check` (typecheck + ESLint fix) before committing.
 
 ---
 

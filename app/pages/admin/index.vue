@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { toast } from 'vue-sonner'
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiCardHeader from '~/components/ui/CardHeader.vue'
@@ -12,17 +13,20 @@ const loading = ref(true)
 
 onMounted(async () => {
   try { stats.value = await $fetch<any>('/api/admin/stats') }
-  catch { /* render empty */ }
+  catch {
+    stats.value = null
+    toast.error(t('common.error'))
+  }
   finally { loading.value = false }
 })
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
+  if (mins < 60) return t('common.timeAgo.mins', { n: mins })
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
+  if (hrs < 24) return t('common.timeAgo.hours', { n: hrs })
+  return t('common.timeAgo.days', { n: Math.floor(hrs / 24) })
 }
 </script>
 
@@ -35,7 +39,7 @@ function timeAgo(dateStr: string) {
         <UiCard
 v-for="card in [
           { label: t('admin.stats.totalUsers'), value: stats.totalUsers, icon: 'bi-people' },
-          { label: t('admin.stats.totalLessons'), value: stats.totalLessons, icon: 'bi-journal-text' },
+          { label: t('admin.stats.totalContent'), value: stats.totalLessons, icon: 'bi-journal-text' },
           { label: t('admin.stats.downloads'), value: stats.downloads, icon: 'bi-download' },
           { label: t('admin.stats.revenue'), value: `€${stats.revenue}`, icon: 'bi-currency-euro' },
         ]" :key="card.label">
@@ -57,7 +61,7 @@ v-for="card in [
             <p v-if="!stats.recentDownloads.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
             <ul v-else class="space-y-2">
               <li v-for="d in stats.recentDownloads" :key="d.id" class="flex items-center justify-between text-sm">
-                <span class="truncate">{{ d.users?.name ?? '—' }} — {{ d.lessons?.title ?? '—' }}</span>
+                <span class="truncate">{{ d.users?.name ?? t('common.empty') }} — {{ d.lessons?.title ?? t('common.empty') }}</span>
                 <span class="ml-2 shrink-0 text-xs text-muted-foreground">{{ timeAgo(d.downloaded_at) }}</span>
               </li>
             </ul>

@@ -41,8 +41,9 @@ async function onSubmit() {
     }
     emit('saved')
     emit('close')
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     loading.value = false
   }
@@ -65,7 +66,7 @@ async function onSubmit() {
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
             <select v-model="gradeId" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select grade…</option>
+              <option value="" disabled>{{ t('admin.selectGrade') }}</option>
               <option v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</option>
             </select>
           </div>

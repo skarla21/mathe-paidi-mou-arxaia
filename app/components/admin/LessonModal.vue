@@ -81,8 +81,9 @@ async function onSubmit() {
       await $fetch('/api/admin/lessons', { method: 'POST', body })
     }
     emit('saved'); emit('close')
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     loading.value = false
   }
@@ -116,7 +117,7 @@ async function onSubmit() {
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.pdfUrl') }}</UiLabel>
-            <UiInput v-model="pdfUrl" placeholder="https://..." />
+            <UiInput v-model="pdfUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.order') }}</UiLabel>
@@ -139,21 +140,21 @@ async function onSubmit() {
           <div v-if="assignment === 'chapter'" class="space-y-1.5">
             <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
             <select v-model="chapterId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select chapter…</option>
+              <option value="" disabled>{{ t('admin.selectChapter') }}</option>
               <option v-for="c in chapters" :key="c.id" :value="c.id">{{ c.title }}</option>
             </select>
           </div>
           <div v-if="assignment === 'subject'" class="space-y-1.5">
             <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
             <select v-model="subjectId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select subject…</option>
+              <option value="" disabled>{{ t('admin.selectSubject') }}</option>
               <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
           </div>
           <div v-if="assignment === 'category'" class="space-y-1.5">
             <UiLabel>{{ t('admin.field.category') }}</UiLabel>
             <select v-model="categoryId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select category…</option>
+              <option value="" disabled>{{ t('admin.selectCategory') }}</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
             </select>
           </div>

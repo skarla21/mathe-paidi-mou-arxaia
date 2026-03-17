@@ -40,8 +40,9 @@ async function onSubmit() {
     }
     emit('saved')
     emit('close')
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     loading.value = false
   }

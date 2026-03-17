@@ -82,6 +82,14 @@
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
+    "empty": "—",
+    "yes": "Yes",
+    "no": "No",
+    "timeAgo": {
+      "mins": "{n}m ago",
+      "hours": "{n}h ago",
+      "days": "{n}d ago"
+    },
     "close": "Close",
     "passwordShow": "Show password",
     "passwordHide": "Hide password"
@@ -105,7 +113,9 @@
       "title": "Unlock this content",
       "description": "Buy this content to access the PDF.",
       "cta": "Buy this content"
-    }
+    },
+    "verifyToAccessContent": "Verify your email to access content",
+    "verifyToAccessContentDescription": "You need to verify your email before you can view or download content."
   },
   "category": {
     "title": "Category",
@@ -197,6 +207,7 @@
     "gradesTitle": "Grades",
     "gradesLoading": "Loading...",
     "gradesEmpty": "No grades. Create them via API or admin CRUD.",
+    "purchasesEmpty": "No purchases yet.",
     "chaptersTitle": "Chapters",
     "subjectsTitle": "Subjects",
     "subjectsEmpty": "No subjects. Create the first one.",
@@ -252,8 +263,19 @@
       "joinedAt": "Joined",
       "downloads": "Downloads",
       "purchases": "Purchases",
-      "stripeId": "Stripe ID"
+      "stripeId": "Stripe ID",
+      "pdf": "PDF",
+      "yes": "Yes",
+      "no": "No"
     },
+    "selectChapter": "Select chapter…",
+    "selectSubject": "Select subject…",
+    "selectCategory": "Select category…",
+    "selectGrade": "Select grade…",
+    "placeholder": {
+      "url": "https://..."
+    },
+    "navAria": "Admin navigation",
     "assignChapter": "Part of a chapter",
     "assignCategory": "Standalone category",
     "assignSubject": "Standalone subject lesson",
@@ -266,11 +288,13 @@
   "pdf": {
     "prev": "Prev",
     "next": "Next",
-    "loading": "Loading PDF…"
+    "loading": "Loading PDF…",
+    "loadError": "Failed to load PDF"
   },
   "search": {
     "placeholder": "Search for chapters or content...",
     "loading": "Searching...",
+    "error": "Search failed",
     "type": {
       "chapter": "Chapter",
       "lesson": "Content"
@@ -341,6 +365,7 @@
       "title": "Register",
       "subtitle": "Create a student account to get started.",
       "google": "Sign up with Google",
+      "name": "Full name",
       "email": "Email",
       "password": "Password",
       "submit": "Register",
@@ -352,6 +377,36 @@
       },
       "hasAccount": "Already have an account?",
       "loginLink": "Login"
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "subtitle": "Enter your email and we will send you a link to reset your password.",
+      "email": "Email",
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "success": "Check your email for the reset link.",
+      "link": "Forgot password?",
+      "rateLimited": "Too many requests. Please try again later."
+    },
+    "resetPassword": {
+      "title": "Set new password",
+      "subtitle": "Enter your new password below.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Reset password",
+      "success": "Password has been reset.",
+      "error": "Something went wrong",
+      "invalidLink": "This link is invalid or has expired."
+    },
+    "verification": {
+      "verified": "Email verified",
+      "notVerified": "Email not verified",
+      "resendVerification": "Resend verification email",
+      "resendSuccess": "Verification email sent",
+      "resendError": "Failed to send verification email",
+      "invalidLink": "This verification link is invalid or has expired.",
+      "resendCooldown": "Please wait before requesting another verification email"
     }
   }
 }

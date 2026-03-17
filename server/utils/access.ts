@@ -3,8 +3,10 @@ import { serverSupabaseService } from './supabaseServer'
 export async function canAccessLesson(
   userId: string | null,
   lessonId: string,
+  emailVerified = false,
 ): Promise<{
   allowed: boolean
+  canAccessContent: boolean
   lesson?: {
     id: string
     title: string
@@ -24,16 +26,23 @@ export async function canAccessLesson(
     .select('id, title, content, is_free, price, chapter_id, subject_id, category_id, pdf_url')
     .eq('id', lessonId)
     .single()
-  if (lessonError || !lesson) return { allowed: false }
-  if (lesson.is_free) return { allowed: true, lesson, pdf_url: lesson.pdf_url }
-  if (!userId) return { allowed: false, lesson }
-  const { data: purchase } = await supabase
-    .from('purchases')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('lesson_id', lessonId)
-    .limit(1)
-    .single()
-  const allowed = !!purchase
-  return { allowed, lesson, pdf_url: allowed ? lesson.pdf_url : null }
+  if (lessonError || !lesson) return { allowed: false, canAccessContent: false }
+
+  let hasPurchase = false
+  if (userId) {
+    const { data } = await supabase
+      .from('purchases')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('lesson_id', lessonId)
+      .limit(1)
+      .maybeSingle()
+    hasPurchase = !!data
+  }
+
+  const allowed = lesson.is_free || hasPurchase
+  const canAccessContent = allowed && !!userId && emailVerified
+  const pdf_url = canAccessContent ? lesson.pdf_url : null
+
+  return { allowed, canAccessContent, lesson, pdf_url }
 }

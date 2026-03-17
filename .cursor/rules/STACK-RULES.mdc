@@ -51,8 +51,7 @@ This project MUST strictly use the following technologies:
 
 ## Email
 
-- FormSubmit only
-- No Resend
+- Resend only (contact form, verification, password reset)
 - No SendGrid
 - No email server implementation
 

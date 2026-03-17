@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, onUnmounted } from 'vue'
+import { toast } from 'vue-sonner'
 import UiInput from '~/components/ui/Input.vue'
 import UiPopover from '~/components/ui/popover/Popover.vue'
 import UiPopoverAnchor from '~/components/ui/popover/PopoverAnchor.vue'
@@ -36,6 +37,7 @@ async function search() {
     open.value = true
   } catch {
     results.value = []
+    toast.error(t('search.error'))
   } finally {
     loading.value = false
   }

@@ -104,7 +104,9 @@
       "title": "Unlock this content",
       "description": "Buy this content to access the PDF.",
       "cta": "Buy this content"
-    }
+    },
+    "verifyToAccessContent": "Verify your email to access content",
+    "verifyToAccessContentDescription": "You need to verify your email before you can view or download content."
   },
   "category": {
     "title": "Category",
@@ -326,20 +328,53 @@
       "success": "Signed out"
     },
     "back": "Back",
+    "name": "Full name",
     "register": {
       "title": "Register",
       "subtitle": "Create a student account to get started.",
       "google": "Sign up with Google",
+      "name": "Full name",
       "email": "Email",
       "password": "Password",
       "submit": "Register",
       "submitting": "Registering...",
       "success": "Account created. You can now log in.",
       "error": {
-        "generic": "Unable to register"
+        "generic": "Unable to register",
+        "emailTaken": "This email is already registered"
       },
       "hasAccount": "Already have an account?",
       "loginLink": "Login"
+    },
+    "forgotPassword": {
+      "title": "Reset password",
+      "subtitle": "Enter your email and we will send you a link to reset your password.",
+      "email": "Email",
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "success": "Check your email for the reset link.",
+      "link": "Forgot password?",
+      "rateLimited": "Too many requests. Please try again later."
+    },
+    "resetPassword": {
+      "title": "Set new password",
+      "subtitle": "Enter your new password below.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Reset password",
+      "success": "Password has been reset.",
+      "error": "Something went wrong",
+      "invalidLink": "This link is invalid or has expired."
+    },
+    "verification": {
+      "verified": "Email verified",
+      "notVerified": "Email not verified",
+      "resendVerification": "Resend verification email",
+      "resendSuccess": "Verification email sent",
+      "resendError": "Failed to send verification email",
+      "invalidLink": "This verification link is invalid or has expired.",
+      "resendCooldown": "Please wait before requesting another verification email"
     }
   }
 }

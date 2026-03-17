@@ -4,10 +4,7 @@ import { getAuthOptions } from "../../utils/authOptions";
 export default defineEventHandler(async (event) => {
   const authOptions = getAuthOptions();
   const request = event.node.req;
-  const url = new URL(
-    request.url ?? "",
-    `https://${event.node.req.headers.host}`,
-  );
+  const url = getRequestURL(event);
 
   const hasBody = !["GET", "HEAD"].includes(request.method || "");
   const authRequest = new Request(url.toString(), {

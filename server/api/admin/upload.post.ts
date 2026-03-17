@@ -21,7 +21,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'File too large (max 10MB)' })
   }
   const supabase = serverSupabaseService()
-  const path = `pdfs/${Date.now()}-${file.filename}`
+  const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200)
+  const path = `pdfs/${Date.now()}-${safeName}`
   const { data: upload, error: uploadError } = await supabase.storage
     .from('uploads')
     .upload(path, file.data, { contentType: file.type || 'application/pdf', upsert: false })

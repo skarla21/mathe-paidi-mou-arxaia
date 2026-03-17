@@ -88,19 +88,19 @@ onMounted(async () => {
     nextTick(() => {
       const container = scrollContainerRef.value;
       const scroller = container ?? undefined;
-      sections.value.forEach((s) => revealSection(`#${s.id}`, { scroller }));
-      revealStagger("#information ul", "li", { scroller });
-      revealStagger("#instructions ol", "li", { scroller });
-      revealStagger("#more ul", "li", { scroller });
+      sections.value.forEach((s) => revealSection(`#${s.id}`, { scroller: scroller as HTMLElement | undefined }));
+      revealStagger("#information ul", "li", { scroller: scroller as HTMLElement | undefined });
+      revealStagger("#instructions ol", "li", { scroller: scroller as HTMLElement | undefined });
+      revealStagger("#more ul", "li", { scroller: scroller as HTMLElement | undefined });
       if (gradesGrid.value && grades.value.length > 0) {
-        revealStagger("#grades-grid", "a", { scroller });
+        revealStagger("#grades-grid", "a", { scroller: scroller as HTMLElement | undefined });
       }
       animateBadge("#hero-badge");
       animateHero("#hero-title", "#hero-lead", "#hero-cta");
       const heroBlobs = document.querySelector("#hero-blobs");
       if (heroBlobs && container) {
-        parallaxBlobs("#welcome", container);
-        heroFadeOnScroll("#hero-blobs", container);
+        parallaxBlobs("#welcome", container as HTMLElement);
+        heroFadeOnScroll("#hero-blobs", container as HTMLElement);
       }
 
       if (!container) return;

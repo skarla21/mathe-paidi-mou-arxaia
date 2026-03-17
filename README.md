@@ -11,7 +11,7 @@ Modern educational platform (Nuxt 3, Vue 3, Tailwind, Supabase, Stripe, PDF.js).
 - **Auth:** Auth.js (configure when using Nuxt 3; Nuxt 4–compatible module TBD). Session stub at `/api/auth/session`.
 - **Payments:** Stripe Checkout + webhook
 - **PDF:** PDF.js in lesson viewer
-- **Contact:** FormSubmit (configure action URL in the Communication section)
+- **Contact:** Resend (contact form emails; set NUXT_CONTACT_EMAIL and NUXT_RESEND_API_KEY)
 - **Deploy:** Vercel
 
 ## Setup
@@ -19,7 +19,7 @@ Modern educational platform (Nuxt 3, Vue 3, Tailwind, Supabase, Stripe, PDF.js).
 1. **Install**
 
    ```bash
-   npm install
+   pnpm install
    ```
 
 2. **Environment**
@@ -36,20 +36,20 @@ Modern educational platform (Nuxt 3, Vue 3, Tailwind, Supabase, Stripe, PDF.js).
 
 5. **Run**
    ```bash
-   npm run dev
+   pnpm dev
    ```
 
 ## Routes
 
-- **Public:** `/`, `/grade/[grade]`, `/grade/[grade]/[subject]`, `/course/[id]`, `/lesson/[id]`, `/about`, `/login`, `/register`
+- **Public:** `/`, `/grade/[grade]`, `/grade/[grade]/[subject]`, `/chapter/[id]`, `/lesson/[id]`, `/about`, `/login`, `/register`
 - **Authenticated:** `/dashboard`, `/profile`
-- **Admin:** `/admin`, `/admin/grades`, `/admin/subjects`, `/admin/courses`, `/admin/lessons`, `/admin/uploads`, `/admin/purchases`
+- **Admin:** `/admin`, `/admin/grades`, `/admin/subjects`, `/admin/chapters`, `/admin/lessons`, `/admin/categories`, `/admin/purchases`
 
 Admin middleware is a placeholder (allows all). Wire Auth.js and set `event.context.auth` (e.g. `userId`, `role`) in server middleware so `/admin/*` and Stripe checkout require an admin or logged-in user.
 
 ## Stripe
 
-- Checkout: `POST /api/stripe/checkout` with body `{ courseId }`. Requires auth context with `userId`.
+- Checkout: `POST /api/stripe/checkout` with body `{ lessonId }`. Requires auth context with `userId`.
 - Webhook: `POST /api/stripe/webhook`. Set `STRIPE_WEBHOOK_SECRET` and point Stripe to this URL.
 
 ## i18n & theme

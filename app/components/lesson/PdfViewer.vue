@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
 
 const { t } = useI18n()
@@ -27,6 +28,7 @@ async function loadPdf() {
     await renderPage()
   } catch (e) {
     console.error('PDF load error', e)
+    toast.error(t('pdf.loadError'))
   } finally {
     loading.value = false
   }

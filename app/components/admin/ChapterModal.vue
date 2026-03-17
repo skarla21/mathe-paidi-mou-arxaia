@@ -53,8 +53,9 @@ async function onSubmit() {
     }
     emit('saved')
     emit('close')
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     loading.value = false
   }
@@ -81,13 +82,13 @@ async function onSubmit() {
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
             <select v-model="subjectId" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>Select subject…</option>
+              <option value="" disabled>{{ t('admin.selectSubject') }}</option>
               <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
             </select>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.thumbnailUrl') }}</UiLabel>
-            <UiInput v-model="thumbnailUrl" placeholder="https://..." />
+            <UiInput v-model="thumbnailUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>

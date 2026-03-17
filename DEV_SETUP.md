@@ -9,7 +9,7 @@ This file describes how to run the app locally in **dev** and what you must conf
 From the project root:
 
 ```bash
-npm install
+pnpm install
 ```
 
 This installs Nuxt, Tailwind, GSAP, Supabase client, Stripe SDK, PDF.js, `oh-vue-icons`, etc.
@@ -41,6 +41,10 @@ This installs Nuxt, Tailwind, GSAP, Supabase client, Stripe SDK, PDF.js, `oh-vue
        - Or Node: `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`
        - Use the output as the value (no quotes needed in `.env`).
 
+   - **Resend** (contact form, future verification/password reset)
+     - `NUXT_RESEND_API_KEY` or `RESEND_API_KEY` – your Resend API key (Sending Access permission is sufficient).
+     - `NUXT_CONTACT_EMAIL` – optional; email where contact form messages are sent (defaults to `antwnis_skarlatos@yahoo.com`).
+
 Nuxt reads these via `runtimeConfig` in `nuxt.config.ts`.
 
 ---
@@ -55,7 +59,7 @@ Nuxt reads these via `runtimeConfig` in `nuxt.config.ts`.
 
 This creates:
 
-- Tables: `users`, `grades`, `subjects`, `courses`, `lessons`, `purchases`.
+- Tables: `users`, `grades`, `subjects`, `chapters`, `categories`, `lessons`, `purchases`, `downloads`.
 - Foreign keys and useful indexes.
 - Row-Level Security policies (RLS) so:
   - Public data can be read anonymously.
@@ -75,23 +79,22 @@ To see real content on the first run, insert a minimal set of rows in Supabase (
 
 - One `grade` (e.g. “Grade 1”).
 - One `subject` pointing to that grade.
-- One `course` pointing to that grade + subject:
-  - For easy testing, set `is_free = true` and `price = 0`.
-- One `lesson` for that course (`is_free = true` recommended initially).
+- One `chapter` pointing to that grade + subject.
+- One `lesson` for that chapter (`is_free = true` recommended initially).
 
 With this, the following routes will show real data:
 
 - `/` (Grades cards)
 - `/grade/[grade-id]`
 - `/grade/[grade-id]/[subject-id]`
-- `/course/[course-id]`
+- `/chapter/[chapter-id]`
 - `/lesson/[lesson-id]`
 
 ---
 
 ### 4. Stripe setup (test mode)
 
-You only need Stripe for **paid** courses (`is_free = false`).
+You only need Stripe for **paid** lessons (`is_free = false`).
 
 #### 4.1 Basic configuration
 
@@ -103,7 +106,7 @@ You only need Stripe for **paid** courses (`is_free = false`).
    ```
 
 3. Ensure that in Supabase:
-   - For a paid course, `is_free = false`.
+   - For a paid lesson, `is_free = false`.
    - `price` is set in **cents** (e.g. `1500` = €15.00).
 
 #### 4.2 Webhook
@@ -159,29 +162,19 @@ Auth is implemented with **Auth.js** (`@auth/core`): JWT sessions, Credentials p
 
 ---
 
-### 6. FormSubmit setup (contact form)
+### 6. Resend setup (contact form and transactional emails)
 
-On the home page (`/`), the Communication section uses FormSubmit:
+The contact form and auth emails (verification, password reset) use Resend.
 
-- In `app/pages/index.vue`, find the `<form>`:
+1. Create an API key at [Resend Dashboard](https://resend.com/api-keys).
+2. Use **Sending Access** permission (sufficient for sending emails).
+3. Add to `.env`:
+   - `NUXT_RESEND_API_KEY` – your Resend API key
+   - `NUXT_CONTACT_EMAIL` – email where contact form messages are sent (optional; defaults to `antwnis_skarlatos@yahoo.com`)
 
-  ```html
-  <form
-    action="https://formsubmit.co/your-email@example.com"
-    method="POST"
-    ...
-  >
-  ```
+When a user submits the contact form, the message is sent to `NUXT_CONTACT_EMAIL` with `replyTo` set to the submitter's email, so you can reply directly from your inbox.
 
-Steps:
-
-1. Replace `your-email@example.com` with the email you want to receive messages at, or with the protected FormSubmit address (per their docs).
-2. Optionally add FormSubmit special fields:
-   - `_next` – redirect URL after submission.
-   - `_replyto` – reply‑to address.
-   - `_honeypot` – anti‑bot honeypot field name.
-
-See [FormSubmit docs](https://formsubmit.co/documentation) for details.
+**Free tier:** 100 emails/day, 3,000 emails/month. For production, verify a custom domain in Resend and set `from` in `server/utils/email.ts`.
 
 ---
 
@@ -190,7 +183,7 @@ See [FormSubmit docs](https://formsubmit.co/documentation) for details.
 After configuring `.env` and Supabase:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 - The app will be available at `http://localhost:3000`.
@@ -202,15 +195,15 @@ npm run dev
   - Grades/subjects:
     - `/grade/<grade-id>`
     - `/grade/<grade-id>/<subject-id>`
-  - Course and lesson pages:
-    - `/course/<course-id>` (free and paid cases).
+  - Chapter and lesson pages:
+    - `/chapter/<chapter-id>`
     - `/lesson/<lesson-id>` including PDF viewer when `pdf_url` is set and access is allowed.
   - Admin:
-    - `/admin` and sub‑routes read from Supabase (`grades`, `subjects`, `courses`, `lessons`, `purchases`).
+    - `/admin` and sub‑routes read from Supabase (`grades`, `subjects`, `chapters`, `lessons`, `categories`, `purchases`).
 
 If you see 500 errors during navigation:
 
-- Check the terminal output from `npm run dev` for stack traces.
+- Check the terminal output from `pnpm dev` for stack traces.
 - Most common causes:
   - Missing or wrong Supabase URL/keys.
   - Storage bucket `uploads` missing.
@@ -225,7 +218,7 @@ For a production‑like preview (after dev is stable):
 1. Push this repo to GitHub.
 2. Create a new project on **Vercel** and import the repo.
 3. In Vercel “Environment Variables”, set the same values as in your local `.env`.
-4. Vercel should auto‑detect Nuxt and run `npm run build`.
+4. Vercel should auto‑detect Nuxt and run `pnpm build`.
 5. After deploy, update your Stripe webhook to point to:
 
    ```text

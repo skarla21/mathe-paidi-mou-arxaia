@@ -6,7 +6,8 @@ import { serverSupabaseService } from "../../utils/supabaseServer";
 export default defineEventHandler(async (event) => {
   const authOptions = getAuthOptions()
   const request = event.node.req
-  const url = new URL('/api/auth/session', `https://${request.headers.host}`)
+  const baseUrl = getRequestURL(event).origin
+  const url = new URL('/api/auth/session', baseUrl)
 
   const authRequest = new Request(url.toString(), {
     method: 'GET',
@@ -34,11 +35,12 @@ export default defineEventHandler(async (event) => {
   let name: string | null = user.name ?? null
   let avatar_url: string | null = user.avatar_url ?? null
 
+  let email_verified = false
   if (userId) {
     const supabase = serverSupabaseService()
     const { data: dbUser } = await supabase
       .from('users')
-      .select('created_at, provider, name, avatar_url')
+      .select('created_at, provider, name, avatar_url, email_verified')
       .eq('id', userId)
       .single()
     if (dbUser) {
@@ -46,6 +48,7 @@ export default defineEventHandler(async (event) => {
       provider = dbUser.provider ?? 'credentials'
       name = dbUser.name ?? name
       avatar_url = dbUser.avatar_url ?? avatar_url
+      email_verified = !!dbUser.email_verified
     }
   }
 
@@ -58,6 +61,7 @@ export default defineEventHandler(async (event) => {
       avatar_url,
       created_at,
       provider,
+      email_verified,
     },
     session,
   }

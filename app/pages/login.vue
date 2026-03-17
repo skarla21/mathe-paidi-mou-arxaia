@@ -13,6 +13,8 @@ definePageMeta({
 
 const { t } = useI18n()
 const { fetchSession } = useCurrentUser()
+const { openForgot } = useAuthModal()
+const { signInWithGoogle } = useGoogleSignIn()
 
 useHead(() => ({
   title: t('auth.login.title'),
@@ -24,7 +26,7 @@ const loading = ref(false)
 const pendingToast = useState<string | null>('pendingToast', () => null)
 
 async function onGoogleLogin() {
-  await navigateTo('/api/auth/signin/google', { external: true })
+  await signInWithGoogle("/")
 }
 
 async function onSubmit() {
@@ -107,6 +109,13 @@ async function onSubmit() {
                 type="password"
                 required
               />
+              <button
+                type="button"
+                class="text-xs text-primary font-medium hover:underline cursor-pointer"
+                @click="openForgot"
+              >
+                {{ t('auth.forgotPassword.link') }}
+              </button>
             </div>
 
             <UiButton type="submit" class="w-full" :disabled="loading">

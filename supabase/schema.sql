@@ -10,11 +10,36 @@ create table if not exists public.users (
   name text,
   avatar_url text,
   "isAdmin" boolean not null default false,
+  email_verified boolean not null default false,
   password_hash text,
   provider text not null default 'credentials',
   created_at timestamptz not null default now()
 );
 create index if not exists users_email_idx on public.users(email);
+
+-- Verification tokens (magic link for email verification)
+create table if not exists public.verification_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  token_hash text not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists verification_tokens_user_id_idx on public.verification_tokens(user_id);
+create index if not exists verification_tokens_expires_at_idx on public.verification_tokens(expires_at);
+
+-- Password reset tokens
+create table if not exists public.password_reset_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  token_hash text not null,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+create index if not exists password_reset_tokens_token_hash_idx on public.password_reset_tokens(token_hash);
+create index if not exists password_reset_tokens_user_id_idx on public.password_reset_tokens(user_id);
+create index if not exists password_reset_tokens_expires_at_idx on public.password_reset_tokens(expires_at);
 
 -- Grades
 create table if not exists public.grades (
@@ -145,3 +170,18 @@ create policy "downloads_insert_own" on public.downloads for insert with check (
 
 -- Note: all admin/server writes use the service role key (supabaseServiceKey),
 -- which bypasses RLS entirely. No insert/update/delete policies are needed for anon.
+
+-- ─── Functions (admin stats) ─────────────────────────────────────────────────
+
+create or replace function public.get_top_downloaded_lessons(lim int default 10)
+returns table(lesson_id uuid, title text, count bigint)
+language sql stable
+security definer
+as $$
+  select d.lesson_id, l.title, count(*)::bigint
+  from public.downloads d
+  join public.lessons l on l.id = d.lesson_id
+  group by d.lesson_id, l.title
+  order by count(*) desc
+  limit lim;
+$$;

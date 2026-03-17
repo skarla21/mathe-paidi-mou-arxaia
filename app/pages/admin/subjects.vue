@@ -28,7 +28,10 @@ const deleteLoading = ref(false)
 async function fetchSubjects() {
   loading.value = true
   try { subjects.value = await $fetch<any[]>('/api/admin/subjects') }
-  catch { subjects.value = [] }
+  catch {
+    subjects.value = []
+    toast.error(t('common.error'))
+  }
   finally { loading.value = false }
 }
 
@@ -45,8 +48,9 @@ async function confirmDelete() {
     await $fetch(`/api/admin/subjects/${deletingId.value}`, { method: 'DELETE' })
     await fetchSubjects()
     deleteDialogOpen.value = false
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     deleteLoading.value = false
   }
@@ -73,7 +77,7 @@ async function confirmDelete() {
         <tbody>
           <tr v-for="s in subjects" :key="s.id" class="border-b last:border-0 hover:bg-muted/30">
             <td class="px-4 py-3">{{ s.name }}</td>
-            <td class="px-4 py-3 text-muted-foreground">{{ s.grades?.name ?? '—' }}</td>
+            <td class="px-4 py-3 text-muted-foreground">{{ s.grades?.name ?? t('common.empty') }}</td>
             <td class="px-4 py-3 text-right space-x-2">
               <UiButton size="sm" variant="outline" @click="openEdit(s)">{{ t('admin.modal.edit') }}</UiButton>
               <UiButton size="sm" variant="destructive" @click="openDelete(s.id)">{{ t('admin.modal.delete') }}</UiButton>

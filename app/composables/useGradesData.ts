@@ -29,8 +29,8 @@ export function useGradesData() {
       grades.value = (gradesRes ?? []).sort((a, b) => a.order - b.order)
       subjects.value = subjectsRes ?? []
       loaded.value = true
-    } catch {
-      // silent — UI already handles empty grades gracefully
+    } catch (err) {
+      if (import.meta.dev) console.warn('[useGradesData] fetch failed:', err)
     }
   }
 

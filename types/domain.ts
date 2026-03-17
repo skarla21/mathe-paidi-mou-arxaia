@@ -24,25 +24,26 @@ export interface LessonCategory {
   order: number
 }
 
-export interface Course {
+export interface Chapter {
   id: string
   title: string
   description: string | null
   grade_id: string
   subject_id: string
-  is_free: boolean
-  price: number
   thumbnail_url: string | null
+  order: number
   created_at: string
 }
 
 export interface Lesson {
   id: string
-  course_id: string | null
+  chapter_id: string | null
+  subject_id: string | null
   category_id: string | null
   title: string
   content: string | null
   is_free: boolean
+  price: number
   pdf_url: string | null
   order: number
   created_at: string
@@ -60,18 +61,18 @@ export interface LessonDetail extends Lesson {
 export interface Purchase {
   id: string
   user_id: string
-  course_id: string
+  lesson_id: string
   stripe_session_id: string | null
   created_at: string
 }
 
 /**
  * Shape returned by GET /api/admin/purchases.
- * Supabase join syntax: `select('*, users(name, email), courses(title)')`.
+ * Supabase join syntax: `select('*, users(name, email), lessons(title)')`.
  */
 export interface PurchaseWithJoins extends Purchase {
   users: { name: string | null; email: string | null } | null
-  courses: { title: string } | null
+  lessons: { title: string | null } | null
 }
 
 export interface LessonDownload {

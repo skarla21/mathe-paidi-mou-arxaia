@@ -15,8 +15,9 @@ export default defineEventHandler(async (event) => {
   let stripeEvent: Stripe.Event
   try {
     stripeEvent = stripe.webhooks.constructEvent(body, sig, secret)
-  } catch (err: any) {
-    throw createError({ statusCode: 400, message: err.message })
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Invalid signature'
+    throw createError({ statusCode: 400, message })
   }
   if (stripeEvent.type !== 'checkout.session.completed') {
     return { received: true }
@@ -30,7 +31,7 @@ export default defineEventHandler(async (event) => {
   }
   const { serverSupabaseService } = await import('../../utils/supabaseServer')
   const supabase = serverSupabaseService()
-  const { data: existing } = await supabase.from('purchases').select('id').eq('stripe_session_id', session.id).single()
+  const { data: existing } = await supabase.from('purchases').select('id').eq('stripe_session_id', session.id).maybeSingle()
   if (existing) {
     return { received: true }
   }

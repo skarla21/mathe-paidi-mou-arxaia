@@ -14,7 +14,10 @@ const detailUserId = ref<string | null>(null)
 async function fetchUsers() {
   loading.value = true
   try { users.value = await $fetch<any[]>('/api/admin/users') }
-  catch { users.value = [] }
+  catch {
+    users.value = []
+    toast.error(t('common.error'))
+  }
   finally { loading.value = false }
 }
 
@@ -25,8 +28,9 @@ async function toggleAdmin(user: any) {
     await $fetch(`/api/admin/users/${user.id}`, { method: 'PATCH', body: { isAdmin: !user.isAdmin } })
     user.isAdmin = !user.isAdmin
     toast.success(t('admin.isAdminToggleSuccess'))
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   }
 }
 </script>

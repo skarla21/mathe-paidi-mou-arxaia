@@ -61,7 +61,7 @@ function copyStripeId(value: string | null | undefined) {
       <!-- Empty state -->
       <div v-if="purchases.length === 0" class="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
         <p class="text-base">{{ t('admin.purchasesTitle') }}</p>
-        <p class="text-sm mt-1">{{ t('admin.gradesEmpty') }}</p>
+        <p class="text-sm mt-1">{{ t('admin.purchasesEmpty') }}</p>
       </div>
 
       <!-- Purchases table -->
@@ -79,7 +79,7 @@ function copyStripeId(value: string | null | undefined) {
           <tbody>
             <tr v-for="p in purchases" :key="p.id" class="border-b last:border-0 hover:bg-muted/30">
               <td class="px-4 py-3">
-                <div class="font-medium">{{ p.users?.name ?? '—' }}</div>
+                <div class="font-medium">{{ p.users?.name ?? t('common.empty') }}</div>
                 <div class="text-xs text-muted-foreground">{{ p.users?.email }}</div>
               </td>
               <td class="px-4 py-3">{{ p.lessons?.title ?? p.lesson_id }}</td>
@@ -89,7 +89,7 @@ function copyStripeId(value: string | null | undefined) {
                 :title="p.stripe_session_id ?? undefined"
                 @click="copyStripeId(p.stripe_session_id)"
               >
-                {{ p.stripe_session_id ? p.stripe_session_id.slice(0, 16) + '…' : '—' }}
+                {{ p.stripe_session_id ? p.stripe_session_id.slice(0, 16) + '…' : t('common.empty') }}
               </td>
               <td class="px-4 py-3 text-right">
                 <UiButton

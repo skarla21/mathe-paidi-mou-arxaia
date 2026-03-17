@@ -27,7 +27,7 @@ This is a modern educational platform where:
 
 - An educator can upload structured content
 - Content can be FREE or PAID
-- Students can browse by Grade → Subject → Course → Lesson
+- Students can browse by Grade → Subject → Chapter → Lesson
 - Some content requires Stripe purchase
 - Files (PDFs etc.) are stored in Supabase Storage
 - Admin panel is custom built inside the app
@@ -122,7 +122,7 @@ Public Routes:
 /
 /grade/[grade]
 /grade/[grade]/[subject]
-/course/[courseId]
+/chapter/[chapterId]
 /lesson/[lessonId]
 /about
 /login
@@ -138,9 +138,9 @@ Admin Routes (protected, admin role only):
 /admin
 /admin/grades
 /admin/subjects
-/admin/courses
+/admin/chapters
 /admin/lessons
-/admin/uploads
+/admin/categories
 /admin/purchases
 
 ---
@@ -153,7 +153,8 @@ users
 
 - id
 - email
-- role (admin | student)
+- name
+- isAdmin
 - created_at
 
 grades
@@ -168,32 +169,44 @@ subjects
 - name
 - grade_id
 
-courses
+chapters
 
 - id
 - title
 - description
 - grade_id
 - subject_id
-- is_free
-- price
+- thumbnail_url
+- order
+- created_at
+
+categories
+
+- id
+- name
+- description
+- order
 - created_at
 
 lessons
 
 - id
-- course_id
+- chapter_id
+- subject_id
+- category_id
 - title
 - content
 - is_free
+- price
 - pdf_url
+- order
 - created_at
 
 purchases
 
 - id
 - user_id
-- course_id
+- lesson_id
 - stripe_session_id
 - created_at
 
@@ -206,9 +219,9 @@ A search bar must exist in the header.
 Search must:
 
 - Query Supabase
-- Search lessons and courses by title
+- Search lessons and chapters by title
 - Display results dropdown live
-- Link to lesson/course page
+- Link to lesson/chapter page
 - Use debounce before making the query
 
 No external search engine.
@@ -242,12 +255,12 @@ Paid content access logic:
 
 # 9. STRIPE PAYMENT FLOW
 
-1. User clicks "Buy Course"
+1. User clicks "Buy Lesson"
 2. Nuxt server route creates Stripe Checkout session
 3. User pays on Stripe
 4. Stripe webhook:
    - Validate signature
-   - Insert purchase record in Supabase
+   - Insert purchase record in Supabase (per-lesson)
 5. User gains access
 
 ---
@@ -258,12 +271,13 @@ Admin can:
 
 - Create/edit/delete grades
 - Create/edit/delete subjects
-- Create/edit/delete courses
-- Mark course as free or paid
+- Create/edit/delete chapters
+- Create/edit/delete categories
+- Create/edit lessons (assigned to chapter, subject, or category)
+- Mark lesson as free or paid
 - Set price
 - Upload PDFs to Supabase Storage
 - Attach PDFs to lessons
-- Create/edit lessons
 - View purchases
 - View users
 

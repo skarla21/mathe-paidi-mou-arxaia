@@ -28,7 +28,10 @@ const deleteLoading = ref(false)
 async function fetchGrades() {
   loading.value = true
   try { grades.value = await $fetch<any[]>('/api/admin/grades') }
-  catch { grades.value = [] }
+  catch {
+    grades.value = []
+    toast.error(t('common.error'))
+  }
   finally { loading.value = false }
 }
 
@@ -45,8 +48,9 @@ async function confirmDelete() {
     await $fetch(`/api/admin/grades/${deletingId.value}`, { method: 'DELETE' })
     await fetchGrades()
     deleteDialogOpen.value = false
-  } catch (e: any) {
-    toast.error(e?.data?.message ?? t('common.error'))
+  } catch (e: unknown) {
+    const err = e as { data?: { message?: string } }
+    toast.error(err?.data?.message ?? t('common.error'))
   } finally {
     deleteLoading.value = false
   }

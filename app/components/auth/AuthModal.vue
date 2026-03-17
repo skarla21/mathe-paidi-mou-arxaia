@@ -2,14 +2,20 @@
 import { toast } from 'vue-sonner'
 
 const { t } = useI18n()
-const { isOpen, activeTab, pendingRedirect, close } = useAuthModal()
+const { isOpen, activeTab, loginSubView, pendingRedirect, close, openForgot, backToLogin } = useAuthModal()
 const { fetchSession } = useCurrentUser()
+const { signInWithGoogle } = useGoogleSignIn()
 
 // Login state
 const loginEmail = ref('')
 const loginPassword = ref('')
 const loginLoading = ref(false)
 const loginErrors = ref<{ email?: string; password?: string }>({})
+
+// Forgot password state
+const forgotEmail = ref('')
+const forgotLoading = ref(false)
+const forgotError = ref('')
 
 // Register state
 const registerName = ref('')
@@ -22,10 +28,15 @@ const registerErrors = ref<{ name?: string; email?: string; password?: string }>
 watch(activeTab, () => {
   loginErrors.value = {}
   registerErrors.value = {}
+  forgotError.value = ''
+})
+
+watch(loginSubView, () => {
+  forgotError.value = ''
 })
 
 async function onGoogleLogin() {
-  await navigateTo('/api/auth/signin/google', { external: true })
+  await signInWithGoogle(pendingRedirect.value ?? "/")
 }
 
 async function onLoginSubmit() {
@@ -65,6 +76,32 @@ async function onLoginSubmit() {
     toast.error(error?.data?.message ?? error?.message ?? t('auth.login.error.generic'))
   } finally {
     loginLoading.value = false
+  }
+}
+
+async function onForgotSubmit() {
+  forgotError.value = ''
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(forgotEmail.value)) {
+    forgotError.value = t('auth.validation.emailInvalid')
+    return
+  }
+  forgotLoading.value = true
+  try {
+    await $fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      body: { email: forgotEmail.value },
+    })
+    toast.success(t('auth.forgotPassword.success'))
+    backToLogin()
+    forgotEmail.value = ''
+  } catch (e: unknown) {
+    const error = e as { data?: { message?: string }; message?: string }
+    const msg = error?.data?.message ?? error?.message ?? 'common.error'
+    forgotError.value =
+      msg.includes('.') && !msg.includes(' ') ? t(msg) : msg
+  } finally {
+    forgotLoading.value = false
   }
 }
 
@@ -156,45 +193,86 @@ async function onRegisterSubmit() {
           <div class="p-6">
             <!-- Login panel -->
             <div v-if="activeTab === 'login'">
-              <div class="mb-5">
-                <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.login.title') }}</h2>
-                <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.login.subtitle') }}</p>
-              </div>
+              <!-- Forgot password sub-view -->
+              <template v-if="loginSubView === 'forgot'">
+                <div class="mb-5">
+                  <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.forgotPassword.title') }}</h2>
+                  <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.forgotPassword.subtitle') }}</p>
+                </div>
+                <form class="space-y-4" @submit.prevent="onForgotSubmit">
+                  <div>
+                    <UiLabel for="forgot-email" class="sr-only">{{ t('auth.forgotPassword.email') }}</UiLabel>
+                    <UiInput
+                      id="forgot-email"
+                      v-model="forgotEmail"
+                      type="text"
+                      inputmode="email"
+                      :placeholder="t('auth.forgotPassword.email')"
+                      autocomplete="email"
+                    />
+                    <p v-if="forgotError" class="text-xs text-destructive mt-1">{{ forgotError }}</p>
+                  </div>
+                  <UiButton type="submit" class="w-full" :disabled="forgotLoading">
+                    {{ forgotLoading ? t('auth.forgotPassword.submitting') : t('auth.forgotPassword.submit') }}
+                  </UiButton>
+                  <button
+                    type="button"
+                    class="text-sm text-primary font-medium hover:underline cursor-pointer"
+                    @click="backToLogin"
+                  >
+                    {{ t('auth.forgotPassword.backToLogin') }}
+                  </button>
+                </form>
+              </template>
 
-              <form class="space-y-4" @submit.prevent="onLoginSubmit">
-                <!-- Email -->
-                <div>
-                  <UiLabel for="login-email" class="sr-only">{{ t('auth.login.email') }}</UiLabel>
-                  <UiInput
-                    id="login-email"
-                    v-model="loginEmail"
-                    type="text"
-                    inputmode="email"
-                    :placeholder="t('auth.login.email')"
-                    autocomplete="email"
-                  />
-                  <p v-if="loginErrors.email" class="text-xs text-destructive mt-1">{{ loginErrors.email }}</p>
+              <!-- Login form -->
+              <template v-else>
+                <div class="mb-5">
+                  <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.login.title') }}</h2>
+                  <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.login.subtitle') }}</p>
                 </div>
 
-                <!-- Password -->
-                <div>
-                  <UiLabel for="login-password" class="sr-only">{{ t('auth.login.password') }}</UiLabel>
-                  <UiPasswordInput
-                    id="login-password"
-                    v-model="loginPassword"
-                    :placeholder="t('auth.login.password')"
-                    autocomplete="current-password"
-                  />
-                  <p v-if="loginErrors.password" class="text-xs text-destructive mt-1">{{ loginErrors.password }}</p>
-                </div>
+                <form class="space-y-4" @submit.prevent="onLoginSubmit">
+                  <!-- Email -->
+                  <div>
+                    <UiLabel for="login-email" class="sr-only">{{ t('auth.login.email') }}</UiLabel>
+                    <UiInput
+                      id="login-email"
+                      v-model="loginEmail"
+                      type="text"
+                      inputmode="email"
+                      :placeholder="t('auth.login.email')"
+                      autocomplete="email"
+                    />
+                    <p v-if="loginErrors.email" class="text-xs text-destructive mt-1">{{ loginErrors.email }}</p>
+                  </div>
 
-                <!-- Submit -->
-                <UiButton type="submit" class="w-full" :disabled="loginLoading">
-                  {{ loginLoading ? t('auth.login.submitting') : t('auth.login.submit') }}
-                </UiButton>
-              </form>
+                  <!-- Password -->
+                  <div>
+                    <UiLabel for="login-password" class="sr-only">{{ t('auth.login.password') }}</UiLabel>
+                    <UiPasswordInput
+                      id="login-password"
+                      v-model="loginPassword"
+                      :placeholder="t('auth.login.password')"
+                      autocomplete="current-password"
+                    />
+                    <p v-if="loginErrors.password" class="text-xs text-destructive mt-1">{{ loginErrors.password }}</p>
+                    <button
+                      type="button"
+                      class="text-xs text-primary font-medium hover:underline mt-1 cursor-pointer"
+                      @click="openForgot"
+                    >
+                      {{ t('auth.forgotPassword.link') }}
+                    </button>
+                  </div>
 
-              <!-- Google login -->
+                  <!-- Submit -->
+                  <UiButton type="submit" class="w-full" :disabled="loginLoading">
+                    {{ loginLoading ? t('auth.login.submitting') : t('auth.login.submit') }}
+                  </UiButton>
+                </form>
+
+                <!-- Google login -->
               <UiButton type="button" variant="outline" class="w-full gap-2 mt-3" @click="onGoogleLogin">
                 <svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -205,17 +283,18 @@ async function onRegisterSubmit() {
                 {{ t('auth.login.google') }}
               </UiButton>
 
-              <!-- Switch to register -->
-              <p class="text-center text-sm text-muted-foreground mt-4">
-                {{ t('auth.login.noAccount') }}
-                <button
-                  type="button"
-                  class="text-primary font-medium hover:underline cursor-pointer"
-                  @click="activeTab = 'register'"
-                >
-                  {{ t('auth.login.registerLink') }}
-                </button>
-              </p>
+                <!-- Switch to register -->
+                <p class="text-center text-sm text-muted-foreground mt-4">
+                  {{ t('auth.login.noAccount') }}
+                  <button
+                    type="button"
+                    class="text-primary font-medium hover:underline cursor-pointer"
+                    @click="activeTab = 'register'"
+                  >
+                    {{ t('auth.login.registerLink') }}
+                  </button>
+                </p>
+              </template>
             </div>
 
             <!-- Register panel -->

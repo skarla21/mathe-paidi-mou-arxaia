@@ -2,6 +2,7 @@
   "name": "mathe-paidi-mou-arxaia",
   "type": "module",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -10,7 +11,7 @@
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
     "lint:fix": "eslint . --fix",
-    "check": "npm run typecheck && npm run lint:fix"
+    "check": "pnpm run typecheck && pnpm run lint:fix"
   },
   "dependencies": {
     "@auth/core": "^0.37.2",
@@ -18,19 +19,22 @@
     "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.3",
     "gsap": "^3.14.2",
     "nuxt": "^4.3.1",
     "oh-vue-icons": "^1.0.0-rc3",
     "pdfjs-dist": "^5.5.207",
     "radix-vue": "^1.9.17",
+    "resend": "^6.9.4",
     "shadcn-nuxt": "^2.4.3",
     "stripe": "^20.4.0",
     "tailwind-merge": "^3.5.0",
     "vue": "^3.5.29",
-    "vue-router": "^4.6.4",
+    "vue-router": "^5.0.3",
     "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
+    "@vue/language-core": "^3.2.0",
     "@nuxt/eslint": "^1.4.1",
     "@tailwindcss/vite": "^4.2.1",
     "@types/bcryptjs": "^2.4.6",

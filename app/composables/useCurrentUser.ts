@@ -8,6 +8,7 @@ export function useCurrentUser() {
       avatar_url?: string | null;
       provider?: string;
       created_at?: string | null;
+      email_verified?: boolean;
     } | null;
   }>("current-user-session", () => ({ user: null }));
 
@@ -15,9 +16,13 @@ export function useCurrentUser() {
     const result = await $fetch("/api/auth/session", {
       method: "GET",
       credentials: "include",
-    }).catch(() => ({ user: null, session: null }));
+    }).catch((err) => {
+      if (import.meta.dev) console.warn('[useCurrentUser] session fetch failed:', err)
+      return { user: null, session: null }
+    });
 
-    session.value.user = (result as any)?.user ?? null;
+    const user = (result as { user?: { id: string; email?: string | null; isAdmin?: boolean; name?: string | null; avatar_url?: string | null; provider?: string; created_at?: string | null; email_verified?: boolean } | null })?.user
+    session.value.user = user ? { ...user, isAdmin: user.isAdmin === true } : null
   };
 
   if (import.meta.client && session.value.user === null) {

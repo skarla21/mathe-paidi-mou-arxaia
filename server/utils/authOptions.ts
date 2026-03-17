@@ -92,11 +92,16 @@ export function getAuthOptions(): AuthConfig {
             if (!dbUser) {
               const { data: inserted } = await supabase
                 .from("users")
-                .insert({ email, name, avatar_url })
+                .insert({ email, name, avatar_url, email_verified: true, provider: "google" })
                 .select('id, "isAdmin", name, avatar_url')
                 .single();
 
               dbUser = inserted ?? null;
+            } else {
+              await supabase
+                .from("users")
+                .update({ email_verified: true, provider: "google" })
+                .eq("id", dbUser.id);
             }
 
             if (dbUser) {
