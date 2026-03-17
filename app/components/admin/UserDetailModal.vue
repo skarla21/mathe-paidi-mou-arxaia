@@ -7,6 +7,7 @@ import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
 import UiDialogFooter from '~/components/ui/dialog/DialogFooter.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
 import UiButton from '~/components/ui/Button.vue'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 
 import type { Purchase, Download } from '~/types/database'
 
@@ -42,23 +43,35 @@ watch(() => props.open, async (val) => {
           <UiDialogTitle>{{ t('admin.userDetails') }}</UiDialogTitle>
         </UiDialogHeader>
         <div v-if="loading" class="py-4 text-sm text-muted-foreground">{{ t('common.loading') }}</div>
-        <div v-else class="space-y-5">
-          <div>
-            <p class="text-sm font-semibold mb-2">{{ t('admin.field.purchases') }}</p>
-            <p v-if="!purchases.length" class="text-xs text-muted-foreground">—</p>
+        <Tabs v-else default-value="purchases">
+          <TabsList class="w-full">
+            <TabsTrigger value="purchases" class="flex-1">
+              {{ t('admin.field.purchases') }} ({{ purchases.length }})
+            </TabsTrigger>
+            <TabsTrigger value="downloads" class="flex-1">
+              {{ t('admin.field.downloads') }} ({{ downloads.length }})
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="purchases" class="mt-4">
+            <p v-if="!purchases.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
             <ul v-else class="text-xs space-y-1">
-              <li v-for="p in purchases" :key="p.id">{{ p.lessons?.title }} — {{ new Date(p.created_at).toLocaleDateString() }}</li>
+              <li v-for="p in purchases" :key="p.id" class="flex justify-between gap-2">
+                <span>{{ p.lessons?.title }}</span>
+                <span class="text-muted-foreground shrink-0">{{ new Date(p.created_at).toLocaleDateString() }}</span>
+              </li>
             </ul>
-          </div>
-          <div>
-            <p class="text-sm font-semibold mb-2">{{ t('admin.field.downloads') }}</p>
-            <p v-if="!downloads.length" class="text-xs text-muted-foreground">—</p>
+          </TabsContent>
+          <TabsContent value="downloads" class="mt-4">
+            <p v-if="!downloads.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
             <ul v-else class="text-xs space-y-1">
-              <li v-for="d in downloads" :key="d.id">{{ d.lessons?.title }} — {{ new Date(d.downloaded_at).toLocaleDateString() }}</li>
+              <li v-for="d in downloads" :key="d.id" class="flex justify-between gap-2">
+                <span>{{ d.lessons?.title }}</span>
+                <span class="text-muted-foreground shrink-0">{{ new Date(d.downloaded_at).toLocaleDateString() }}</span>
+              </li>
             </ul>
-          </div>
-        </div>
-        <UiDialogFooter>
+          </TabsContent>
+        </Tabs>
+        <UiDialogFooter class="mt-4">
           <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
         </UiDialogFooter>
       </UiDialogContent>

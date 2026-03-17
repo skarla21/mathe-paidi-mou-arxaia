@@ -19,9 +19,11 @@
     "user": "User",
     "userMenu": "User menu",
     "openMenu": "Open navigation menu",
-    "closeMenu": "Close navigation menu"
+    "closeMenu": "Close navigation menu",
+    "mobileMenu": "Mobile navigation menu"
   },
   "home": {
+    "pageTitle": "Mathe Paidi Mou Arxaia — Ancient Greek Exam Prep",
     "section": {
       "welcome": "Welcome",
       "information": "Information",
@@ -81,6 +83,14 @@
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
+    "empty": "—",
+    "yes": "Yes",
+    "no": "No",
+    "timeAgo": {
+      "mins": "{n}m ago",
+      "hours": "{n}h ago",
+      "days": "{n}d ago"
+    },
     "close": "Close",
     "passwordShow": "Show password",
     "passwordHide": "Hide password"
@@ -198,10 +208,13 @@
     "gradesTitle": "Grades",
     "gradesLoading": "Loading...",
     "gradesEmpty": "No grades. Create them via API or admin CRUD.",
+    "purchasesEmpty": "No purchases yet.",
     "chaptersTitle": "Chapters",
+    "chaptersEmpty": "No chapters yet.",
     "subjectsTitle": "Subjects",
     "subjectsEmpty": "No subjects. Create the first one.",
     "lessonsTitle": "Lessons",
+    "lessonsEmpty": "No lessons yet.",
     "purchasesTitle": "Purchases",
     "purchaseLine": "User {userId} – Content {lessonId}",
     "paid": "Paid",
@@ -214,11 +227,28 @@
     "usersTitle": "Users",
     "usersEmpty": "No users yet.",
     "statsTitle": "Overview",
+    "search": "Search...",
     "stats": {
       "totalUsers": "Total Users",
       "totalContent": "Total Content",
       "downloads": "Downloads",
-      "revenue": "Revenue"
+      "revenue": "Revenue",
+      "totalGrades": "Grades",
+      "totalSubjects": "Subjects",
+      "totalChapters": "Chapters",
+      "totalCategories": "Categories",
+      "totalPurchases": "Purchases",
+      "freeVsPaid": "Free vs Paid",
+      "free": "Free",
+      "paid": "Paid",
+      "contentBreakdown": "Content Breakdown",
+      "lessonsByGrade": "Lessons by Grade",
+      "recentPurchases": "Recent Purchases",
+      "recentUsers": "Recent Signups",
+      "quickActions": "Quick Actions",
+      "newThisMonth": "new this month",
+      "vsLastMonth": "vs last month",
+      "noChange": "no change"
     },
     "recentDownloads": "Recent Downloads",
     "topLessons": "Top Lessons",
@@ -230,7 +260,12 @@
       "cancel": "Cancel",
       "delete": "Delete",
       "confirmDelete": "Are you sure? This cannot be undone.",
-      "deleteTitle": "Confirm Delete"
+      "deleteTitle": "Confirm Delete",
+      "gradeDescription": "Create or edit a grade entry.",
+      "categoryDescription": "Create or edit a content category.",
+      "subjectDescription": "Create or edit a subject and assign it to a grade.",
+      "chapterDescription": "Create or edit a chapter and assign it to a subject.",
+      "lessonDescription": "Create or edit a lesson and assign it to a chapter, subject, or category."
     },
     "field": {
       "name": "Name",
@@ -253,25 +288,70 @@
       "joinedAt": "Joined",
       "downloads": "Downloads",
       "purchases": "Purchases",
-      "stripeId": "Stripe ID"
+      "stripeId": "Stripe ID",
+      "pdf": "PDF",
+      "yes": "Yes",
+      "no": "No"
     },
+    "selectChapter": "Select chapter…",
+    "selectSubject": "Select subject…",
+    "selectCategory": "Select category…",
+    "selectGrade": "Select grade…",
+    "placeholder": {
+      "url": "https://..."
+    },
+    "navAria": "Admin navigation",
     "assignChapter": "Part of a chapter",
     "assignCategory": "Standalone category",
     "assignSubject": "Standalone subject lesson",
     "grantAccess": "Grant Access",
     "grantSuccess": "Access granted",
     "grantError": "Failed to grant access",
+    "copiedToClipboard": "Copied to clipboard",
     "isAdminToggleSuccess": "Admin status updated",
-    "userDetails": "User Details"
+    "userDetails": "User Details",
+    "confirmAdminToggle": "Are you sure you want to change this user's admin status?",
+    "confirmAdminToggleTitle": "Change Admin Status",
+    "confirmGrant": "Are you sure you want to grant access to this content?",
+    "confirmGrantTitle": "Grant Access",
+    "revokeAccess": "Revoke",
+    "revokeSuccess": "Access revoked",
+    "revokeError": "Failed to revoke access",
+    "confirmRevoke": "Are you sure you want to revoke this purchase? The user will lose access.",
+    "confirmRevokeTitle": "Revoke Access",
+    "manualGrant": "Manual",
+    "uploads": {
+      "dragDrop": "Drag and drop a PDF here, or click to select",
+      "selectFile": "Select PDF",
+      "maxSize": "PDF only, max 10MB",
+      "pdfOnly": "Only PDF files are allowed",
+      "tooLarge": "File must be smaller than 10MB",
+      "uploadSuccess": "File uploaded successfully",
+      "uploadError": "Upload failed",
+      "deleteConfirm": "Are you sure you want to delete this file? This cannot be undone.",
+      "deleteSuccess": "File deleted",
+      "copyUrl": "Copy URL",
+      "urlCopied": "URL copied to clipboard",
+      "fileName": "File name",
+      "fileSize": "Size",
+      "uploadDate": "Uploaded",
+      "empty": "No files uploaded yet."
+    },
+    "createGrade": "New Grade",
+    "createSubject": "New Subject",
+    "createChapter": "New Chapter",
+    "createLesson": "New Lesson"
   },
   "pdf": {
     "prev": "Prev",
     "next": "Next",
-    "loading": "Loading PDF…"
+    "loading": "Loading PDF…",
+    "loadError": "Failed to load PDF"
   },
   "search": {
     "placeholder": "Search for chapters or content...",
     "loading": "Searching...",
+    "error": "Search failed",
     "type": {
       "chapter": "Chapter",
       "lesson": "Content"
@@ -289,9 +369,7 @@
     "contact": "Contact",
     "contactText": "Questions or feedback? We are here to help.",
     "contactLink": "Send a message",
-    "copyright": "All rights reserved.",
-    "privacy": "About",
-    "terms": "Contact"
+    "copyright": "All rights reserved."
   },
   "header": {
     "languageEl": "Switch to Greek",
@@ -329,6 +407,15 @@
     },
     "back": "Back",
     "name": "Full name",
+    "modal": {
+      "loginTab": "Login",
+      "registerTab": "Register"
+    },
+    "validation": {
+      "nameMin": "Name must be at least 2 characters",
+      "emailInvalid": "Please enter a valid email",
+      "passwordMin": "Password must be at least 6 characters"
+    },
     "register": {
       "title": "Register",
       "subtitle": "Create a student account to get started.",
@@ -338,7 +425,7 @@
       "password": "Password",
       "submit": "Register",
       "submitting": "Registering...",
-      "success": "Account created. You can now log in.",
+      "success": "Welcome! Your account has been created.",
       "error": {
         "generic": "Unable to register",
         "emailTaken": "This email is already registered"

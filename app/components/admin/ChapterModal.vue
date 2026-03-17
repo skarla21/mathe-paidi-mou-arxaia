@@ -11,6 +11,8 @@ import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
+import UiTextarea from '~/components/ui/Textarea.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
 const props = defineProps<{
   open: boolean
@@ -79,18 +81,25 @@ async function onSubmit() {
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.description') }}</UiLabel>
-            <textarea v-model="description" rows="3" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+            <UiTextarea v-model="description" :rows="3" />
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
-            <select v-model="subjectId" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>{{ t('admin.selectSubject') }}</option>
-              <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
-            </select>
+            <Select v-model="subjectId">
+              <SelectTrigger>
+                <SelectValue :placeholder="t('admin.selectSubject')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.thumbnailUrl') }}</UiLabel>
             <UiInput v-model="thumbnailUrl" :placeholder="t('admin.placeholder.url')" />
+            <div v-if="thumbnailUrl" class="mt-2">
+              <img :src="thumbnailUrl" alt="" class="h-16 w-16 rounded-md object-cover border border-border" >
+            </div>
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>

@@ -3,6 +3,10 @@ import { toast } from 'vue-sonner'
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiCardHeader from '~/components/ui/CardHeader.vue'
+import UiButton from '~/components/ui/Button.vue'
+import UiSkeleton from '~/components/ui/Skeleton.vue'
+import UiBadge from '~/components/ui/Badge.vue'
+import { Separator } from '~/components/ui/separator'
 import type { AdminStats } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -29,61 +33,304 @@ function timeAgo(dateStr: string) {
   if (hrs < 24) return t('common.timeAgo.hours', { n: hrs })
   return t('common.timeAgo.days', { n: Math.floor(hrs / 24) })
 }
+
+function growthPercent(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0
+  return Math.round(((current - previous) / previous) * 100)
+}
+
+function formatRevenue(amount: number) {
+  return `€${amount.toLocaleString('el-GR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+}
+
+const kpiCards = computed(() => {
+  if (!stats.value) return []
+  const s = stats.value
+  return [
+    {
+      label: t('admin.stats.totalUsers'),
+      value: s.totalUsers,
+      icon: 'bi-people',
+      growth: growthPercent(s.newUsersThisMonth ?? 0, s.newUsersLastMonth ?? 0),
+      sub: `${s.newUsersThisMonth ?? 0} ${t('admin.stats.newThisMonth')}`,
+    },
+    {
+      label: t('admin.stats.totalContent'),
+      value: s.totalLessons,
+      icon: 'bi-journal-text',
+      growth: null,
+      sub: `${s.freeVsPaid?.free ?? 0} ${t('admin.stats.free')} / ${s.freeVsPaid?.paid ?? 0} ${t('admin.stats.paid')}`,
+    },
+    {
+      label: t('admin.stats.downloads'),
+      value: s.downloads,
+      icon: 'bi-download',
+      growth: growthPercent(s.downloadsThisMonth ?? 0, s.downloadsLastMonth ?? 0),
+      sub: `${s.downloadsThisMonth ?? 0} ${t('admin.stats.newThisMonth')}`,
+    },
+    {
+      label: t('admin.stats.revenue'),
+      value: formatRevenue(s.revenue),
+      icon: 'bi-currency-euro',
+      growth: growthPercent(s.revenueThisMonth ?? 0, s.revenueLastMonth ?? 0),
+      sub: `${formatRevenue(s.revenueThisMonth ?? 0)} ${t('admin.stats.newThisMonth')}`,
+    },
+  ]
+})
+
+const contentCounts = computed(() => {
+  if (!stats.value) return []
+  const s = stats.value
+  return [
+    { label: t('admin.stats.totalGrades'), value: s.totalGrades ?? 0, icon: 'bi-mortarboard' },
+    { label: t('admin.stats.totalSubjects'), value: s.totalSubjects ?? 0, icon: 'bi-journal-text' },
+    { label: t('admin.stats.totalChapters'), value: s.totalChapters ?? 0, icon: 'bi-journal-bookmark' },
+    { label: t('admin.stats.totalCategories'), value: s.totalCategories ?? 0, icon: 'bi-folder' },
+    { label: t('admin.stats.totalPurchases'), value: s.totalPurchases ?? 0, icon: 'bi-cart' },
+  ]
+})
+
+const maxLessonsByGrade = computed(() => {
+  if (!stats.value?.lessonsByGrade?.length) return 0
+  return Math.max(...stats.value.lessonsByGrade.map(g => g.count))
+})
 </script>
 
 <template>
   <div class="space-y-6">
     <h1 class="text-2xl font-bold font-heading">{{ t('admin.statsTitle') }}</h1>
-    <p v-if="loading" class="text-muted-foreground">{{ t('common.loading') }}</p>
-    <template v-else-if="stats">
+
+    <!-- Loading skeleton -->
+    <template v-if="loading">
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <UiCard
-v-for="card in [
-          { label: t('admin.stats.totalUsers'), value: stats.totalUsers, icon: 'bi-people' },
-          { label: t('admin.stats.totalContent'), value: stats.totalLessons, icon: 'bi-journal-text' },
-          { label: t('admin.stats.downloads'), value: stats.downloads, icon: 'bi-download' },
-          { label: t('admin.stats.revenue'), value: `€${stats.revenue}`, icon: 'bi-currency-euro' },
-        ]" :key="card.label">
-          <UiCardContent class="flex items-center gap-4 p-5">
-            <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-              <VIcon :name="card.icon" class="size-5 text-primary" />
-            </div>
-            <div>
-              <p class="text-2xl font-bold">{{ card.value }}</p>
-              <p class="text-xs text-muted-foreground">{{ card.label }}</p>
-            </div>
+        <UiCard v-for="i in 4" :key="i">
+          <UiCardContent class="p-5 space-y-2">
+            <UiSkeleton class="h-4 w-20" />
+            <UiSkeleton class="h-8 w-16" />
+            <UiSkeleton class="h-3 w-24" />
           </UiCardContent>
         </UiCard>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <UiCard v-for="i in 2" :key="i">
+          <UiCardContent class="p-5 space-y-3">
+            <UiSkeleton class="h-4 w-32" />
+            <UiSkeleton v-for="j in 4" :key="j" class="h-4 w-full" />
+          </UiCardContent>
+        </UiCard>
+      </div>
+    </template>
+
+    <template v-else-if="stats">
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <UiCard v-for="card in kpiCards" :key="card.label">
+          <UiCardContent class="p-5">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                <VIcon :name="card.icon" class="size-5 text-primary" />
+              </div>
+              <div v-if="card.growth !== null" class="flex items-center gap-0.5 text-xs">
+                <VIcon
+                  v-if="card.growth > 0"
+                  name="bi-arrow-up-short"
+                  class="size-4 text-green-600"
+                />
+                <VIcon
+                  v-else-if="card.growth < 0"
+                  name="bi-arrow-down-short"
+                  class="size-4 text-red-500"
+                />
+                <VIcon v-else name="bi-dash" class="size-4 text-muted-foreground" />
+                <span
+                  :class="card.growth > 0 ? 'text-green-600' : card.growth < 0 ? 'text-red-500' : 'text-muted-foreground'"
+                >
+                  {{ card.growth > 0 ? '+' : '' }}{{ card.growth }}%
+                </span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold">{{ card.value }}</p>
+            <p class="text-xs text-muted-foreground mt-1">{{ card.sub }}</p>
+          </UiCardContent>
+        </UiCard>
+      </div>
+
+      <!-- Quick Actions -->
+      <UiCard>
+        <UiCardContent class="p-4">
+          <p class="text-sm font-semibold mb-3">{{ t('admin.stats.quickActions') }}</p>
+          <div class="flex flex-wrap gap-2">
+            <NuxtLink to="/admin/grades">
+              <UiButton variant="outline" size="sm">
+                <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+                {{ t('admin.createGrade') }}
+              </UiButton>
+            </NuxtLink>
+            <NuxtLink to="/admin/subjects">
+              <UiButton variant="outline" size="sm">
+                <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+                {{ t('admin.createSubject') }}
+              </UiButton>
+            </NuxtLink>
+            <NuxtLink to="/admin/chapters">
+              <UiButton variant="outline" size="sm">
+                <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+                {{ t('admin.createChapter') }}
+              </UiButton>
+            </NuxtLink>
+            <NuxtLink to="/admin/lessons">
+              <UiButton variant="outline" size="sm">
+                <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+                {{ t('admin.createLesson') }}
+              </UiButton>
+            </NuxtLink>
+          </div>
+        </UiCardContent>
+      </UiCard>
+
+      <!-- Content Overview row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Content Breakdown -->
         <UiCard>
-          <UiCardHeader><p class="font-semibold">{{ t('admin.recentDownloads') }}</p></UiCardHeader>
+          <UiCardHeader>
+            <p class="font-semibold text-sm">{{ t('admin.stats.contentBreakdown') }}</p>
+          </UiCardHeader>
+          <UiCardContent class="space-y-3">
+            <div v-for="item in contentCounts" :key="item.label" class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5 text-sm">
+                <VIcon :name="item.icon" class="size-4 text-muted-foreground" />
+                <span>{{ item.label }}</span>
+              </div>
+              <span class="font-semibold text-sm">{{ item.value }}</span>
+            </div>
+          </UiCardContent>
+        </UiCard>
+
+        <!-- Lessons by Grade -->
+        <UiCard>
+          <UiCardHeader>
+            <p class="font-semibold text-sm">{{ t('admin.stats.lessonsByGrade') }}</p>
+          </UiCardHeader>
+          <UiCardContent class="space-y-3">
+            <div v-if="!stats.lessonsByGrade?.length" class="text-sm text-muted-foreground">—</div>
+            <div v-for="g in stats.lessonsByGrade" :key="g.grade" class="space-y-1">
+              <div class="flex items-center justify-between text-sm">
+                <span>{{ g.grade }}</span>
+                <span class="font-medium">{{ g.count }}</span>
+              </div>
+              <div class="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  class="h-full rounded-full bg-primary transition-all"
+                  :style="{ width: `${maxLessonsByGrade ? (g.count / maxLessonsByGrade * 100) : 0}%` }"
+                />
+              </div>
+            </div>
+          </UiCardContent>
+        </UiCard>
+      </div>
+
+      <Separator />
+
+      <!-- Activity feed row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Recent Downloads -->
+        <UiCard>
+          <UiCardHeader>
+            <p class="font-semibold text-sm">{{ t('admin.recentDownloads') }}</p>
+          </UiCardHeader>
           <UiCardContent>
             <p v-if="!stats.recentDownloads.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
-            <ul v-else class="space-y-2">
+            <ul v-else class="space-y-2.5">
               <li v-for="d in stats.recentDownloads" :key="d.id" class="flex items-center justify-between text-sm">
-                <span class="truncate">{{ d.users?.name ?? t('common.empty') }} — {{ d.lessons?.title ?? t('common.empty') }}</span>
+                <div class="flex items-center gap-2 min-w-0">
+                  <VIcon name="bi-download" class="size-3.5 text-muted-foreground shrink-0" />
+                  <span class="truncate">{{ d.users?.name ?? t('common.empty') }}</span>
+                </div>
                 <span class="ml-2 shrink-0 text-xs text-muted-foreground">{{ timeAgo(d.downloaded_at) }}</span>
               </li>
             </ul>
           </UiCardContent>
         </UiCard>
+
+        <!-- Recent Purchases -->
         <UiCard>
-          <UiCardHeader><p class="font-semibold">{{ t('admin.topLessons') }}</p></UiCardHeader>
+          <UiCardHeader>
+            <p class="font-semibold text-sm">{{ t('admin.stats.recentPurchases') }}</p>
+          </UiCardHeader>
           <UiCardContent>
-            <p v-if="!stats.topLessons.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
-            <ul v-else class="space-y-2">
-              <li v-for="(l, i) in stats.topLessons" :key="l.lesson_id" class="flex items-center justify-between text-sm">
-                <span class="flex items-center gap-2">
-                  <span class="text-xs text-muted-foreground w-4">{{ i + 1 }}.</span>
-                  <span class="truncate">{{ l.title }}</span>
+            <p v-if="!stats.recentPurchases?.length" class="text-sm text-muted-foreground">{{ t('admin.purchasesEmpty') }}</p>
+            <ul v-else class="space-y-2.5">
+              <li v-for="p in stats.recentPurchases" :key="p.id" class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2 min-w-0">
+                  <VIcon name="bi-cart" class="size-3.5 text-muted-foreground shrink-0" />
+                  <span class="truncate">{{ p.users?.name ?? p.users?.email ?? t('common.empty') }}</span>
+                </div>
+                <UiBadge variant="secondary" class="ml-2 shrink-0 text-xs">
+                  {{ p.lessons?.title ?? t('common.empty') }}
+                </UiBadge>
+              </li>
+            </ul>
+          </UiCardContent>
+        </UiCard>
+
+        <!-- Recent Signups -->
+        <UiCard>
+          <UiCardHeader>
+            <p class="font-semibold text-sm">{{ t('admin.stats.recentUsers') }}</p>
+          </UiCardHeader>
+          <UiCardContent>
+            <p v-if="!stats.recentUsers?.length" class="text-sm text-muted-foreground">{{ t('admin.usersEmpty') }}</p>
+            <ul v-else class="space-y-2.5">
+              <li v-for="u in stats.recentUsers" :key="u.id" class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img
+                    v-if="u.avatar_url"
+                    :src="u.avatar_url"
+                    :alt="u.name ?? ''"
+                    class="size-5 rounded-full object-cover"
+                  >
+                  <VIcon v-else name="bi-person-circle" class="size-5 text-muted-foreground" />
+                  <span class="truncate">{{ u.name ?? u.email ?? t('common.empty') }}</span>
+                </div>
+                <span class="ml-2 shrink-0 text-xs text-muted-foreground">
+                  {{ new Date(u.created_at).toLocaleDateString() }}
                 </span>
-                <span class="ml-2 shrink-0 font-medium">{{ l.count }}</span>
               </li>
             </ul>
           </UiCardContent>
         </UiCard>
       </div>
+
+      <!-- Top Lessons -->
+      <UiCard>
+        <UiCardHeader>
+          <p class="font-semibold text-sm">{{ t('admin.topLessons') }}</p>
+        </UiCardHeader>
+        <UiCardContent>
+          <p v-if="!stats.topLessons.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
+          <div v-else class="space-y-2">
+            <div
+              v-for="(l, i) in stats.topLessons"
+              :key="l.lesson_id"
+              class="flex items-center gap-3 text-sm"
+            >
+              <span class="text-xs text-muted-foreground w-5 text-right shrink-0">{{ i + 1 }}.</span>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="truncate font-medium">{{ l.title }}</span>
+                  <span class="ml-2 shrink-0 text-xs text-muted-foreground">{{ l.count }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    class="h-full rounded-full bg-primary/60 transition-all"
+                    :style="{ width: `${stats.topLessons[0]?.count ? (l.count / stats.topLessons[0].count * 100) : 0}%` }"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </UiCardContent>
+      </UiCard>
     </template>
   </div>
 </template>

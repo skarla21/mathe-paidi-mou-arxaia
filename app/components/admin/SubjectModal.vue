@@ -11,6 +11,7 @@ import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
 const props = defineProps<{
   open: boolean
@@ -67,10 +68,14 @@ async function onSubmit() {
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
-            <select v-model="gradeId" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>{{ t('admin.selectGrade') }}</option>
-              <option v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</option>
-            </select>
+            <Select v-model="gradeId">
+              <SelectTrigger>
+                <SelectValue :placeholder="t('admin.selectGrade')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>

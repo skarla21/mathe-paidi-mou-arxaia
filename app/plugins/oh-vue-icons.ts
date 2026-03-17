@@ -39,6 +39,18 @@ import {
   BiCheckCircleFill,
   BiEnvelopeExclamation,
   BiArrowLeft,
+  BiCloudArrowUp,
+  BiClipboard,
+  BiTrash,
+  BiShieldCheck,
+  BiGraphUp,
+  BiBarChartLine,
+  BiLightning,
+  BiClockHistory,
+  BiFolder,
+  BiArrowUpShort,
+  BiArrowDownShort,
+  BiDash,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -81,6 +93,18 @@ addIcons(
   BiCheckCircleFill,
   BiEnvelopeExclamation,
   BiArrowLeft,
+  BiCloudArrowUp,
+  BiClipboard,
+  BiTrash,
+  BiShieldCheck,
+  BiGraphUp,
+  BiBarChartLine,
+  BiLightning,
+  BiClockHistory,
+  BiFolder,
+  BiArrowUpShort,
+  BiArrowDownShort,
+  BiDash,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

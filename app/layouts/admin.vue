@@ -4,21 +4,27 @@ import { Toaster } from 'vue-sonner'
 import { NuxtLink } from '#components'
 
 const { t } = useI18n()
+const route = useRoute()
 
 const contentLinks = computed(() => [
-  { to: '/admin/grades', label: t('admin.grades') },
-  { to: '/admin/subjects', label: t('admin.subjects') },
-  { to: '/admin/chapters', label: t('admin.chapters') },
-  { to: '/admin/lessons', label: t('admin.lessons') },
-  { to: '/admin/categories', label: t('admin.categories') },
+  { to: '/admin/grades', label: t('admin.grades'), icon: 'bi-mortarboard' },
+  { to: '/admin/subjects', label: t('admin.subjects'), icon: 'bi-journal-text' },
+  { to: '/admin/chapters', label: t('admin.chapters'), icon: 'bi-journal-bookmark' },
+  { to: '/admin/lessons', label: t('admin.lessons'), icon: 'bi-list-check' },
+  { to: '/admin/categories', label: t('admin.categories'), icon: 'bi-folder' },
+  { to: '/admin/uploads', label: t('admin.uploads'), icon: 'bi-cloud-arrow-up' },
 ])
 
 const peopleLinks = computed(() => [
-  { to: '/admin/users', label: t('admin.users') },
-  { to: '/admin/purchases', label: t('admin.purchases') },
+  { to: '/admin/users', label: t('admin.users'), icon: 'bi-people' },
+  { to: '/admin/purchases', label: t('admin.purchases'), icon: 'bi-cart' },
 ])
 
 const mobileMenuOpen = ref(false)
+
+function isActive(to: string) {
+  return route.path === to
+}
 </script>
 
 <template>
@@ -35,9 +41,7 @@ const mobileMenuOpen = ref(false)
         :aria-label="mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
-        <span class="block w-5 h-0.5 bg-foreground mb-1" />
-        <span class="block w-5 h-0.5 bg-foreground mb-1" />
-        <span class="block w-5 h-0.5 bg-foreground" />
+        <VIcon :name="mobileMenuOpen ? 'bi-x' : 'bi-list'" class="size-5" />
       </button>
     </header>
 
@@ -45,11 +49,11 @@ const mobileMenuOpen = ref(false)
     <div v-if="mobileMenuOpen" class="md:hidden bg-card border-b px-4 py-3 space-y-1">
       <NuxtLink
         to="/admin"
-        class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-        active-class="bg-muted font-medium"
-        exact
+        class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
+        :class="isActive('/admin') ? 'bg-primary/10 text-primary font-medium' : ''"
         @click="mobileMenuOpen = false"
       >
+        <VIcon name="bi-bar-chart-line" class="size-4" />
         {{ t('admin.overview') }}
       </NuxtLink>
       <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionContent') }}</p>
@@ -57,10 +61,11 @@ const mobileMenuOpen = ref(false)
         v-for="link in contentLinks"
         :key="link.to"
         :to="link.to"
-        class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-        active-class="bg-muted font-medium"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
+        :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
         @click="mobileMenuOpen = false"
       >
+        <VIcon :name="link.icon" class="size-4" />
         {{ link.label }}
       </NuxtLink>
       <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionPeople') }}</p>
@@ -68,17 +73,19 @@ const mobileMenuOpen = ref(false)
         v-for="link in peopleLinks"
         :key="link.to"
         :to="link.to"
-        class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-        active-class="bg-muted font-medium"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
+        :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
         @click="mobileMenuOpen = false"
       >
+        <VIcon :name="link.icon" class="size-4" />
         {{ link.label }}
       </NuxtLink>
       <NuxtLink
         to="/"
-        class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
         @click="mobileMenuOpen = false"
       >
+        <VIcon name="bi-arrow-left" class="size-4" />
         {{ t('admin.backToSite') }}
       </NuxtLink>
     </div>
@@ -87,16 +94,19 @@ const mobileMenuOpen = ref(false)
     <div class="flex flex-1">
       <aside class="hidden md:flex w-56 border-r bg-card shrink-0 flex-col">
         <div class="p-4 border-b">
-          <NuxtLink to="/admin" class="font-heading font-semibold text-lg">{{ t('admin.nav') }}</NuxtLink>
+          <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex items-center gap-2">
+            <VIcon name="bi-shield-check" class="size-5 text-primary" />
+            {{ t('admin.nav') }}
+          </NuxtLink>
         </div>
-        <nav :aria-label="t('admin.navAria')" class="p-2 flex-1 space-y-4">
+        <nav :aria-label="t('admin.navAria')" class="p-2 flex-1 space-y-4 overflow-y-auto">
           <div>
             <NuxtLink
               to="/admin"
-              class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-              active-class="bg-muted font-medium"
-              exact
+              class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors"
+              :class="isActive('/admin') ? 'bg-primary/10 text-primary font-medium' : ''"
             >
+              <VIcon name="bi-bar-chart-line" class="size-4" />
               {{ t('admin.overview') }}
             </NuxtLink>
           </div>
@@ -106,9 +116,10 @@ const mobileMenuOpen = ref(false)
               v-for="link in contentLinks"
               :key="link.to"
               :to="link.to"
-              class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-              active-class="bg-muted font-medium"
+              class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors"
+              :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
             >
+              <VIcon :name="link.icon" class="size-4" />
               {{ link.label }}
             </NuxtLink>
           </div>
@@ -118,15 +129,17 @@ const mobileMenuOpen = ref(false)
               v-for="link in peopleLinks"
               :key="link.to"
               :to="link.to"
-              class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
-              active-class="bg-muted font-medium"
+              class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors"
+              :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
             >
+              <VIcon :name="link.icon" class="size-4" />
               {{ link.label }}
             </NuxtLink>
           </div>
         </nav>
         <div class="p-2 border-t">
-          <NuxtLink to="/" class="block px-3 py-2 rounded-md text-sm font-heading hover:bg-muted">
+          <NuxtLink to="/" class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors">
+            <VIcon name="bi-arrow-left" class="size-4" />
             {{ t('admin.backToSite') }}
           </NuxtLink>
         </div>

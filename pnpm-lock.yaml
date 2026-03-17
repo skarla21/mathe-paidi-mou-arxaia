@@ -14,6 +14,12 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.98.0
         version: 2.99.2
+      '@tanstack/vue-table':
+        specifier: ^8.21.3
+        version: 8.21.3(vue@3.5.30(typescript@5.9.3))
+      '@vueuse/core':
+        specifier: ^14.2.1
+        version: 14.2.1(vue@3.5.30(typescript@5.9.3))
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -29,6 +35,9 @@ importers:
       gsap:
         specifier: ^3.14.2
         version: 3.14.2
+      lucide-vue-next:
+        specifier: ^0.577.0
+        version: 0.577.0(vue@3.5.30(typescript@5.9.3))
       nuxt:
         specifier: ^4.3.1
         version: 4.4.2(@babel/core@7.29.0)(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@parcel/watcher@2.5.6)(@types/node@25.5.0)(@vue/compiler-sfc@3.5.30)(cac@6.7.14)(db0@0.3.4)(eslint@9.39.4(jiti@2.6.1))(ioredis@5.10.0)(lightningcss@1.31.1)(magicast@0.5.2)(optionator@0.9.4)(rollup-plugin-visualizer@6.0.11(rollup@4.59.0))(rollup@4.59.0)(terser@5.46.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.1)(yaml@2.8.2))(yaml@2.8.2)
@@ -41,6 +50,9 @@ importers:
       radix-vue:
         specifier: ^1.9.17
         version: 1.9.17(vue@3.5.30(typescript@5.9.3))
+      reka-ui:
+        specifier: ^2.9.2
+        version: 2.9.2(vue@3.5.30(typescript@5.9.3))
       resend:
         specifier: ^6.9.4
         version: 6.9.4
@@ -81,6 +93,9 @@ importers:
       tailwindcss:
         specifier: ^4.2.1
         version: 4.2.1
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
 
 packages:
 
@@ -1670,8 +1685,18 @@ packages:
     peerDependencies:
       vite: ^5.2.0 || ^6 || ^7
 
+  '@tanstack/table-core@8.21.3':
+    resolution: {integrity: sha512-ldZXEhOBb8Is7xLs01fR3YEc3DERiz5silj8tnGkFZytt1abEvl/GhUmCE0PMLaMPTa3Jk4HbKmRlHmu+gCftg==}
+    engines: {node: '>=12'}
+
   '@tanstack/virtual-core@3.13.23':
     resolution: {integrity: sha512-zSz2Z2HNyLjCplANTDyl3BcdQJc2k1+yyFoKhNRmCr7V7dY8o8q5m8uFTI1/Pg1kL+Hgrz6u3Xo6eFUB7l66cg==}
+
+  '@tanstack/vue-table@8.21.3':
+    resolution: {integrity: sha512-rusRyd77c5tDPloPskctMyPLFEQUeBzxdQ+2Eow4F7gDPlPOB1UnnhzfpdvqZ8ZyX2rRNGmqNnQWm87OI2OQPw==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      vue: '>=3.2'
 
   '@tanstack/vue-virtual@3.13.23':
     resolution: {integrity: sha512-b5jPluAR6U3eOq6GWAYSpj3ugnAIZgGR0e6aGAgyRse0Yu6MVQQ0ZWm9SArSXWtageogn6bkVD8D//c4IjW3xQ==}
@@ -1707,6 +1732,9 @@ packages:
 
   '@types/web-bluetooth@0.0.20':
     resolution: {integrity: sha512-g9gZnnXVq7gM7v3tJCWV/qw7w+KeOlSHAhgF9RytFyifW6AF61hdT2ucrYhPq9hLs5JIryeupHV3qGk95dH9ow==}
+
+  '@types/web-bluetooth@0.0.21':
+    resolution: {integrity: sha512-oIQLCGWtcFZy2JW77j9k8nHzAOpqMHLQejDA48XXMWH6tjCQHz5RCFz1bzsmROyL6PUm+LLnUiI4BCn221inxA==}
 
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
@@ -1969,11 +1997,24 @@ packages:
   '@vueuse/core@10.11.1':
     resolution: {integrity: sha512-guoy26JQktXPcz+0n3GukWIy/JDNKti9v6VEMu6kV2sYBsWuGiTU8OWdg+ADfUbHg3/3DlqySDe7JmdHrktiww==}
 
+  '@vueuse/core@14.2.1':
+    resolution: {integrity: sha512-3vwDzV+GDUNpdegRY6kzpLm4Igptq+GA0QkJ3W61Iv27YWwW/ufSlOfgQIpN6FZRMG0mkaz4gglJRtq5SeJyIQ==}
+    peerDependencies:
+      vue: ^3.5.0
+
   '@vueuse/metadata@10.11.1':
     resolution: {integrity: sha512-IGa5FXd003Ug1qAZmyE8wF3sJ81xGLSqTqtQ6jaVfkeZ4i5kS2mwQF61yhVqojRnenVew5PldLyRgvdl4YYuSw==}
 
+  '@vueuse/metadata@14.2.1':
+    resolution: {integrity: sha512-1ButlVtj5Sb/HDtIy1HFr1VqCP4G6Ypqt5MAo0lCgjokrk2mvQKsK2uuy0vqu/Ks+sHfuHo0B9Y9jn9xKdjZsw==}
+
   '@vueuse/shared@10.11.1':
     resolution: {integrity: sha512-LHpC8711VFZlDaYUXEBbFBCQ7GS3dVU9mjOhhMhXP6txTV4EhYQg/KGnQuvt/sPAtoUKq7VVUnL6mVtFoL42sA==}
+
+  '@vueuse/shared@14.2.1':
+    resolution: {integrity: sha512-shTJncjV9JTI4oVNyF1FQonetYAiTBd+Qj7cY89SWbXSkx7gyhrgtEdF2ZAVWS1S3SHlaROO6F2IesJxQEkZBw==}
+    peerDependencies:
+      vue: ^3.5.0
 
   abbrev@3.0.1:
     resolution: {integrity: sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg==}
@@ -3262,6 +3303,11 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  lucide-vue-next@0.577.0:
+    resolution: {integrity: sha512-py05bAfv9SHVJqscbiOnjcnLlEmOffA58a+7XhZuFxrs6txe1E8VoR1ngWGTYO+9aVKABAz8l3ee3PqiQN9QPA==}
+    peerDependencies:
+      vue: '>=3.0.1'
+
   magic-regexp@0.10.0:
     resolution: {integrity: sha512-Uly1Bu4lO1hwHUW0CQeSWuRtzCMNO00CmXtS8N6fyvB3B979GOEEeAkiTUDsmbYLAbvpUS/Kt5c4ibosAzVyVg==}
 
@@ -3889,6 +3935,11 @@ packages:
     resolution: {integrity: sha512-NZQZdC5wOE/H3UT28fVGL+ikOZcEzfMGk/c3iN9UGxzWHMa1op7274oyiUVrAG4B2EuFhus8SvkaYnhvW92p9Q==}
     hasBin: true
 
+  reka-ui@2.9.2:
+    resolution: {integrity: sha512-/t4e6y1hcG+uDuRfpg6tbMz3uUEvRzNco6NeYTufoJeUghy5Iosxos5YL/p+ieAsid84sdMX9OrgDqpEuCJhBw==}
+    peerDependencies:
+      vue: '>= 3.4.0'
+
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
     engines: {node: '>=0.10.0'}
@@ -4243,6 +4294,9 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tw-animate-css@1.4.0:
+    resolution: {integrity: sha512-7bziOlRqH0hJx80h/3mbicLW7o8qLsH5+RaLR2t+OHM3D0JlWGODQKQ4cxbK7WlvmUxpcj6Kgu6EKqjrGFe3QQ==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -6210,7 +6264,14 @@ snapshots:
       tailwindcss: 4.2.1
       vite: 7.3.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.1)(yaml@2.8.2)
 
+  '@tanstack/table-core@8.21.3': {}
+
   '@tanstack/virtual-core@3.13.23': {}
+
+  '@tanstack/vue-table@8.21.3(vue@3.5.30(typescript@5.9.3))':
+    dependencies:
+      '@tanstack/table-core': 8.21.3
+      vue: 3.5.30(typescript@5.9.3)
 
   '@tanstack/vue-virtual@3.13.23(vue@3.5.30(typescript@5.9.3))':
     dependencies:
@@ -6242,6 +6303,8 @@ snapshots:
     optional: true
 
   '@types/web-bluetooth@0.0.20': {}
+
+  '@types/web-bluetooth@0.0.21': {}
 
   '@types/ws@8.18.1':
     dependencies:
@@ -6578,7 +6641,16 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
+  '@vueuse/core@14.2.1(vue@3.5.30(typescript@5.9.3))':
+    dependencies:
+      '@types/web-bluetooth': 0.0.21
+      '@vueuse/metadata': 14.2.1
+      '@vueuse/shared': 14.2.1(vue@3.5.30(typescript@5.9.3))
+      vue: 3.5.30(typescript@5.9.3)
+
   '@vueuse/metadata@10.11.1': {}
+
+  '@vueuse/metadata@14.2.1': {}
 
   '@vueuse/shared@10.11.1(vue@3.5.30(typescript@5.9.3))':
     dependencies:
@@ -6586,6 +6658,10 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
+
+  '@vueuse/shared@14.2.1(vue@3.5.30(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.30(typescript@5.9.3)
 
   abbrev@3.0.1: {}
 
@@ -7841,6 +7917,10 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  lucide-vue-next@0.577.0(vue@3.5.30(typescript@5.9.3)):
+    dependencies:
+      vue: 3.5.30(typescript@5.9.3)
+
   magic-regexp@0.10.0:
     dependencies:
       estree-walker: 3.0.3
@@ -8710,6 +8790,22 @@ snapshots:
     dependencies:
       jsesc: 3.1.0
 
+  reka-ui@2.9.2(vue@3.5.30(typescript@5.9.3)):
+    dependencies:
+      '@floating-ui/dom': 1.7.6
+      '@floating-ui/vue': 1.1.11(vue@3.5.30(typescript@5.9.3))
+      '@internationalized/date': 3.12.0
+      '@internationalized/number': 3.6.5
+      '@tanstack/vue-virtual': 3.13.23(vue@3.5.30(typescript@5.9.3))
+      '@vueuse/core': 14.2.1(vue@3.5.30(typescript@5.9.3))
+      '@vueuse/shared': 14.2.1(vue@3.5.30(typescript@5.9.3))
+      aria-hidden: 1.2.6
+      defu: 6.1.4
+      ohash: 2.0.11
+      vue: 3.5.30(typescript@5.9.3)
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+
   require-directory@2.1.1: {}
 
   resend@6.9.4:
@@ -9072,6 +9168,8 @@ snapshots:
       typescript: 5.9.3
 
   tslib@2.8.1: {}
+
+  tw-animate-css@1.4.0: {}
 
   type-check@0.4.0:
     dependencies:

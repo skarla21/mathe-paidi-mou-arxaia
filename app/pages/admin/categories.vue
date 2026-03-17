@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
+import UiInput from '~/components/ui/Input.vue'
+import UiSkeleton from '~/components/ui/Skeleton.vue'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import UiAlertDialogRoot from '~/components/ui/alert-dialog/AlertDialogRoot.vue'
 import UiAlertDialogPortal from '~/components/ui/alert-dialog/AlertDialogPortal.vue'
 import UiAlertDialogOverlay from '~/components/ui/alert-dialog/AlertDialogOverlay.vue'
@@ -20,11 +23,18 @@ useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.categoriesTitle')}` }))
 
 const categories = ref<Category[]>([])
 const loading = ref(true)
+const search = ref('')
 const modalOpen = ref(false)
 const editingCategory = ref<Category | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
+
+const filteredCategories = computed(() => {
+  if (!search.value) return categories.value
+  const q = search.value.toLowerCase()
+  return categories.value.filter(c => c.name.toLowerCase().includes(q))
+})
 
 async function fetchCategories() {
   loading.value = true
@@ -62,31 +72,70 @@ async function confirmDelete() {
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.categoriesTitle') }}</h1>
-      <UiButton @click="openCreate">+ {{ t('admin.modal.create') }}</UiButton>
+      <UiButton @click="openCreate">
+        <VIcon name="bi-plus-circle" class="mr-2 size-4" />
+        {{ t('admin.modal.create') }}
+      </UiButton>
     </div>
-    <p v-if="loading" class="text-muted-foreground">{{ t('common.loading') }}</p>
-    <p v-else-if="!categories.length" class="text-muted-foreground">{{ t('admin.categoriesEmpty') }}</p>
-    <div v-else class="rounded-md border">
-      <table class="w-full text-sm">
-        <thead class="border-b bg-muted/50">
-          <tr>
-            <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.name') }}</th>
-            <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.order') }}</th>
-            <th class="px-4 py-3 text-right font-medium"/>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in categories" :key="c.id" class="border-b last:border-0 hover:bg-muted/30">
-            <td class="px-4 py-3">{{ c.name }}</td>
-            <td class="px-4 py-3">{{ c.order }}</td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <UiButton size="sm" variant="outline" @click="openEdit(c)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click="openDelete(c.id)">{{ t('admin.modal.delete') }}</UiButton>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+    <!-- Search -->
+    <div class="relative mb-4">
+      <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
     </div>
+
+    <!-- Skeleton loading -->
+    <template v-if="loading">
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead v-for="i in 3" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="i in 5" :key="i">
+              <TableCell v-for="j in 3" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </template>
+
+    <!-- Data table -->
+    <template v-else>
+      <div class="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{{ t('admin.field.name') }}</TableHead>
+              <TableHead>{{ t('admin.field.order') }}</TableHead>
+              <TableHead class="text-right" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <!-- Empty state -->
+            <TableRow v-if="!filteredCategories.length">
+              <TableCell :colspan="3" class="h-32 text-center">
+                <div class="flex flex-col items-center gap-2 text-muted-foreground">
+                  <VIcon name="bi-inbox" class="size-8" />
+                  <p>{{ t('admin.categoriesEmpty') }}</p>
+                </div>
+              </TableCell>
+            </TableRow>
+            <!-- Rows -->
+            <TableRow v-for="c in filteredCategories" v-else :key="c.id">
+              <TableCell class="font-medium">{{ c.name }}</TableCell>
+              <TableCell>{{ c.order }}</TableCell>
+              <TableCell class="text-right space-x-2">
+                <UiButton size="sm" variant="outline" @click="openEdit(c)">{{ t('admin.modal.edit') }}</UiButton>
+                <UiButton size="sm" variant="destructive" @click="openDelete(c.id)">{{ t('admin.modal.delete') }}</UiButton>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </template>
 
     <AdminCategoryModal :open="modalOpen" :category="editingCategory" @close="modalOpen = false" @saved="fetchCategories" />
 

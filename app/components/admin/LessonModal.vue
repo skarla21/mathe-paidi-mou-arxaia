@@ -11,6 +11,10 @@ import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
+import UiTextarea from '~/components/ui/Textarea.vue'
+import { Checkbox } from '~/components/ui/checkbox'
+import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 
 const props = defineProps<{
   open: boolean
@@ -100,66 +104,94 @@ async function onSubmit() {
           <UiDialogTitle>{{ props.lesson ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.lessons') }}</UiDialogTitle>
           <UiDialogDescription class="sr-only">{{ t('admin.modal.lessonDescription') }}</UiDialogDescription>
         </UiDialogHeader>
-        <form class="space-y-4" @submit.prevent="onSubmit">
-          <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.title') }}</UiLabel>
-            <UiInput v-model="title" required />
-          </div>
-          <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.content') }}</UiLabel>
-            <textarea v-model="content" rows="3" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
-          </div>
-          <div class="flex items-center gap-2">
-            <input id="lesson-free" v-model="isFree" type="checkbox" class="h-4 w-4">
-            <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
-          </div>
-          <div v-if="!isFree" class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.price') }}</UiLabel>
-            <UiInput v-model.number="price" type="number" min="0" />
-          </div>
-          <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.pdfUrl') }}</UiLabel>
-            <UiInput v-model="pdfUrl" :placeholder="t('admin.placeholder.url')" />
-          </div>
-          <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.order') }}</UiLabel>
-            <UiInput v-model.number="order" type="number" min="0" />
-          </div>
-          <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.assignedTo') }}</UiLabel>
-            <div class="flex gap-4">
-              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="chapter"> {{ t('admin.assignChapter') }}
-              </label>
-              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="subject"> {{ t('admin.assignSubject') }}
-              </label>
-              <label class="flex items-center gap-1.5 text-sm cursor-pointer">
-                <input v-model="assignment" type="radio" value="category"> {{ t('admin.assignCategory') }}
-              </label>
+        <form class="space-y-6" @submit.prevent="onSubmit">
+
+          <!-- Basic Info -->
+          <fieldset class="space-y-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.sectionContent') }}</p>
+            <div class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.title') }}</UiLabel>
+              <UiInput v-model="title" required />
             </div>
-          </div>
-          <div v-if="assignment === 'chapter'" class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
-            <select v-model="chapterId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>{{ t('admin.selectChapter') }}</option>
-              <option v-for="c in chapters" :key="c.id" :value="c.id">{{ c.title }}</option>
-            </select>
-          </div>
-          <div v-if="assignment === 'subject'" class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
-            <select v-model="subjectId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>{{ t('admin.selectSubject') }}</option>
-              <option v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</option>
-            </select>
-          </div>
-          <div v-if="assignment === 'category'" class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.category') }}</UiLabel>
-            <select v-model="categoryId" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-              <option value="" disabled>{{ t('admin.selectCategory') }}</option>
-              <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
-            </select>
-          </div>
+            <div class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.content') }}</UiLabel>
+              <UiTextarea v-model="content" :rows="3" />
+            </div>
+            <div class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.pdfUrl') }}</UiLabel>
+              <UiInput v-model="pdfUrl" :placeholder="t('admin.placeholder.url')" />
+            </div>
+            <div class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.order') }}</UiLabel>
+              <UiInput v-model.number="order" type="number" min="0" />
+            </div>
+          </fieldset>
+
+          <!-- Pricing -->
+          <fieldset class="space-y-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.price') }}</p>
+            <div class="flex items-center gap-2">
+              <Checkbox id="lesson-free" :checked="isFree" @update:checked="isFree = $event" />
+              <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
+            </div>
+            <div v-if="!isFree" class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.price') }}</UiLabel>
+              <UiInput v-model.number="price" type="number" min="0" />
+            </div>
+          </fieldset>
+
+          <!-- Assignment -->
+          <fieldset class="space-y-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.assignedTo') }}</p>
+            <RadioGroup v-model="assignment" class="flex flex-col gap-2">
+              <div class="flex items-center gap-2">
+                <RadioGroupItem id="assign-chapter" value="chapter" />
+                <UiLabel for="assign-chapter">{{ t('admin.assignChapter') }}</UiLabel>
+              </div>
+              <div class="flex items-center gap-2">
+                <RadioGroupItem id="assign-subject" value="subject" />
+                <UiLabel for="assign-subject">{{ t('admin.assignSubject') }}</UiLabel>
+              </div>
+              <div class="flex items-center gap-2">
+                <RadioGroupItem id="assign-category" value="category" />
+                <UiLabel for="assign-category">{{ t('admin.assignCategory') }}</UiLabel>
+              </div>
+            </RadioGroup>
+            <div v-if="assignment === 'chapter'" class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
+              <Select v-model="chapterId">
+                <SelectTrigger>
+                  <SelectValue :placeholder="t('admin.selectChapter')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="c in chapters" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="assignment === 'subject'" class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+              <Select v-model="subjectId">
+                <SelectTrigger>
+                  <SelectValue :placeholder="t('admin.selectSubject')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div v-if="assignment === 'category'" class="space-y-1.5">
+              <UiLabel>{{ t('admin.field.category') }}</UiLabel>
+              <Select v-model="categoryId">
+                <SelectTrigger>
+                  <SelectValue :placeholder="t('admin.selectCategory')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </fieldset>
+
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>

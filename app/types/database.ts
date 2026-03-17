@@ -60,7 +60,6 @@ export interface User {
   avatar_url: string | null
   isAdmin: boolean
   email_verified: boolean
-  password_hash: string | null
   provider: string
   created_at: string
   /** Aggregated counts — present on admin user listing */
@@ -105,6 +104,7 @@ export interface PasswordResetToken {
 }
 
 export interface AdminStats {
+  // Existing fields
   totalUsers: number
   totalLessons: number
   downloads: number
@@ -118,6 +118,37 @@ export interface AdminStats {
   topLessons: {
     lesson_id: string
     title: string
+    count: number
+  }[]
+
+  // Extended fields
+  totalGrades: number
+  totalSubjects: number
+  totalChapters: number
+  totalCategories: number
+  totalPurchases: number
+  freeVsPaid: { free: number; paid: number }
+  newUsersThisMonth: number
+  newUsersLastMonth: number
+  downloadsThisMonth: number
+  downloadsLastMonth: number
+  revenueThisMonth: number
+  revenueLastMonth: number
+  recentPurchases: {
+    id: string
+    created_at: string
+    users?: { name: string | null; email: string | null } | null
+    lessons?: { title: string; price: number } | null
+  }[]
+  recentUsers: {
+    id: string
+    name: string | null
+    email: string | null
+    avatar_url: string | null
+    created_at: string
+  }[]
+  lessonsByGrade: {
+    grade: string
     count: number
   }[]
 }

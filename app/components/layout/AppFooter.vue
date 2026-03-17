@@ -80,18 +80,10 @@ const { openLogin } = useAuthModal()
           </NuxtLink>
         </div>
       </div>
-      <div class="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="mt-16 pt-8 border-t border-border flex items-center justify-center">
         <p class="text-xs text-muted-foreground font-heading">
           {{ t('footer.copyright') }}
         </p>
-        <div class="flex items-center gap-6">
-          <NuxtLink to="/about" class="text-xs text-muted-foreground hover:text-primary font-heading transition-colors">
-            {{ t('footer.privacy') }}
-          </NuxtLink>
-          <NuxtLink to="/#communication" class="text-xs text-muted-foreground hover:text-primary font-heading transition-colors">
-            {{ t('footer.terms') }}
-          </NuxtLink>
-        </div>
       </div>
     </div>
   </footer>

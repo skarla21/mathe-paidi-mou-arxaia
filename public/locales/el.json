@@ -19,9 +19,11 @@
     "user": "Χρήστης",
     "userMenu": "Μενού χρήστη",
     "openMenu": "Άνοιγμα μενού πλοήγησης",
-    "closeMenu": "Κλείσιμο μενού πλοήγησης"
+    "closeMenu": "Κλείσιμο μενού πλοήγησης",
+    "mobileMenu": "Μενού πλοήγησης κινητού"
   },
   "home": {
+    "pageTitle": "Μάθε Παιδί Μου Αρχαία — Προετοιμασία για Πανελλήνιες",
     "section": {
       "welcome": "Καλώς ήρθατε",
       "information": "Πληροφορίες",
@@ -81,6 +83,14 @@
   "common": {
     "loading": "Φόρτωση...",
     "error": "Κάτι πήγε στραβά",
+    "empty": "—",
+    "yes": "Ναι",
+    "no": "Όχι",
+    "timeAgo": {
+      "mins": "{n} λεπτά πριν",
+      "hours": "{n} ώρες πριν",
+      "days": "{n} ημέρες πριν"
+    },
     "close": "Κλείσιμο",
     "passwordShow": "Εμφάνιση κωδικού",
     "passwordHide": "Απόκρυψη κωδικού"
@@ -198,10 +208,13 @@
     "gradesTitle": "Τάξεις",
     "gradesLoading": "Φόρτωση...",
     "gradesEmpty": "Δεν υπάρχουν τάξεις. Δημιούργησέ τες μέσω API ή διαχείρισης.",
+    "purchasesEmpty": "Δεν υπάρχουν αγορές ακόμη.",
     "chaptersTitle": "Κεφάλαια",
+    "chaptersEmpty": "Δεν υπάρχουν κεφάλαια ακόμα.",
     "subjectsTitle": "Μαθήματα",
     "subjectsEmpty": "Δεν υπάρχουν μαθήματα. Δημιούργησε το πρώτο.",
     "lessonsTitle": "Υλικό",
+    "lessonsEmpty": "Δεν υπάρχει υλικό ακόμα.",
     "purchasesTitle": "Αγορές",
     "purchaseLine": "Χρήστης {userId} – Υλικό {lessonId}",
     "paid": "Πληρωμένο",
@@ -214,11 +227,28 @@
     "usersTitle": "Χρήστες",
     "usersEmpty": "Δεν υπάρχουν χρήστες ακόμα.",
     "statsTitle": "Επισκόπηση",
+    "search": "Αναζήτηση...",
     "stats": {
       "totalUsers": "Σύνολο χρηστών",
       "totalContent": "Σύνολο υλικού",
       "downloads": "Λήψεις",
-      "revenue": "Έσοδα"
+      "revenue": "Έσοδα",
+      "totalGrades": "Τάξεις",
+      "totalSubjects": "Μαθήματα",
+      "totalChapters": "Κεφάλαια",
+      "totalCategories": "Κατηγορίες",
+      "totalPurchases": "Αγορές",
+      "freeVsPaid": "Δωρεάν vs Πληρωμένο",
+      "free": "Δωρεάν",
+      "paid": "Πληρωμένο",
+      "contentBreakdown": "Ανάλυση περιεχομένου",
+      "lessonsByGrade": "Υλικό ανά τάξη",
+      "recentPurchases": "Πρόσφατες αγορές",
+      "recentUsers": "Πρόσφατες εγγραφές",
+      "quickActions": "Γρήγορες ενέργειες",
+      "newThisMonth": "νέοι αυτό το μήνα",
+      "vsLastMonth": "σε σχέση με τον προηγ. μήνα",
+      "noChange": "χωρίς αλλαγή"
     },
     "recentDownloads": "Πρόσφατες λήψεις",
     "topLessons": "Κορυφαίο υλικό",
@@ -230,7 +260,12 @@
       "cancel": "Ακύρωση",
       "delete": "Διαγραφή",
       "confirmDelete": "Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.",
-      "deleteTitle": "Επιβεβαίωση διαγραφής"
+      "deleteTitle": "Επιβεβαίωση διαγραφής",
+      "gradeDescription": "Δημιουργία ή επεξεργασία τάξης.",
+      "categoryDescription": "Δημιουργία ή επεξεργασία κατηγορίας υλικού.",
+      "subjectDescription": "Δημιουργία ή επεξεργασία μαθήματος και ανάθεσή του σε τάξη.",
+      "chapterDescription": "Δημιουργία ή επεξεργασία κεφαλαίου και ανάθεσή του σε μάθημα.",
+      "lessonDescription": "Δημιουργία ή επεξεργασία υλικού και ανάθεσή του σε κεφάλαιο, μάθημα ή κατηγορία."
     },
     "field": {
       "name": "Όνομα",
@@ -253,25 +288,70 @@
       "joinedAt": "Εγγραφή",
       "downloads": "Λήψεις",
       "purchases": "Αγορές",
-      "stripeId": "Stripe ID"
+      "stripeId": "Stripe ID",
+      "pdf": "PDF",
+      "yes": "Ναι",
+      "no": "Όχι"
     },
+    "selectChapter": "Επιλογή κεφαλαίου…",
+    "selectSubject": "Επιλογή μαθήματος…",
+    "selectCategory": "Επιλογή κατηγορίας…",
+    "selectGrade": "Επιλογή τάξης…",
+    "placeholder": {
+      "url": "https://..."
+    },
+    "navAria": "Πλοήγηση διαχείρισης",
     "assignChapter": "Μέρος κεφαλαίου",
     "assignCategory": "Αυτόνομη κατηγορία",
     "assignSubject": "Αυτόνομο υλικό μαθήματος",
     "grantAccess": "Χορήγηση πρόσβασης",
     "grantSuccess": "Η πρόσβαση χορηγήθηκε",
     "grantError": "Αποτυχία χορήγησης",
+    "copiedToClipboard": "Αντιγράφηκε στο πρόχειρο",
     "isAdminToggleSuccess": "Ο ρόλος διαχειριστή ενημερώθηκε",
-    "userDetails": "Λεπτομέρειες χρήστη"
+    "userDetails": "Λεπτομέρειες χρήστη",
+    "confirmAdminToggle": "Είστε σίγουροι ότι θέλετε να αλλάξετε τον ρόλο διαχειριστή αυτού του χρήστη;",
+    "confirmAdminToggleTitle": "Αλλαγή ρόλου διαχειριστή",
+    "confirmGrant": "Είστε σίγουροι ότι θέλετε να χορηγήσετε πρόσβαση σε αυτό το υλικό;",
+    "confirmGrantTitle": "Χορήγηση πρόσβασης",
+    "revokeAccess": "Ανάκληση",
+    "revokeSuccess": "Η πρόσβαση ανακλήθηκε",
+    "revokeError": "Αποτυχία ανάκλησης πρόσβασης",
+    "confirmRevoke": "Είστε σίγουροι ότι θέλετε να ανακαλέσετε αυτή την αγορά; Ο χρήστης θα χάσει πρόσβαση.",
+    "confirmRevokeTitle": "Ανάκληση πρόσβασης",
+    "manualGrant": "Χειροκίνητη",
+    "uploads": {
+      "dragDrop": "Σύρε και άφησε ένα PDF εδώ, ή κάνε κλικ για επιλογή",
+      "selectFile": "Επιλογή PDF",
+      "maxSize": "Μόνο PDF, μέγιστο 10MB",
+      "pdfOnly": "Επιτρέπονται μόνο αρχεία PDF",
+      "tooLarge": "Το αρχείο πρέπει να είναι μικρότερο από 10MB",
+      "uploadSuccess": "Το αρχείο μεταφορτώθηκε επιτυχώς",
+      "uploadError": "Η μεταφόρτωση απέτυχε",
+      "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αρχείο; Δεν μπορεί να αναιρεθεί.",
+      "deleteSuccess": "Το αρχείο διαγράφηκε",
+      "copyUrl": "Αντιγραφή URL",
+      "urlCopied": "Το URL αντιγράφηκε στο πρόχειρο",
+      "fileName": "Όνομα αρχείου",
+      "fileSize": "Μέγεθος",
+      "uploadDate": "Ημ/νία",
+      "empty": "Δεν υπάρχουν μεταφορτωμένα αρχεία ακόμα."
+    },
+    "createGrade": "Νέα τάξη",
+    "createSubject": "Νέο μάθημα",
+    "createChapter": "Νέο κεφάλαιο",
+    "createLesson": "Νέο υλικό"
   },
   "pdf": {
     "prev": "Προηγ",
     "next": "Επόμ",
-    "loading": "Φόρτωση PDF…"
+    "loading": "Φόρτωση PDF…",
+    "loadError": "Αποτυχία φόρτωσης PDF"
   },
   "search": {
     "placeholder": "Αναζήτηση κεφαλαίων ή υλικού...",
     "loading": "Γίνεται αναζήτηση...",
+    "error": "Αποτυχία αναζήτησης",
     "type": {
       "chapter": "Κεφάλαιο",
       "lesson": "Υλικό"
@@ -289,9 +369,7 @@
     "contact": "Επικοινωνία",
     "contactText": "Έχεις απορίες ή σχόλια; Είμαστε εδώ για να βοηθήσουμε.",
     "contactLink": "Στείλε μήνυμα",
-    "copyright": "Με επιφύλαξη παντός δικαιώματος.",
-    "privacy": "Σχετικά",
-    "terms": "Επικοινωνία"
+    "copyright": "Με επιφύλαξη παντός δικαιώματος."
   },
   "header": {
     "languageEl": "Εναλλαγή σε Ελληνικά",
@@ -329,6 +407,15 @@
     },
     "back": "Πίσω",
     "name": "Ονοματεπώνυμο",
+    "modal": {
+      "loginTab": "Σύνδεση",
+      "registerTab": "Εγγραφή"
+    },
+    "validation": {
+      "nameMin": "Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες",
+      "emailInvalid": "Παρακαλώ εισάγετε έγκυρο email",
+      "passwordMin": "Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες"
+    },
     "register": {
       "title": "Εγγραφή",
       "subtitle": "Δημιούργησε λογαριασμό μαθητή για να ξεκινήσεις.",
@@ -338,7 +425,7 @@
       "password": "Κωδικός πρόσβασης",
       "submit": "Εγγραφή",
       "submitting": "Γίνεται εγγραφή...",
-      "success": "Ο λογαριασμός δημιουργήθηκε. Μπορείς τώρα να συνδεθείς.",
+      "success": "Καλώς ήρθες! Ο λογαριασμός σου δημιουργήθηκε.",
       "error": {
         "generic": "Η εγγραφή δεν ήταν δυνατή",
         "emailTaken": "Αυτό το email χρησιμοποιείται ήδη"

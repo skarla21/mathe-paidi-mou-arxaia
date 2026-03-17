@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
+import UiInput from '~/components/ui/Input.vue'
+import UiSkeleton from '~/components/ui/Skeleton.vue'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
 import UiAlertDialogRoot from '~/components/ui/alert-dialog/AlertDialogRoot.vue'
 import UiAlertDialogPortal from '~/components/ui/alert-dialog/AlertDialogPortal.vue'
 import UiAlertDialogOverlay from '~/components/ui/alert-dialog/AlertDialogOverlay.vue'
@@ -20,11 +23,18 @@ useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.chaptersTitle')}` }))
 
 const chapters = ref<Chapter[]>([])
 const loading = ref(true)
+const search = ref('')
 const modalOpen = ref(false)
 const editingChapter = ref<Chapter | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
+
+const filteredChapters = computed(() => {
+  if (!search.value) return chapters.value
+  const q = search.value.toLowerCase()
+  return chapters.value.filter(c => c.title.toLowerCase().includes(q))
+})
 
 async function fetchChapters() {
   loading.value = true
@@ -62,35 +72,80 @@ async function confirmDelete() {
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.chaptersTitle') }}</h1>
-      <UiButton @click="openCreate">+ {{ t('admin.modal.create') }}</UiButton>
+      <UiButton @click="openCreate">
+        <VIcon name="bi-plus-circle" class="mr-2 size-4" />
+        {{ t('admin.modal.create') }}
+      </UiButton>
     </div>
-    <p v-if="loading" class="text-muted-foreground">{{ t('common.loading') }}</p>
-    <div v-else class="rounded-md border overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="border-b bg-muted/50">
-          <tr>
-            <th class="px-4 py-3 text-left font-medium w-12" />
-            <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.title') }}</th>
-            <th class="px-4 py-3 text-left font-medium">{{ t('admin.field.subject') }}</th>
-            <th class="px-4 py-3 text-right font-medium" />
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="c in chapters" :key="c.id" class="border-b last:border-0 hover:bg-muted/30">
-            <td class="px-4 py-3">
-              <img v-if="c.thumbnail_url" :src="c.thumbnail_url" class="size-8 rounded object-cover" alt="">
-              <span v-else class="text-muted-foreground">—</span>
-            </td>
-            <td class="px-4 py-3 font-medium">{{ c.title }}</td>
-            <td class="px-4 py-3 text-muted-foreground">{{ c.subjects?.name ?? '—' }}</td>
-            <td class="px-4 py-3 text-right space-x-2">
-              <UiButton size="sm" variant="outline" @click="openEdit(c)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click="openDelete(c.id)">{{ t('admin.modal.delete') }}</UiButton>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+
+    <!-- Search -->
+    <div class="relative mb-4">
+      <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
     </div>
+
+    <!-- Skeleton loading -->
+    <template v-if="loading">
+      <div class="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead v-for="i in 4" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="i in 5" :key="i">
+              <TableCell v-for="j in 4" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </template>
+
+    <!-- Data table -->
+    <template v-else>
+      <div class="rounded-md border overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead class="w-12" />
+              <TableHead>{{ t('admin.field.title') }}</TableHead>
+              <TableHead>{{ t('admin.field.subject') }}</TableHead>
+              <TableHead class="text-right" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <!-- Empty state -->
+            <TableRow v-if="!filteredChapters.length">
+              <TableCell :colspan="4" class="h-32 text-center">
+                <div class="flex flex-col items-center gap-2 text-muted-foreground">
+                  <VIcon name="bi-inbox" class="size-8" />
+                  <p>{{ t('admin.chaptersEmpty') }}</p>
+                </div>
+              </TableCell>
+            </TableRow>
+            <!-- Rows -->
+            <TableRow v-for="c in filteredChapters" v-else :key="c.id">
+              <TableCell>
+                <img
+                  v-if="c.thumbnail_url"
+                  :src="c.thumbnail_url"
+                  :alt="c.title"
+                  class="size-8 rounded object-cover"
+                >
+                <span v-else class="text-muted-foreground">{{ t('common.empty') }}</span>
+              </TableCell>
+              <TableCell class="font-medium">{{ c.title }}</TableCell>
+              <TableCell class="text-muted-foreground">{{ c.subjects?.name ?? t('common.empty') }}</TableCell>
+              <TableCell class="text-right space-x-2">
+                <UiButton size="sm" variant="outline" @click="openEdit(c)">{{ t('admin.modal.edit') }}</UiButton>
+                <UiButton size="sm" variant="destructive" @click="openDelete(c.id)">{{ t('admin.modal.delete') }}</UiButton>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </template>
 
     <AdminChapterModal :open="modalOpen" :chapter="editingChapter" @close="modalOpen = false" @saved="fetchChapters" />
 
