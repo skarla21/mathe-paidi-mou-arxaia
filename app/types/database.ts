@@ -10,6 +10,7 @@ export interface Subject {
   id: string
   name: string
   grade_id: string
+  order: number
   /** Joined relation — only present when select includes `grades(…)` */
   grades?: { name: string } | null
 }
@@ -32,7 +33,7 @@ export interface Chapter {
   order: number
   created_at: string
   /** Joined relation — only present when select includes `subjects(…)` */
-  subjects?: { name: string } | null
+  subjects?: { name: string; grades?: { name: string } | null } | null
 }
 
 export interface Lesson {
@@ -44,12 +45,12 @@ export interface Lesson {
   content: string | null
   is_free: boolean
   price: number
-  pdf_url: string | null
+  content_url: string | null
   order: number
   created_at: string
   /** Joined relations — present when select includes these */
-  chapters?: { title: string } | null
-  subjects?: { name: string } | null
+  chapters?: { title: string; grade_id?: string; subject_id?: string } | null
+  subjects?: { name: string; grade_id?: string } | null
   categories?: { name: string } | null
 }
 

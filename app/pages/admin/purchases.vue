@@ -27,6 +27,7 @@ interface PurchaseWithUser extends Purchase {
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.purchasesTitle')}` }))
 
 const purchases = ref<PurchaseWithUser[]>([])
@@ -71,7 +72,7 @@ async function confirmGrantAccess() {
   if (!grant) return
   grantingId.value = `${grant.userId}-${grant.lessonId}`
   try {
-    await $fetch('/api/admin/purchases/grant', { method: 'POST', body: { userId: grant.userId, lessonId: grant.lessonId } })
+    await adminFetch('/api/admin/purchases/grant', { method: 'POST', body: { userId: grant.userId, lessonId: grant.lessonId } })
     toast.success(t('admin.grantSuccess'))
     grantDialogOpen.value = false
     await fetchPurchases()

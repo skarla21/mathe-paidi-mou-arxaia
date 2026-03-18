@@ -3,46 +3,63 @@ import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiSkeleton from '~/components/ui/Skeleton.vue'
-import UiSwitch from '~/components/ui/switch/Switch.vue'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
-import UiAlertDialogRoot from '~/components/ui/alert-dialog/AlertDialogRoot.vue'
-import UiAlertDialogPortal from '~/components/ui/alert-dialog/AlertDialogPortal.vue'
-import UiAlertDialogOverlay from '~/components/ui/alert-dialog/AlertDialogOverlay.vue'
-import UiAlertDialogContent from '~/components/ui/alert-dialog/AlertDialogContent.vue'
-import UiAlertDialogHeader from '~/components/ui/alert-dialog/AlertDialogHeader.vue'
-import UiAlertDialogFooter from '~/components/ui/alert-dialog/AlertDialogFooter.vue'
-import UiAlertDialogTitle from '~/components/ui/alert-dialog/AlertDialogTitle.vue'
-import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDescription.vue'
-import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
-import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminUserDetailModal from '~/components/admin/UserDetailModal.vue'
 import type { User } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.usersTitle')}` }))
+
+type SortColumn = 'name' | 'joinedAt' | 'downloads' | 'purchases'
 
 const users = ref<User[]>([])
 const loading = ref(true)
 const search = ref('')
 const detailUserId = ref<string | null>(null)
-
-// Admin toggle confirmation
-const toggleDialogOpen = ref(false)
-const pendingToggleUser = ref<User | null>(null)
-const toggleLoading = ref(false)
+const sortBy = ref<SortColumn>('joinedAt')
+const sortOrder = ref<'asc' | 'desc'>('desc')
 
 const filteredUsers = computed(() => {
-  if (!search.value) return users.value
-  const q = search.value.toLowerCase()
-  return users.value.filter(u =>
-    u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
-  )
+  let list = users.value
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(u =>
+      u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
+    )
+  }
+  const col = sortBy.value
+  const asc = sortOrder.value === 'asc'
+  return [...list].sort((a, b) => {
+    let cmp = 0
+    if (col === 'name') {
+      const na = (a.name ?? '').toLowerCase()
+      const nb = (b.name ?? '').toLowerCase()
+      cmp = na.localeCompare(nb)
+    } else if (col === 'joinedAt') {
+      cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    } else if (col === 'downloads') {
+      cmp = (a.downloadCount ?? 0) - (b.downloadCount ?? 0)
+    } else {
+      cmp = (a.purchaseCount ?? 0) - (b.purchaseCount ?? 0)
+    }
+    return asc ? cmp : -cmp
+  })
 })
+
+function setSort(col: SortColumn) {
+  if (sortBy.value === col) {
+    sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortBy.value = col
+    sortOrder.value = col === 'name' ? 'asc' : 'desc'
+  }
+}
 
 async function fetchUsers() {
   loading.value = true
-  try { users.value = await $fetch<User[]>('/api/admin/users') }
+  try { users.value = await adminFetch<User[]>('/api/admin/users') }
   catch {
     users.value = []
     toast.error(t('common.error'))
@@ -51,29 +68,6 @@ async function fetchUsers() {
 }
 
 onMounted(fetchUsers)
-
-function requestToggleAdmin(user: User) {
-  pendingToggleUser.value = user
-  toggleDialogOpen.value = true
-}
-
-async function confirmToggleAdmin() {
-  const user = pendingToggleUser.value
-  if (!user) return
-  toggleLoading.value = true
-  try {
-    await $fetch(`/api/admin/users/${user.id}`, { method: 'PATCH', body: { isAdmin: !user.isAdmin } })
-    user.isAdmin = !user.isAdmin
-    toast.success(t('admin.isAdminToggleSuccess'))
-    toggleDialogOpen.value = false
-  } catch (e: unknown) {
-    const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
-  } finally {
-    toggleLoading.value = false
-    pendingToggleUser.value = null
-  }
-}
 </script>
 
 <template>
@@ -112,19 +106,74 @@ async function confirmToggleAdmin() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{{ t('admin.field.name') }}</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  :aria-label="`${t('admin.field.name')} ${sortBy === 'name' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
+                  @click="setSort('name')"
+                >
+                  {{ t('admin.field.name') }}
+                  <VIcon
+                    v-if="sortBy === 'name'"
+                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
+                    class="size-4 text-muted-foreground"
+                  />
+                </button>
+              </TableHead>
               <TableHead>{{ t('admin.field.email') }}</TableHead>
-              <TableHead>{{ t('admin.field.joinedAt') }}</TableHead>
-              <TableHead class="text-center">{{ t('admin.field.downloads') }}</TableHead>
-              <TableHead class="text-center">{{ t('admin.field.purchases') }}</TableHead>
-              <TableHead class="text-center">{{ t('admin.field.isAdmin') }}</TableHead>
+              <TableHead>
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  :aria-label="`${t('admin.field.joinedAt')} ${sortBy === 'joinedAt' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
+                  @click="setSort('joinedAt')"
+                >
+                  {{ t('admin.field.joinedAt') }}
+                  <VIcon
+                    v-if="sortBy === 'joinedAt'"
+                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
+                    class="size-4 text-muted-foreground"
+                  />
+                </button>
+              </TableHead>
+              <TableHead class="text-center">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer mx-auto"
+                  :aria-label="`${t('admin.field.downloads')} ${sortBy === 'downloads' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
+                  @click="setSort('downloads')"
+                >
+                  {{ t('admin.field.downloads') }}
+                  <VIcon
+                    v-if="sortBy === 'downloads'"
+                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
+                    class="size-4 text-muted-foreground"
+                  />
+                </button>
+              </TableHead>
+              <TableHead class="text-center">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer mx-auto"
+                  :aria-label="`${t('admin.field.purchases')} ${sortBy === 'purchases' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
+                  @click="setSort('purchases')"
+                >
+                  {{ t('admin.field.purchases') }}
+                  <VIcon
+                    v-if="sortBy === 'purchases'"
+                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
+                    class="size-4 text-muted-foreground"
+                  />
+                </button>
+              </TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredUsers.length">
-              <TableCell :colspan="7" class="h-32 text-center">
+              <TableCell :colspan="6" class="h-32 text-center">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
                   <p>{{ t('admin.usersEmpty') }}</p>
@@ -151,13 +200,6 @@ async function confirmToggleAdmin() {
               </TableCell>
               <TableCell class="text-center">{{ u.downloadCount ?? 0 }}</TableCell>
               <TableCell class="text-center">{{ u.purchaseCount ?? 0 }}</TableCell>
-              <TableCell class="text-center">
-                <UiSwitch
-                  :checked="u.isAdmin"
-                  :aria-label="t('admin.field.isAdmin')"
-                  @update:checked="requestToggleAdmin(u)"
-                />
-              </TableCell>
               <TableCell class="text-right">
                 <UiButton size="sm" variant="outline" @click="detailUserId = u.id">
                   {{ t('admin.userDetails') }}
@@ -170,28 +212,5 @@ async function confirmToggleAdmin() {
     </template>
 
     <AdminUserDetailModal :open="!!detailUserId" :user-id="detailUserId" @close="detailUserId = null" />
-
-    <!-- Admin toggle confirmation dialog -->
-    <UiAlertDialogRoot v-model:open="toggleDialogOpen">
-      <UiAlertDialogPortal>
-        <UiAlertDialogOverlay />
-        <UiAlertDialogContent>
-          <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.confirmAdminToggleTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.confirmAdminToggle') }}</UiAlertDialogDescription>
-          </UiAlertDialogHeader>
-          <UiAlertDialogFooter>
-            <UiAlertDialogCancel>
-              <UiButton variant="outline">{{ t('admin.modal.cancel') }}</UiButton>
-            </UiAlertDialogCancel>
-            <UiAlertDialogAction as-child>
-              <UiButton :disabled="toggleLoading" @click="confirmToggleAdmin">
-                {{ t('admin.modal.save') }}
-              </UiButton>
-            </UiAlertDialogAction>
-          </UiAlertDialogFooter>
-        </UiAlertDialogContent>
-      </UiAlertDialogPortal>
-    </UiAlertDialogRoot>
   </div>
 </template>

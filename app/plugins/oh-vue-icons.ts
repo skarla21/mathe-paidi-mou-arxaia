@@ -51,6 +51,7 @@ import {
   BiArrowUpShort,
   BiArrowDownShort,
   BiDash,
+  BiGripVertical,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -105,6 +106,7 @@ addIcons(
   BiArrowUpShort,
   BiArrowDownShort,
   BiDash,
+  BiGripVertical,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

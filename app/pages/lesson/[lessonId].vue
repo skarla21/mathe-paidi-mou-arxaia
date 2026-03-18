@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
-import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
+import LessonContentViewer from '~/components/lesson/LessonContentViewer.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiSkeleton from '~/components/ui/Skeleton.vue'
 
@@ -13,7 +13,7 @@ interface Lesson {
   subject_id: string | null
   category_id: string | null
   price: number
-  pdf_url?: string | null
+  content_url?: string | null
 }
 
 interface LessonResponse extends Lesson {
@@ -107,11 +107,11 @@ onMounted(() => {
           <div class="mt-4 h-64 animate-pulse rounded-xl bg-muted" />
         </template>
       </ClientOnly>
-      <div v-if="canAccess && canAccessContent && lesson.pdf_url" class="mt-8">
-        <LessonPdfViewer :src="lesson.pdf_url" />
+      <div v-if="canAccess && canAccessContent && lesson.content_url" class="mt-8">
+        <LessonContentViewer :src="lesson.content_url" />
       </div>
       <div
-        v-else-if="canAccess && !canAccessContent && lesson.pdf_url"
+        v-else-if="canAccess && !canAccessContent && lesson.content_url"
         class="mt-8 flex flex-col items-center gap-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-8 text-center max-w-md"
       >
         <span
@@ -134,7 +134,7 @@ onMounted(() => {
         </NuxtLink>
       </div>
       <div
-        v-else-if="lesson.pdf_url && !canAccess"
+        v-else-if="lesson.content_url && !canAccess"
         class="mt-8 flex flex-col items-center gap-4 rounded-xl bg-accent/10 border border-accent/30 p-8 text-center max-w-md"
       >
         <span

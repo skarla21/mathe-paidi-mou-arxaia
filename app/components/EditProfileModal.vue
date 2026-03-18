@@ -36,7 +36,7 @@ const resendVerificationLoading = ref(false)
 async function resendVerification() {
   resendVerificationLoading.value = true
   try {
-    await $fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'include' })
+    await $fetch('/api/user/resend-verification', { method: 'POST', credentials: 'include' })
     await fetchSession()
     toast.success(t('auth.verification.resendSuccess'))
   } catch (e: unknown) {

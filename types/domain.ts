@@ -44,7 +44,7 @@ export interface Lesson {
   content: string | null
   is_free: boolean
   price: number
-  pdf_url: string | null
+  content_url: string | null
   order: number
   created_at: string
 }

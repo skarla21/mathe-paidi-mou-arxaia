@@ -13,7 +13,7 @@ Auth.js
 Supabase (PostgreSQL + Storage)
 Stripe
 PDF.js
-FormSubmit
+Resend
 Vercel
 Git + Github for version control and remote repo
 

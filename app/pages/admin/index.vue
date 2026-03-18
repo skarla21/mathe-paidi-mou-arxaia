@@ -11,13 +11,14 @@ import type { AdminStats } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 useHead(() => ({ title: t('admin.statsTitle') }))
 
 const stats = ref<AdminStats | null>(null)
 const loading = ref(true)
 
 onMounted(async () => {
-  try { stats.value = await $fetch<AdminStats>('/api/admin/stats') }
+  try { stats.value = await adminFetch<AdminStats>('/api/admin/stats') }
   catch {
     stats.value = null
     toast.error(t('common.error'))

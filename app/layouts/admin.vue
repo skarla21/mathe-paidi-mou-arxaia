@@ -10,9 +10,8 @@ const contentLinks = computed(() => [
   { to: '/admin/grades', label: t('admin.grades'), icon: 'bi-mortarboard' },
   { to: '/admin/subjects', label: t('admin.subjects'), icon: 'bi-journal-text' },
   { to: '/admin/chapters', label: t('admin.chapters'), icon: 'bi-journal-bookmark' },
-  { to: '/admin/lessons', label: t('admin.lessons'), icon: 'bi-list-check' },
   { to: '/admin/categories', label: t('admin.categories'), icon: 'bi-folder' },
-  { to: '/admin/uploads', label: t('admin.uploads'), icon: 'bi-cloud-arrow-up' },
+  { to: '/admin/lessons', label: t('admin.lessons'), icon: 'bi-list-check' },
 ])
 
 const peopleLinks = computed(() => [

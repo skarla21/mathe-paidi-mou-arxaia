@@ -53,9 +53,11 @@ create index if not exists grades_order_idx on public.grades("order");
 create table if not exists public.subjects (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  grade_id uuid not null references public.grades(id) on delete cascade
+  grade_id uuid not null references public.grades(id) on delete cascade,
+  "order" int not null default 0
 );
 create index if not exists subjects_grade_id_idx on public.subjects(grade_id);
+create index if not exists subjects_order_idx on public.subjects("order");
 
 -- Categories (miscellaneous content groupings, independent of grade/subject tree)
 create table if not exists public.categories (
@@ -93,7 +95,7 @@ create table if not exists public.lessons (
   content text,
   is_free boolean not null default true,
   price int not null default 0,
-  pdf_url text,
+  content_url text,
   "order" int not null default 0,
   created_at timestamptz not null default now(),
   constraint lessons_parent_check check (
@@ -154,7 +156,7 @@ create policy "categories_select_all" on public.categories for select using (tru
 -- Chapters: public read
 create policy "chapters_select_all" on public.chapters for select using (true);
 
--- Lessons: public read (PDF access / paid-content gate enforced in app layer)
+-- Lessons: public read (content access / paid-content gate enforced in app layer)
 create policy "lessons_select_all" on public.lessons for select using (true);
 
 -- Users: own row only

@@ -120,7 +120,7 @@ async function onSubmit() {
                 v-model="password"
                 type="password"
                 required
-                minlength="6"
+                minlength="8"
               />
             </div>
 

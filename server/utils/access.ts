@@ -16,14 +16,14 @@ export async function canAccessLesson(
     chapter_id: string | null
     subject_id: string | null
     category_id: string | null
-    pdf_url?: string | null
+    content_url?: string | null
   }
-  pdf_url?: string | null
+  content_url?: string | null
 }> {
   const supabase = serverSupabaseService()
   const { data: lesson, error: lessonError } = await supabase
     .from('lessons')
-    .select('id, title, content, is_free, price, chapter_id, subject_id, category_id, pdf_url')
+    .select('id, title, content, is_free, price, chapter_id, subject_id, category_id, content_url')
     .eq('id', lessonId)
     .single()
   if (lessonError || !lesson) return { allowed: false, canAccessContent: false }
@@ -42,7 +42,7 @@ export async function canAccessLesson(
 
   const allowed = lesson.is_free || hasPurchase
   const canAccessContent = allowed && !!userId && emailVerified
-  const pdf_url = canAccessContent ? lesson.pdf_url : null
+  const content_url = canAccessContent ? lesson.content_url : null
 
-  return { allowed, canAccessContent, lesson, pdf_url }
+  return { allowed, canAccessContent, lesson, content_url }
 }

@@ -17,11 +17,11 @@ export default defineEventHandler(async (event) => {
     emailVerified = !!data?.email_verified
   }
 
-  const { allowed, canAccessContent, lesson, pdf_url } = await canAccessLesson(userId, id, emailVerified)
+  const { allowed, canAccessContent, lesson, content_url } = await canAccessLesson(userId, id, emailVerified)
   if (!lesson) throw createError({ statusCode: 404, message: 'Lesson not found' })
   return {
     ...lesson,
-    pdf_url: canAccessContent ? pdf_url : null,
+    content_url: canAccessContent ? content_url : null,
     can_access: allowed,
     can_access_content: canAccessContent,
   }

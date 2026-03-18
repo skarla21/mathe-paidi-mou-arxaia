@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const body = await readBody<{
     title: string; content?: string; is_free?: boolean; price?: number
-    pdf_url?: string; order?: number
+    content_url?: string; order?: number
     chapter_id?: string | null; subject_id?: string | null; category_id?: string | null
   }>(event)
   if (!body.title?.trim()) throw createError({ statusCode: 400, message: 'Title is required' })
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     content: body.content ?? null,
     is_free: body.is_free ?? true,
     price: body.is_free ? 0 : (body.price ?? 0),
-    pdf_url: body.pdf_url ?? null,
+    content_url: body.content_url ?? null,
     order: body.order ?? 0,
     chapter_id: body.chapter_id ?? null,
     subject_id: body.subject_id ?? null,

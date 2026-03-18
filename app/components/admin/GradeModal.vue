@@ -20,13 +20,12 @@ const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
 
 const name = ref('')
-const order = ref(0)
 const loading = ref(false)
+const adminFetch = useAdminFetch()
 
 watch(() => props.open, (val) => {
   if (val) {
     name.value = props.grade?.name ?? ''
-    order.value = props.grade?.order ?? 0
   }
 })
 
@@ -35,9 +34,9 @@ async function onSubmit() {
   loading.value = true
   try {
     if (props.grade) {
-      await $fetch(`/api/admin/grades/${props.grade.id}`, { method: 'PATCH', body: { name: name.value, order: order.value } })
+      await adminFetch(`/api/admin/grades/${props.grade.id}`, { method: 'PATCH', body: { name: name.value } })
     } else {
-      await $fetch('/api/admin/grades', { method: 'POST', body: { name: name.value, order: order.value } })
+      await adminFetch('/api/admin/grades', { method: 'POST', body: { name: name.value, order: 0 } })
     }
     emit('saved')
     emit('close')
@@ -63,10 +62,6 @@ async function onSubmit() {
           <div class="space-y-1.5">
             <UiLabel for="grade-name">{{ t('admin.field.name') }}</UiLabel>
             <UiInput id="grade-name" v-model="name" required />
-          </div>
-          <div class="space-y-1.5">
-            <UiLabel for="grade-order">{{ t('admin.field.order') }}</UiLabel>
-            <UiInput id="grade-order" v-model.number="order" type="number" min="0" />
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>

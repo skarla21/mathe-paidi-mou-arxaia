@@ -19,6 +19,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 
 const name = ref('')
 const gradeId = ref('')
@@ -37,9 +38,9 @@ async function onSubmit() {
   loading.value = true
   try {
     if (props.subject) {
-      await $fetch(`/api/admin/subjects/${props.subject.id}`, { method: 'PATCH', body: { name: name.value, grade_id: gradeId.value } })
+      await adminFetch(`/api/admin/subjects/${props.subject.id}`, { method: 'PATCH', body: { name: name.value, grade_id: gradeId.value } })
     } else {
-      await $fetch('/api/admin/subjects', { method: 'POST', body: { name: name.value, grade_id: gradeId.value } })
+      await adminFetch('/api/admin/subjects', { method: 'POST', body: { name: name.value, grade_id: gradeId.value, order: 0 } })
     }
     emit('saved')
     emit('close')

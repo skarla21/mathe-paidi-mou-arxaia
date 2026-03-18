@@ -116,7 +116,8 @@
       "cta": "Αγόρασε αυτό το υλικό"
     },
     "verifyToAccessContent": "Επαλήθευσε το email σου για πρόσβαση στο υλικό",
-    "verifyToAccessContentDescription": "Χρειάζεται να επαληθεύσεις το email σου πριν μπορέσεις να δεις ή να κατεβάσεις υλικό."
+    "verifyToAccessContentDescription": "Χρειάζεται να επαληθεύσεις το email σου πριν μπορέσεις να δεις ή να κατεβάσεις υλικό.",
+    "contentUnsupported": "Αυτή η μορφή περιεχομένου δεν υποστηρίζεται"
   },
   "category": {
     "title": "Κατηγορία",
@@ -193,7 +194,7 @@
   },
   "admin": {
     "nav": "Διαχείριση",
-    "backToSite": "Πίσω στην τοποθεσία",
+    "backToSite": "Πίσω στην εφαρμογή",
     "overview": "Επισκόπηση",
     "grades": "Τάξεις",
     "subjects": "Μαθήματα",
@@ -290,6 +291,8 @@
       "purchases": "Αγορές",
       "stripeId": "Stripe ID",
       "pdf": "PDF",
+      "contentFile": "Αρχείο",
+      "file": "Αρχείο",
       "yes": "Ναι",
       "no": "Όχι"
     },
@@ -309,6 +312,8 @@
     "grantError": "Αποτυχία χορήγησης",
     "copiedToClipboard": "Αντιγράφηκε στο πρόχειρο",
     "isAdminToggleSuccess": "Ο ρόλος διαχειριστή ενημερώθηκε",
+    "sortAsc": "Αύξουσα",
+    "sortDesc": "Φθίνουσα",
     "userDetails": "Λεπτομέρειες χρήστη",
     "confirmAdminToggle": "Είστε σίγουροι ότι θέλετε να αλλάξετε τον ρόλο διαχειριστή αυτού του χρήστη;",
     "confirmAdminToggleTitle": "Αλλαγή ρόλου διαχειριστή",
@@ -321,11 +326,11 @@
     "confirmRevokeTitle": "Ανάκληση πρόσβασης",
     "manualGrant": "Χειροκίνητη",
     "uploads": {
-      "dragDrop": "Σύρε και άφησε ένα PDF εδώ, ή κάνε κλικ για επιλογή",
-      "selectFile": "Επιλογή PDF",
-      "maxSize": "Μόνο PDF, μέγιστο 10MB",
-      "pdfOnly": "Επιτρέπονται μόνο αρχεία PDF",
-      "tooLarge": "Το αρχείο πρέπει να είναι μικρότερο από 10MB",
+      "dragDrop": "Σύρε και άφησε PDF ή εικόνα εδώ, ή κάνε κλικ για επιλογή",
+      "selectFile": "Επιλογή αρχείου",
+      "maxSize": "PDF μέγ. 50MB, εικόνες μέγ. 20MB",
+      "fileTypeError": "Επιτρέπονται μόνο αρχεία PDF, JPG και PNG",
+      "tooLarge": "Το αρχείο πρέπει να είναι μικρότερο από 50MB",
       "uploadSuccess": "Το αρχείο μεταφορτώθηκε επιτυχώς",
       "uploadError": "Η μεταφόρτωση απέτυχε",
       "deleteConfirm": "Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το αρχείο; Δεν μπορεί να αναιρεθεί.",
@@ -340,7 +345,15 @@
     "createGrade": "Νέα τάξη",
     "createSubject": "Νέο μάθημα",
     "createChapter": "Νέο κεφάλαιο",
-    "createLesson": "Νέο υλικό"
+    "createLesson": "Νέο υλικό",
+    "saveOrder": "Αποθήκευση σειράς",
+    "saveOrderSuccess": "Η σειρά αποθηκεύτηκε",
+    "saveOrderError": "Αποτυχία αποθήκευσης σειράς",
+    "lessonModal": {
+      "noFile": "Δεν έχει επιλεγεί αρχείο",
+      "removeFile": "Αφαίρεση αρχείου",
+      "orPasteUrl": "Ή επικόλληση URL"
+    }
   },
   "pdf": {
     "prev": "Προηγ",
@@ -414,7 +427,7 @@
     "validation": {
       "nameMin": "Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες",
       "emailInvalid": "Παρακαλώ εισάγετε έγκυρο email",
-      "passwordMin": "Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες"
+      "passwordMin": "Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες"
     },
     "register": {
       "title": "Εγγραφή",

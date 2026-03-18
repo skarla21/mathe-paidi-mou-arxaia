@@ -23,6 +23,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 
 const title = ref('')
 const description = ref('')
@@ -37,7 +38,7 @@ watch(() => props.open, async (val) => {
   description.value = props.chapter?.description ?? ''
   subjectId.value = props.chapter?.subject_id ?? ''
   thumbnailUrl.value = props.chapter?.thumbnail_url ?? ''
-  try { subjects.value = await $fetch<{ id: string; name: string }[]>('/api/admin/subjects') } catch { subjects.value = [] }
+  try { subjects.value = await adminFetch<{ id: string; name: string }[]>('/api/admin/subjects') } catch { subjects.value = [] }
 })
 
 async function onSubmit() {
@@ -50,9 +51,9 @@ async function onSubmit() {
       thumbnail_url: thumbnailUrl.value || null,
     }
     if (props.chapter) {
-      await $fetch(`/api/admin/chapters/${props.chapter.id}`, { method: 'PATCH', body })
+      await adminFetch(`/api/admin/chapters/${props.chapter.id}`, { method: 'PATCH', body })
     } else {
-      await $fetch('/api/admin/chapters', { method: 'POST', body })
+      await adminFetch('/api/admin/chapters', { method: 'POST', body })
     }
     emit('saved')
     emit('close')

@@ -1,8 +1,24 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
 
-const MAX_SIZE = 10 * 1024 * 1024 // 10MB
-const ALLOWED_TYPES = ['application/pdf']
+const MAX_PDF_SIZE = 50 * 1024 * 1024 // 50MB
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024 // 20MB
+const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'] as const
+
+function validateMagicBytes(data: Buffer, mimeType: string): boolean {
+  const bytes = new Uint8Array(data)
+  if (mimeType === 'application/pdf') {
+    const header = new TextDecoder().decode(data.slice(0, 5))
+    return header === '%PDF-'
+  }
+  if (mimeType === 'image/jpeg') {
+    return bytes[0] === 0xff && bytes[1] === 0xd8
+  }
+  if (mimeType === 'image/png') {
+    return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+  }
+  return false
+}
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -14,23 +30,27 @@ export default defineEventHandler(async (event) => {
   if (!file?.data || !file.filename) {
     throw createError({ statusCode: 400, message: 'Invalid file' })
   }
-  if (!ALLOWED_TYPES.includes(file.type || '')) {
-    throw createError({ statusCode: 400, message: 'Only PDF allowed' })
+  const mimeType = (file.type || '') as (typeof ALLOWED_TYPES)[number]
+  if (!ALLOWED_TYPES.includes(mimeType)) {
+    throw createError({ statusCode: 400, message: 'Only PDF, JPG, and PNG allowed' })
   }
-  // Validate PDF magic bytes
-  const header = new TextDecoder().decode(file.data.slice(0, 5))
-  if (header !== '%PDF-') {
-    throw createError({ statusCode: 400, message: 'Invalid PDF file' })
+  if (!validateMagicBytes(file.data, mimeType)) {
+    throw createError({ statusCode: 400, message: 'Invalid file format' })
   }
-  if (file.data.length > MAX_SIZE) {
-    throw createError({ statusCode: 400, message: 'File too large (max 10MB)' })
+  const maxSize = mimeType === 'application/pdf' ? MAX_PDF_SIZE : MAX_IMAGE_SIZE
+  if (file.data.length > maxSize) {
+    const limit = mimeType === 'application/pdf' ? '50MB' : '20MB'
+    throw createError({ statusCode: 400, message: `File too large (max ${limit})` })
   }
   const supabase = serverSupabaseService()
   const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200)
-  const path = `pdfs/${Date.now()}-${safeName}`
+  const path = `lesson-content/${Date.now()}-${safeName}`
   const { data: upload, error: uploadError } = await supabase.storage
     .from('uploads')
-    .upload(path, file.data, { contentType: file.type || 'application/pdf', upsert: false })
+    .upload(path, file.data, {
+      contentType: mimeType || 'application/pdf',
+      upsert: false,
+    })
   if (uploadError) {
     throw createError({ statusCode: 500, message: uploadError.message })
   }

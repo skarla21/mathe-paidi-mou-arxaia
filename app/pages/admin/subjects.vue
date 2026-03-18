@@ -2,9 +2,9 @@
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
-import UiBadge from '~/components/ui/Badge.vue'
 import UiSkeleton from '~/components/ui/Skeleton.vue'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '~/components/ui/table'
+import UiCard from '~/components/ui/Card.vue'
+import UiCardContent from '~/components/ui/CardContent.vue'
 import UiAlertDialogRoot from '~/components/ui/alert-dialog/AlertDialogRoot.vue'
 import UiAlertDialogPortal from '~/components/ui/alert-dialog/AlertDialogPortal.vue'
 import UiAlertDialogOverlay from '~/components/ui/alert-dialog/AlertDialogOverlay.vue'
@@ -15,6 +15,7 @@ import UiAlertDialogTitle from '~/components/ui/alert-dialog/AlertDialogTitle.vu
 import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDescription.vue'
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import AdminSubjectModal from '~/components/admin/SubjectModal.vue'
 import type { Subject } from '~/types/database'
 
@@ -22,32 +23,77 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 const { t } = useI18n()
 useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.subjectsTitle')}` }))
 
+const adminFetch = useAdminFetch()
 const subjects = ref<Subject[]>([])
+const grades = ref<{ id: string; name: string }[]>([])
 const loading = ref(true)
 const search = ref('')
+const gradeId = ref('__all__')
 const modalOpen = ref(false)
 const editingSubject = ref<Subject | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
+const saveOrderLoading = ref(false)
+const orderedIds = ref<string[]>([])
+const draggedIndex = ref<number | null>(null)
 
 const filteredSubjects = computed(() => {
-  if (!search.value) return subjects.value
-  const q = search.value.toLowerCase()
-  return subjects.value.filter(s => s.name.toLowerCase().includes(q))
+  let list = subjects.value
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(s => s.name.toLowerCase().includes(q))
+  }
+  if (gradeId.value && gradeId.value !== '__all__') list = list.filter(s => s.grade_id === gradeId.value)
+  return list
 })
 
-async function fetchSubjects() {
-  loading.value = true
-  try { subjects.value = await $fetch<Subject[]>('/api/admin/subjects') }
-  catch {
-    subjects.value = []
-    toast.error(t('common.error'))
-  }
-  finally { loading.value = false }
+const displayedSubjects = computed(() => {
+  const list = filteredSubjects.value
+  if (orderedIds.value.length !== list.length) return list
+  return orderedIds.value
+    .map(id => list.find(s => s.id === id))
+    .filter((s): s is Subject => !!s)
+})
+
+const hasOrderChanged = computed(() => {
+  const list = filteredSubjects.value
+  if (orderedIds.value.length !== list.length) return false
+  return orderedIds.value.some((id, i) => list[i]?.id !== id)
+})
+
+const canReorder = computed(() => !gradeId.value || gradeId.value === '__all__')
+
+function breadcrumb(s: Subject) {
+  const gradeName = s.grades?.name ?? ''
+  return gradeName ? `${gradeName} > ${s.name}` : s.name
 }
 
-onMounted(fetchSubjects)
+function syncOrderedIds() {
+  orderedIds.value = filteredSubjects.value.map(s => s.id)
+}
+
+watch([gradeId, () => filteredSubjects.value], syncOrderedIds, { deep: true })
+
+async function fetchAll() {
+  loading.value = true
+  try {
+    const [sub, gr] = await Promise.all([
+      adminFetch<Subject[]>('/api/admin/subjects'),
+      adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
+    ])
+    subjects.value = sub
+    grades.value = gr
+    syncOrderedIds()
+  } catch {
+    subjects.value = []
+    toast.error(t('common.error'))
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchAll)
 
 function openCreate() { editingSubject.value = null; modalOpen.value = true }
 function openEdit(s: Subject) { editingSubject.value = s; modalOpen.value = true }
@@ -57,8 +103,8 @@ async function confirmDelete() {
   if (!deletingId.value) return
   deleteLoading.value = true
   try {
-    await $fetch(`/api/admin/subjects/${deletingId.value}`, { method: 'DELETE' })
-    await fetchSubjects()
+    await adminFetch(`/api/admin/subjects/${deletingId.value}`, { method: 'DELETE' })
+    await fetchAll()
     deleteDialogOpen.value = false
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
@@ -67,81 +113,138 @@ async function confirmDelete() {
     deleteLoading.value = false
   }
 }
+
+async function saveOrder() {
+  if (!hasOrderChanged.value) return
+  saveOrderLoading.value = true
+  try {
+    await adminFetch('/api/admin/subjects/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
+    toast.success(t('admin.saveOrderSuccess'))
+    await fetchAll()
+  } catch {
+    toast.error(t('admin.saveOrderError'))
+  } finally {
+    saveOrderLoading.value = false
+  }
+}
+
+function onDragStart(e: DragEvent, index: number) {
+  draggedIndex.value = index
+  e.dataTransfer!.effectAllowed = 'move'
+  e.dataTransfer!.setData('text/plain', String(index))
+  if (e.target instanceof HTMLElement) e.target.classList.add('opacity-50')
+}
+
+function onDragEnd(e: DragEvent) {
+  draggedIndex.value = null
+  if (e.target instanceof HTMLElement) e.target.classList.remove('opacity-50')
+}
+
+function onDragOver(e: DragEvent) {
+  e.preventDefault()
+  e.dataTransfer!.dropEffect = 'move'
+}
+
+function onDrop(e: DragEvent, dropIndex: number) {
+  e.preventDefault()
+  const from = draggedIndex.value
+  if (from == null || from === dropIndex) return
+  const ids = [...orderedIds.value]
+  const [removed] = ids.splice(from, 1)
+  if (removed == null) return
+  ids.splice(dropIndex, 0, removed)
+  orderedIds.value = ids
+}
 </script>
 
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.subjectsTitle') }}</h1>
-      <UiButton @click="openCreate">
-        <VIcon name="bi-plus-circle" class="mr-2 size-4" />
-        {{ t('admin.modal.create') }}
-      </UiButton>
+      <div class="flex items-center gap-2">
+        <UiButton
+          :disabled="!canReorder || !hasOrderChanged || saveOrderLoading"
+          @click="saveOrder"
+        >
+          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+        </UiButton>
+        <UiButton @click="openCreate">
+          <VIcon name="bi-plus-circle" class="mr-2 size-4" />
+          {{ t('admin.modal.create') }}
+        </UiButton>
+      </div>
     </div>
 
-    <!-- Search -->
-    <div class="relative mb-4">
-      <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+    <!-- Filters -->
+    <div class="flex flex-wrap items-center gap-4 mb-6">
+      <div class="relative flex-1 min-w-[200px]">
+        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+      </div>
+      <Select v-model="gradeId">
+        <SelectTrigger class="w-[200px]">
+          <SelectValue :placeholder="t('admin.selectGrade')" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__all__">{{ t('admin.selectGrade') }}</SelectItem>
+          <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
 
-    <!-- Skeleton loading -->
+    <!-- Skeleton -->
     <template v-if="loading">
-      <div class="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead v-for="i in 3" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <TableRow v-for="i in 5" :key="i">
-              <TableCell v-for="j in 3" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <div class="space-y-3">
+        <UiCard v-for="i in 5" :key="i">
+          <UiCardContent class="p-4 flex items-center gap-4">
+            <UiSkeleton class="size-8 shrink-0" />
+            <UiSkeleton class="h-4 flex-1" />
+          </UiCardContent>
+        </UiCard>
       </div>
     </template>
 
-    <!-- Data table -->
+    <!-- Cards -->
     <template v-else>
-      <div class="rounded-md border overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{{ t('admin.field.name') }}</TableHead>
-              <TableHead>{{ t('admin.field.grade') }}</TableHead>
-              <TableHead class="text-right" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <!-- Empty state -->
-            <TableRow v-if="!filteredSubjects.length">
-              <TableCell :colspan="3" class="h-32 text-center">
-                <div class="flex flex-col items-center gap-2 text-muted-foreground">
-                  <VIcon name="bi-inbox" class="size-8" />
-                  <p>{{ t('admin.subjectsEmpty') }}</p>
-                </div>
-              </TableCell>
-            </TableRow>
-            <!-- Rows -->
-            <TableRow v-for="s in filteredSubjects" v-else :key="s.id">
-              <TableCell class="font-medium">{{ s.name }}</TableCell>
-              <TableCell>
-                <UiBadge v-if="s.grades?.name" variant="secondary">{{ s.grades.name }}</UiBadge>
-                <span v-else class="text-muted-foreground">{{ t('common.empty') }}</span>
-              </TableCell>
-              <TableCell class="text-right space-x-2">
-                <UiButton size="sm" variant="outline" @click="openEdit(s)">{{ t('admin.modal.edit') }}</UiButton>
-                <UiButton size="sm" variant="destructive" @click="openDelete(s.id)">{{ t('admin.modal.delete') }}</UiButton>
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <div v-if="!displayedSubjects.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+        <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
+        <p>{{ t('admin.subjectsEmpty') }}</p>
+      </div>
+      <div v-else class="space-y-3">
+        <UiCard
+          v-for="(s, index) in displayedSubjects"
+          :key="s.id"
+          class="transition-opacity"
+          :draggable="canReorder"
+          @dragstart="onDragStart($event, index)"
+          @dragend="onDragEnd"
+          @dragover="onDragOver"
+          @drop="onDrop($event, index)"
+        >
+          <UiCardContent class="p-4 flex items-center gap-4">
+            <div
+              class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
+              aria-label="Drag to reorder"
+            >
+              <VIcon name="bi-grip-vertical" class="size-5" />
+            </div>
+            <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
+              <VIcon name="bi-journal-text" class="size-6 text-muted-foreground" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm text-muted-foreground">{{ breadcrumb(s) }}</p>
+              <p class="font-medium">{{ s.name }}</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(s)">{{ t('admin.modal.edit') }}</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(s.id)">{{ t('admin.modal.delete') }}</UiButton>
+            </div>
+          </UiCardContent>
+        </UiCard>
       </div>
     </template>
 
-    <AdminSubjectModal :open="modalOpen" :subject="editingSubject" @close="modalOpen = false" @saved="fetchSubjects" />
+    <AdminSubjectModal :open="modalOpen" :subject="editingSubject" @close="modalOpen = false" @saved="fetchAll" />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
       <UiAlertDialogPortal>

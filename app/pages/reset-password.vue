@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner";
+import { PASSWORD_MIN_LENGTH } from "~/lib/validation";
 import UiButton from "~/components/ui/Button.vue";
 import UiCard from "~/components/ui/Card.vue";
 import UiCardContent from "~/components/ui/CardContent.vue";
@@ -20,7 +21,7 @@ const confirmPassword = ref("");
 const loading = ref(false);
 
 async function onSubmit() {
-  if (newPassword.value.length < 6) {
+  if (newPassword.value.length < PASSWORD_MIN_LENGTH) {
     toast.error(t("auth.validation.passwordMin"));
     return;
   }

@@ -14,6 +14,7 @@ import type { Purchase, Download } from '~/types/database'
 const props = defineProps<{ open: boolean; userId: string | null }>()
 const emit = defineEmits<{ close: [] }>()
 const { t } = useI18n()
+const adminFetch = useAdminFetch()
 
 const purchases = ref<Purchase[]>([])
 const downloads = ref<Download[]>([])
@@ -24,8 +25,8 @@ watch(() => props.open, async (val) => {
   loading.value = true
   try {
     const [p, d] = await Promise.all([
-      $fetch<Purchase[]>(`/api/admin/users/${props.userId}/purchases`),
-      $fetch<Download[]>(`/api/admin/users/${props.userId}/downloads`),
+      adminFetch<Purchase[]>(`/api/admin/users/${props.userId}/purchases`),
+      adminFetch<Download[]>(`/api/admin/users/${props.userId}/downloads`),
     ])
     purchases.value = p
     downloads.value = d
@@ -43,30 +44,30 @@ watch(() => props.open, async (val) => {
           <UiDialogTitle>{{ t('admin.userDetails') }}</UiDialogTitle>
         </UiDialogHeader>
         <div v-if="loading" class="py-4 text-sm text-muted-foreground">{{ t('common.loading') }}</div>
-        <Tabs v-else default-value="purchases">
+        <Tabs v-else default-value="downloads">
           <TabsList class="w-full">
-            <TabsTrigger value="purchases" class="flex-1">
-              {{ t('admin.field.purchases') }} ({{ purchases.length }})
-            </TabsTrigger>
             <TabsTrigger value="downloads" class="flex-1">
               {{ t('admin.field.downloads') }} ({{ downloads.length }})
             </TabsTrigger>
+            <TabsTrigger value="purchases" class="flex-1">
+              {{ t('admin.field.purchases') }} ({{ purchases.length }})
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="purchases" class="mt-4">
-            <p v-if="!purchases.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
-            <ul v-else class="text-xs space-y-1">
-              <li v-for="p in purchases" :key="p.id" class="flex justify-between gap-2">
-                <span>{{ p.lessons?.title }}</span>
-                <span class="text-muted-foreground shrink-0">{{ new Date(p.created_at).toLocaleDateString() }}</span>
-              </li>
-            </ul>
-          </TabsContent>
           <TabsContent value="downloads" class="mt-4">
             <p v-if="!downloads.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
             <ul v-else class="text-xs space-y-1">
               <li v-for="d in downloads" :key="d.id" class="flex justify-between gap-2">
                 <span>{{ d.lessons?.title }}</span>
                 <span class="text-muted-foreground shrink-0">{{ new Date(d.downloaded_at).toLocaleDateString() }}</span>
+              </li>
+            </ul>
+          </TabsContent>
+          <TabsContent value="purchases" class="mt-4">
+            <p v-if="!purchases.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
+            <ul v-else class="text-xs space-y-1">
+              <li v-for="p in purchases" :key="p.id" class="flex justify-between gap-2">
+                <span>{{ p.lessons?.title }}</span>
+                <span class="text-muted-foreground shrink-0">{{ new Date(p.created_at).toLocaleDateString() }}</span>
               </li>
             </ul>
           </TabsContent>
