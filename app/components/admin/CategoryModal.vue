@@ -11,32 +11,100 @@ import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiButton from '~/components/ui/Button.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiLabel from '~/components/ui/Label.vue'
+import UiTextarea from '~/components/ui/Textarea.vue'
+import UiProgress from '~/components/ui/Progress.vue'
 
 const props = defineProps<{
   open: boolean
-  category: { id: string; name: string; order: number } | null
+  category: { id: string; name: string; description?: string | null; image_url?: string | null; order: number } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 const { t } = useI18n()
 
 const name = ref('')
+const description = ref('')
+const imageUrl = ref('')
 const loading = ref(false)
+const uploading = ref(false)
+const uploadProgress = ref(0)
+const dragActive = ref(false)
+const fileInput = ref<HTMLInputElement | null>(null)
 const adminFetch = useAdminFetch()
+
+const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png'] as const
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
 watch(() => props.open, (val) => {
   if (val) {
     name.value = props.category?.name ?? ''
+    description.value = props.category?.description ?? ''
+    imageUrl.value = props.category?.image_url ?? ''
   }
 })
+
+async function uploadImage(file: File) {
+  if (uploading.value) return
+  if (!ALLOWED_IMAGE_MIMES.includes(file.type as (typeof ALLOWED_IMAGE_MIMES)[number])) {
+    toast.error(t('admin.uploads.fileTypeError'))
+    return
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    toast.error(t('admin.uploads.tooLarge'))
+    return
+  }
+  uploading.value = true
+  uploadProgress.value = 0
+  const interval = setInterval(() => {
+    if (uploadProgress.value < 90) uploadProgress.value += 10
+  }, 200)
+  try {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('target', 'image')
+    formData.append('entity', 'category')
+    const res = await adminFetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
+    imageUrl.value = res.url
+    uploadProgress.value = 100
+    toast.success(t('admin.uploads.uploadSuccess'))
+  } catch {
+    toast.error(t('admin.uploads.uploadError'))
+  } finally {
+    clearInterval(interval)
+    uploading.value = false
+    uploadProgress.value = 0
+  }
+}
+
+function onFileSelect(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files?.[0]) uploadImage(input.files[0])
+  input.value = ''
+}
+
+function onDrop(e: DragEvent) {
+  e.preventDefault()
+  dragActive.value = false
+  if (e.dataTransfer?.files?.[0]) uploadImage(e.dataTransfer.files[0])
+}
+
+function onDragOver(e: DragEvent) {
+  e.preventDefault()
+  dragActive.value = true
+}
+
+function onDragLeave() {
+  dragActive.value = false
+}
 
 async function onSubmit() {
   if (!name.value.trim()) return
   loading.value = true
   try {
+    const body = { name: name.value, description: description.value || null, image_url: imageUrl.value || null }
     if (props.category) {
-      await adminFetch(`/api/admin/categories/${props.category.id}`, { method: 'PATCH', body: { name: name.value } })
+      await adminFetch(`/api/admin/categories/${props.category.id}`, { method: 'PATCH', body })
     } else {
-      await adminFetch('/api/admin/categories', { method: 'POST', body: { name: name.value, order: 0 } })
+      await adminFetch('/api/admin/categories', { method: 'POST', body: { ...body, order: 0 } })
     }
     emit('saved')
     emit('close')
@@ -53,7 +121,7 @@ async function onSubmit() {
   <UiDialog :open="props.open" @update:open="(v: boolean) => !v && emit('close')">
     <UiDialogPortal>
       <UiDialogOverlay />
-      <UiDialogContent>
+      <UiDialogContent class="max-w-lg">
         <UiDialogHeader>
           <UiDialogTitle>{{ props.category ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.categories') }}</UiDialogTitle>
           <UiDialogDescription class="sr-only">{{ t('admin.modal.categoryDescription') }}</UiDialogDescription>
@@ -62,6 +130,39 @@ async function onSubmit() {
           <div class="space-y-1.5">
             <UiLabel for="category-name">{{ t('admin.field.name') }}</UiLabel>
             <UiInput id="category-name" v-model="name" required />
+          </div>
+          <div class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.description') }}</UiLabel>
+            <UiTextarea v-model="description" :rows="3" />
+          </div>
+          <div class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.imageUrl') }}</UiLabel>
+            <div
+              class="rounded-lg border-2 border-dashed p-4 text-center transition-colors"
+              :class="dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
+              @drop="onDrop"
+              @dragover="onDragOver"
+              @dragleave="onDragLeave"
+            >
+              <div class="flex flex-col items-center gap-2">
+                <VIcon name="bi-cloud-arrow-up" class="size-8 text-muted-foreground" />
+                <p class="text-sm font-medium">{{ t('admin.uploads.dragDropImage') }}</p>
+                <p class="text-xs text-muted-foreground">{{ t('admin.uploads.maxSizeImage') }}</p>
+                <UiButton type="button" variant="outline" size="sm" :disabled="uploading" @click="fileInput?.click()">
+                  {{ t('admin.uploads.selectFile') }}
+                </UiButton>
+                <input ref="fileInput" type="file" accept="image/jpeg,image/png" class="hidden" @change="onFileSelect">
+              </div>
+              <UiProgress v-if="uploading" :model-value="uploadProgress" class="mt-3 h-2" />
+              <div v-else-if="imageUrl" class="mt-3 flex items-center justify-center gap-2">
+                <img :src="imageUrl" alt="" class="h-16 w-16 rounded-md object-cover border border-border">
+                <UiButton type="button" variant="ghost" size="sm" @click="imageUrl = ''">
+                  {{ t('admin.lessonModal.removeFile') }}
+                </UiButton>
+              </div>
+            </div>
+            <p class="text-xs text-muted-foreground">{{ t('admin.lessonModal.orPasteUrl') }}</p>
+            <UiInput v-model="imageUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>

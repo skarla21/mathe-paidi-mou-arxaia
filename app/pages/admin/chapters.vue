@@ -28,6 +28,7 @@ const chapters = ref<Chapter[]>([])
 const grades = ref<{ id: string; name: string }[]>([])
 const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const loading = ref(true)
+const search = ref('')
 const gradeId = ref('__all__')
 const subjectId = ref('__all__')
 const modalOpen = ref(false)
@@ -41,6 +42,10 @@ const draggedIndex = ref<number | null>(null)
 
 const filteredChapters = computed(() => {
   let list = chapters.value
+  if (search.value) {
+    const q = search.value.toLowerCase()
+    list = list.filter(c => c.title.toLowerCase().includes(q))
+  }
   if (gradeId.value && gradeId.value !== '__all__') list = list.filter(c => c.grade_id === gradeId.value)
   if (subjectId.value && subjectId.value !== '__all__') list = list.filter(c => c.subject_id === subjectId.value)
   return list
@@ -188,9 +193,8 @@ function onDrop(e: DragEvent, dropIndex: number) {
     </div>
 
     <!-- Filters -->
-    <div class="flex flex-wrap gap-4 mb-6">
-      <div class="space-y-1.5 min-w-[160px]">
-        <label class="text-sm font-medium">{{ t('admin.field.grade') }}</label>
+    <div class="flex flex-wrap items-center gap-4 mb-6">
+      <div class="min-w-[160px]">
         <Select v-model="gradeId">
           <SelectTrigger>
             <SelectValue :placeholder="t('admin.selectGrade')" />
@@ -201,8 +205,7 @@ function onDrop(e: DragEvent, dropIndex: number) {
           </SelectContent>
         </Select>
       </div>
-      <div class="space-y-1.5 min-w-[160px]">
-        <label class="text-sm font-medium">{{ t('admin.field.subject') }}</label>
+      <div class="min-w-[160px]">
         <Select v-model="subjectId">
           <SelectTrigger>
             <SelectValue :placeholder="t('admin.selectSubject')" />
@@ -212,6 +215,10 @@ function onDrop(e: DragEvent, dropIndex: number) {
             <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      <div class="relative flex-1 min-w-[200px]">
+        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
       </div>
     </div>
 
@@ -252,8 +259,8 @@ function onDrop(e: DragEvent, dropIndex: number) {
               <VIcon name="bi-grip-vertical" class="size-5" />
             </div>
             <img
-              v-if="c.thumbnail_url"
-              :src="c.thumbnail_url"
+              v-if="c.image_url"
+              :src="c.image_url"
               :alt="c.title"
               class="size-12 rounded object-cover shrink-0"
             >

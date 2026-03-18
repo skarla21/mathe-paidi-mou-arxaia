@@ -7,6 +7,7 @@ export default defineEventHandler(async (event) => {
 
   // ── Date boundaries ──────────────────────────────────────────────────────
   const now = new Date()
+  const startOfThisYear = new Date(now.getFullYear(), 0, 1).toISOString()
   const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString()
 
@@ -14,6 +15,7 @@ export default defineEventHandler(async (event) => {
   const [
     usersRes,
     lessonsRes,
+    newLessonsThisMonthRes,
     downloadsRes,
     revenueRes,
     recentDownloadsRes,
@@ -26,10 +28,13 @@ export default defineEventHandler(async (event) => {
     freeVsPaidRes,
     newUsersThisMonthRes,
     newUsersLastMonthRes,
+    newUsersThisYearRes,
     downloadsThisMonthRes,
     downloadsLastMonthRes,
+    downloadsThisYearRes,
     revenueThisMonthRes,
     revenueLastMonthRes,
+    revenueThisYearRes,
     recentPurchasesRes,
     recentUsersRes,
     lessonsByGradeRes,
@@ -37,6 +42,10 @@ export default defineEventHandler(async (event) => {
     // Existing queries
     supabase.from('users').select('*', { count: 'exact', head: true }),
     supabase.from('lessons').select('*', { count: 'exact', head: true }),
+    supabase
+      .from('lessons')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startOfThisMonth),
     supabase.from('downloads').select('*', { count: 'exact', head: true }),
     supabase.from('purchases').select('lessons(price, is_free)'),
     supabase
@@ -56,7 +65,7 @@ export default defineEventHandler(async (event) => {
     // Free vs paid lesson counts
     supabase.from('lessons').select('is_free'),
 
-    // New users this month / last month
+    // New users this month / last month / this year
     supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
@@ -66,8 +75,12 @@ export default defineEventHandler(async (event) => {
       .select('*', { count: 'exact', head: true })
       .gte('created_at', startOfLastMonth)
       .lt('created_at', startOfThisMonth),
+    supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', startOfThisYear),
 
-    // Downloads this month / last month
+    // Downloads this month / last month / this year
     supabase
       .from('downloads')
       .select('*', { count: 'exact', head: true })
@@ -77,6 +90,10 @@ export default defineEventHandler(async (event) => {
       .select('*', { count: 'exact', head: true })
       .gte('downloaded_at', startOfLastMonth)
       .lt('downloaded_at', startOfThisMonth),
+    supabase
+      .from('downloads')
+      .select('*', { count: 'exact', head: true })
+      .gte('downloaded_at', startOfThisYear),
 
     // Revenue this month
     supabase
@@ -84,12 +101,16 @@ export default defineEventHandler(async (event) => {
       .select('lessons(price, is_free)')
       .gte('created_at', startOfThisMonth),
 
-    // Revenue last month
+    // Revenue last month / this year
     supabase
       .from('purchases')
       .select('lessons(price, is_free)')
       .gte('created_at', startOfLastMonth)
       .lt('created_at', startOfThisMonth),
+    supabase
+      .from('purchases')
+      .select('lessons(price, is_free)')
+      .gte('created_at', startOfThisYear),
 
     // Recent purchases with user + lesson info
     supabase
@@ -114,10 +135,12 @@ export default defineEventHandler(async (event) => {
 
   // ── Log any query errors (non-blocking) ────────────────────────────────
   const allResults = [
-    usersRes, lessonsRes, downloadsRes, revenueRes, recentDownloadsRes, topLessonsRes,
+    usersRes, lessonsRes, newLessonsThisMonthRes, downloadsRes, revenueRes, recentDownloadsRes, topLessonsRes,
     gradesRes, subjectsRes, chaptersRes, categoriesRes, purchasesCountRes, freeVsPaidRes,
-    newUsersThisMonthRes, newUsersLastMonthRes, downloadsThisMonthRes, downloadsLastMonthRes,
-    revenueThisMonthRes, revenueLastMonthRes, recentPurchasesRes, recentUsersRes, lessonsByGradeRes,
+    newUsersThisMonthRes, newUsersLastMonthRes, newUsersThisYearRes,
+    downloadsThisMonthRes, downloadsLastMonthRes, downloadsThisYearRes,
+    revenueThisMonthRes, revenueLastMonthRes, revenueThisYearRes,
+    recentPurchasesRes, recentUsersRes, lessonsByGradeRes,
   ]
   for (const r of allResults) {
     if (r.error) console.error('[admin/stats]', r.error.message)
@@ -139,6 +162,13 @@ export default defineEventHandler(async (event) => {
 
   // ── Derive: revenue last month ───────────────────────────────────────────
   const revenueLastMonth = (revenueLastMonthRes.data ?? []).reduce((sum: number, row: unknown) => {
+    const lesson = (row as { lessons?: { is_free?: boolean; price?: number } }).lessons
+    if (lesson && !lesson.is_free) sum += (lesson.price ?? 0)
+    return sum
+  }, 0)
+
+  // ── Derive: revenue this year ───────────────────────────────────────────
+  const revenueThisYear = (revenueThisYearRes.data ?? []).reduce((sum: number, row: unknown) => {
     const lesson = (row as { lessons?: { is_free?: boolean; price?: number } }).lessons
     if (lesson && !lesson.is_free) sum += (lesson.price ?? 0)
     return sum
@@ -222,13 +252,17 @@ export default defineEventHandler(async (event) => {
     totalChapters: chaptersRes.count ?? 0,
     totalCategories: categoriesRes.count ?? 0,
     totalPurchases: purchasesCountRes.count ?? 0,
+    newLessonsThisMonth: newLessonsThisMonthRes.count ?? 0,
     freeVsPaid,
     newUsersThisMonth: newUsersThisMonthRes.count ?? 0,
     newUsersLastMonth: newUsersLastMonthRes.count ?? 0,
+    newUsersThisYear: newUsersThisYearRes.count ?? 0,
     downloadsThisMonth: downloadsThisMonthRes.count ?? 0,
     downloadsLastMonth: downloadsLastMonthRes.count ?? 0,
+    downloadsThisYear: downloadsThisYearRes.count ?? 0,
     revenueThisMonth,
     revenueLastMonth,
+    revenueThisYear,
     recentPurchases: recentPurchasesRes.data ?? [],
     recentUsers: recentUsersRes.data ?? [],
     lessonsByGrade,

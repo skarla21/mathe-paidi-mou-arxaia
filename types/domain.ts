@@ -30,7 +30,7 @@ export interface Chapter {
   description: string | null
   grade_id: string
   subject_id: string
-  thumbnail_url: string | null
+  image_url: string | null
   order: number
   created_at: string
 }

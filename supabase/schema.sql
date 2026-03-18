@@ -54,6 +54,7 @@ create table if not exists public.subjects (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   grade_id uuid not null references public.grades(id) on delete cascade,
+  image_url text,
   "order" int not null default 0
 );
 create index if not exists subjects_grade_id_idx on public.subjects(grade_id);
@@ -64,6 +65,7 @@ create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   description text,
+  image_url text,
   "order" int not null default 0,
   created_at timestamptz not null default now()
 );
@@ -76,7 +78,7 @@ create table if not exists public.chapters (
   description text,
   grade_id uuid not null references public.grades(id) on delete cascade,
   subject_id uuid not null references public.subjects(id) on delete cascade,
-  thumbnail_url text,
+  image_url text,
   "order" int not null default 0,
   created_at timestamptz not null default now()
 );

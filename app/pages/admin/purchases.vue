@@ -105,8 +105,8 @@ function copyStripeId(value: string | null | undefined) {
 
     <!-- Skeleton loading -->
     <template v-if="loading">
-      <div class="rounded-md border">
-        <Table>
+      <div class="border overflow-x-auto">
+        <Table class="text-base">
           <TableHeader>
             <TableRow>
               <TableHead v-for="i in 5" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
@@ -123,21 +123,21 @@ function copyStripeId(value: string | null | undefined) {
 
     <!-- Data table -->
     <template v-else>
-      <div class="rounded-md border overflow-x-auto">
-        <Table>
+      <div class="border overflow-x-auto">
+        <Table class="text-base">
           <TableHeader>
-            <TableRow>
-              <TableHead>{{ t('admin.field.name') }}</TableHead>
-              <TableHead>{{ t('admin.field.lesson') }}</TableHead>
-              <TableHead>{{ t('admin.field.joinedAt') }}</TableHead>
-              <TableHead>{{ t('admin.field.stripeId') }}</TableHead>
+            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/60">
+              <TableHead class="border-r border-border/60">{{ t('admin.field.name') }}</TableHead>
+              <TableHead class="border-r border-border/60">{{ t('admin.field.lesson') }}</TableHead>
+              <TableHead class="border-r border-border/60">{{ t('admin.field.joinedAt') }}</TableHead>
+              <TableHead class="border-r border-border/60">{{ t('admin.field.stripeId') }}</TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredPurchases.length">
-              <TableCell :colspan="5" class="h-32 text-center">
+              <TableCell :colspan="5" class="h-32 text-center border-r border-border/60">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
                   <p>{{ t('admin.purchasesEmpty') }}</p>
@@ -146,15 +146,15 @@ function copyStripeId(value: string | null | undefined) {
             </TableRow>
             <!-- Rows -->
             <TableRow v-for="p in filteredPurchases" v-else :key="p.id">
-              <TableCell>
+              <TableCell class="border-r border-border/60">
                 <div class="font-medium">{{ p.users?.name ?? t('common.empty') }}</div>
-                <div class="text-xs text-muted-foreground">{{ p.users?.email }}</div>
+                <div class="text-muted-foreground">{{ p.users?.email }}</div>
               </TableCell>
-              <TableCell>{{ p.lessons?.title ?? p.lesson_id }}</TableCell>
-              <TableCell class="text-xs text-muted-foreground">
+              <TableCell class="border-r border-border/60">{{ p.lessons?.title ?? p.lesson_id }}</TableCell>
+              <TableCell class="text-muted-foreground border-r border-border/60">
                 {{ new Date(p.created_at).toLocaleDateString() }}
               </TableCell>
-              <TableCell>
+              <TableCell class="border-r border-border/60">
                 <TooltipProvider v-if="p.stripe_session_id">
                   <Tooltip>
                     <TooltipTrigger as-child>

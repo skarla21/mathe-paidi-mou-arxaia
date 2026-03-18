@@ -10,6 +10,7 @@ export interface Subject {
   id: string
   name: string
   grade_id: string
+  image_url?: string | null
   /** Joined relation — only present when select includes `grades(…)` */
   grades?: { name: string } | null
 }
@@ -18,6 +19,7 @@ export interface Category {
   id: string
   name: string
   description: string | null
+  image_url?: string | null
   order: number
   created_at: string
 }
@@ -28,7 +30,7 @@ export interface Chapter {
   description: string | null
   grade_id: string
   subject_id: string
-  thumbnail_url: string | null
+  image_url: string | null
   order: number
   created_at: string
   /** Joined relation — only present when select includes `subjects(…)` */
@@ -109,12 +111,28 @@ export interface AdminStats {
   totalLessons: number
   downloads: number
   revenue: number
+  totalGrades?: number
+  totalSubjects?: number
+  totalChapters?: number
+  totalCategories?: number
+  totalPurchases?: number
+  newLessonsThisMonth?: number
+  newUsersThisMonth?: number
+  newUsersThisYear?: number
+  downloadsThisMonth?: number
+  downloadsThisYear?: number
+  revenueThisMonth?: number
+  revenueThisYear?: number
+  freeVsPaid?: { free: number; paid: number }
+  lessonsByGrade?: { grade: string; count: number }[]
   recentDownloads: {
     id: string
     downloaded_at: string
     users?: { name: string | null } | null
     lessons?: { title: string } | null
   }[]
+  recentPurchases?: unknown[]
+  recentUsers?: unknown[]
   topLessons: {
     lesson_id: string
     title: string

@@ -84,16 +84,16 @@ onMounted(fetchUsers)
 
     <!-- Skeleton loading -->
     <template v-if="loading">
-      <div class="rounded-md border">
-        <Table>
+      <div class="border overflow-x-auto">
+        <Table class="text-base">
           <TableHeader>
             <TableRow>
-              <TableHead v-for="i in 7" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
+              <TableHead v-for="i in 6" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="i in 5" :key="i">
-              <TableCell v-for="j in 7" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
+              <TableCell v-for="j in 6" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -102,68 +102,64 @@ onMounted(fetchUsers)
 
     <!-- Data table -->
     <template v-else>
-      <div class="rounded-md border overflow-x-auto">
-        <Table>
+      <div class="border overflow-x-auto">
+        <Table class="text-base">
           <TableHeader>
-            <TableRow>
-              <TableHead>
+            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/60">
+              <TableHead class="border-r border-border/60 pr-3">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
                   :aria-label="`${t('admin.field.name')} ${sortBy === 'name' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
                   @click="setSort('name')"
                 >
                   {{ t('admin.field.name') }}
                   <VIcon
-                    v-if="sortBy === 'name'"
-                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
-                    class="size-4 text-muted-foreground"
+                    :name="sortBy === 'name' ? (sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short') : 'bi-arrow-down-up'"
+                    :class="sortBy === 'name' ? 'size-4 text-foreground shrink-0' : 'size-4 text-muted-foreground/40 shrink-0'"
                   />
                 </button>
               </TableHead>
-              <TableHead>{{ t('admin.field.email') }}</TableHead>
-              <TableHead>
+              <TableHead class="border-r border-border/60">{{ t('admin.field.email') }}</TableHead>
+              <TableHead class="border-r border-border/60">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
                   :aria-label="`${t('admin.field.joinedAt')} ${sortBy === 'joinedAt' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
                   @click="setSort('joinedAt')"
                 >
                   {{ t('admin.field.joinedAt') }}
                   <VIcon
-                    v-if="sortBy === 'joinedAt'"
-                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
-                    class="size-4 text-muted-foreground"
+                    :name="sortBy === 'joinedAt' ? (sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short') : 'bi-arrow-down-up'"
+                    :class="sortBy === 'joinedAt' ? 'size-4 text-foreground shrink-0' : 'size-4 text-muted-foreground/40 shrink-0'"
                   />
                 </button>
               </TableHead>
-              <TableHead class="text-center">
+              <TableHead class="text-center border-r border-border/60">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer mx-auto"
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer mx-auto"
                   :aria-label="`${t('admin.field.downloads')} ${sortBy === 'downloads' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
                   @click="setSort('downloads')"
                 >
                   {{ t('admin.field.downloads') }}
                   <VIcon
-                    v-if="sortBy === 'downloads'"
-                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
-                    class="size-4 text-muted-foreground"
+                    :name="sortBy === 'downloads' ? (sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short') : 'bi-arrow-down-up'"
+                    :class="sortBy === 'downloads' ? 'size-4 text-foreground shrink-0' : 'size-4 text-muted-foreground/40 shrink-0'"
                   />
                 </button>
               </TableHead>
-              <TableHead class="text-center">
+              <TableHead class="text-center border-r border-border/60">
                 <button
                   type="button"
-                  class="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer mx-auto"
+                  class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer mx-auto"
                   :aria-label="`${t('admin.field.purchases')} ${sortBy === 'purchases' ? t(sortOrder === 'asc' ? 'admin.sortAsc' : 'admin.sortDesc') : ''}`"
                   @click="setSort('purchases')"
                 >
                   {{ t('admin.field.purchases') }}
                   <VIcon
-                    v-if="sortBy === 'purchases'"
-                    :name="sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short'"
-                    class="size-4 text-muted-foreground"
+                    :name="sortBy === 'purchases' ? (sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short') : 'bi-arrow-down-up'"
+                    :class="sortBy === 'purchases' ? 'size-4 text-foreground shrink-0' : 'size-4 text-muted-foreground/40 shrink-0'"
                   />
                 </button>
               </TableHead>
@@ -173,7 +169,7 @@ onMounted(fetchUsers)
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredUsers.length">
-              <TableCell :colspan="6" class="h-32 text-center">
+              <TableCell :colspan="6" class="h-32 text-center border-r border-border/60">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
                   <p>{{ t('admin.usersEmpty') }}</p>
@@ -182,7 +178,7 @@ onMounted(fetchUsers)
             </TableRow>
             <!-- Rows -->
             <TableRow v-for="u in filteredUsers" v-else :key="u.id">
-              <TableCell>
+              <TableCell class="border-r border-border/60">
                 <div class="flex items-center gap-2">
                   <img
                     v-if="u.avatar_url"
@@ -194,12 +190,12 @@ onMounted(fetchUsers)
                   <span>{{ u.name ?? t('common.empty') }}</span>
                 </div>
               </TableCell>
-              <TableCell class="text-xs text-muted-foreground">{{ u.email }}</TableCell>
-              <TableCell class="text-xs text-muted-foreground">
+              <TableCell class="text-muted-foreground border-r border-border/60">{{ u.email }}</TableCell>
+              <TableCell class="text-muted-foreground border-r border-border/60">
                 {{ new Date(u.created_at).toLocaleDateString() }}
               </TableCell>
-              <TableCell class="text-center">{{ u.downloadCount ?? 0 }}</TableCell>
-              <TableCell class="text-center">{{ u.purchaseCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border/60">{{ u.downloadCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border/60">{{ u.purchaseCount ?? 0 }}</TableCell>
               <TableCell class="text-right">
                 <UiButton size="sm" variant="outline" @click="detailUserId = u.id">
                   {{ t('admin.userDetails') }}

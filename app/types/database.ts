@@ -10,6 +10,7 @@ export interface Subject {
   id: string
   name: string
   grade_id: string
+  image_url?: string | null
   order: number
   /** Joined relation — only present when select includes `grades(…)` */
   grades?: { name: string } | null
@@ -19,6 +20,7 @@ export interface Category {
   id: string
   name: string
   description: string | null
+  image_url?: string | null
   order: number
   created_at: string
 }
@@ -29,7 +31,7 @@ export interface Chapter {
   description: string | null
   grade_id: string
   subject_id: string
-  thumbnail_url: string | null
+  image_url: string | null
   order: number
   created_at: string
   /** Joined relation — only present when select includes `subjects(…)` */
@@ -128,13 +130,17 @@ export interface AdminStats {
   totalChapters: number
   totalCategories: number
   totalPurchases: number
+  newLessonsThisMonth: number
   freeVsPaid: { free: number; paid: number }
   newUsersThisMonth: number
   newUsersLastMonth: number
+  newUsersThisYear: number
   downloadsThisMonth: number
   downloadsLastMonth: number
+  downloadsThisYear: number
   revenueThisMonth: number
   revenueLastMonth: number
+  revenueThisYear: number
   recentPurchases: {
     id: string
     created_at: string

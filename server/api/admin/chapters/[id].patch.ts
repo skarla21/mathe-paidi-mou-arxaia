@@ -7,12 +7,12 @@ export default defineEventHandler(async (event) => {
   if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
   const body = await readBody<{
     title?: string; description?: string; subject_id?: string
-    thumbnail_url?: string; order?: number
+    image_url?: string; order?: number
   }>(event)
   const updates: Record<string, unknown> = {}
   if (body.title !== undefined) updates.title = body.title.trim()
   if (body.description !== undefined) updates.description = body.description || null
-  if (body.thumbnail_url !== undefined) updates.thumbnail_url = body.thumbnail_url || null
+  if (body.image_url !== undefined) updates.image_url = body.image_url || null
   if (body.order !== undefined) updates.order = body.order
   const supabase = serverSupabaseService()
   if (body.subject_id !== undefined) {

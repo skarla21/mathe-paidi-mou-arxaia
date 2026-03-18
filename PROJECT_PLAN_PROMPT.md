@@ -1,364 +1,170 @@
 # MASTER DEVELOPMENT PLAN
 
-Modern Educational Platform
+Modern Educational Platform — Mathe Paidi Mou Arxaia
 
-You are building a full educational web application using:
+Educational platform for Greek students.
 
-Nuxt 3
-Vue 3 (Composition API + <script setup>)
-Tailwind CSS
-shadcn-vue
-GSAP
-Auth.js
-Supabase (PostgreSQL + Storage)
-Stripe
-PDF.js
-Resend
-Vercel
-Git + Github for version control and remote repo
+---
+
+# 1. TECH STACK (FIXED)
+
+- Nuxt 4
+- Vue 3 (Composition API + `<script setup>`)
+- Tailwind CSS v4, shadcn-vue
+- GSAP 3 + ScrollTrigger
+- Auth.js (Credentials + Google)
+- Supabase (PostgreSQL + Storage)
+- Stripe (Checkout + Webhooks)
+- PDF.js
+- Resend (contact, verification, password reset)
+- Vercel
+- Custom `useI18n()` composable (en/el)
+- oh-vue-icons, vue-sonner
 
 No other stack additions allowed.
 
 ---
 
-# 1. APPLICATION OVERVIEW
+# 2. APPLICATION OVERVIEW
 
-This is a modern educational platform where:
-
-- An educator can upload structured content
-- Content can be FREE or PAID
-- Students can browse by Grade → Subject → Chapter → Lesson
-- Some content requires Stripe purchase
-- Files (PDFs etc.) are stored in Supabase Storage
-- Admin panel is custom built inside the app
-- Application will be strictly in Greek for the Greek public educational system, but all texts will be added to a translations file. Our structure will be in English though obviously.
-
-The platform must feel modern, clean, structured, and educational-focused.
+- Educator uploads structured content (grades → subjects → chapters → lessons; categories for standalone content)
+- Content can be FREE or PAID (per-lesson Stripe purchase)
+- Students browse by Grade → Subject → Chapter → Lesson, or by Category
+- PDFs and images stored in Supabase Storage
+- Custom admin panel inside the app
+- Bilingual: Greek (el) and English (en) via `app/locales/`
 
 ---
 
-# 2. GLOBAL LAYOUT ARCHITECTURE
+# 3. ROUTING
 
-## 2.1 Main Layout Structure
+**Public:**
 
-The application must use a shared layout with:
+- `/` — Home (sections: welcome, info, grades, instructions, more, communication)
+- `/grade/[grade]` — Grade page
+- `/grade/[grade]/[subject]` — Subject page
+- `/chapter/[chapterId]` — Chapter page
+- `/lesson/[lessonId]` — Lesson page
+- `/category/[categoryId]` — Category page
+- `/notes` — Notes landing
+- `/about` — About
+- `/login`, `/register` — Auth (modal or page)
+- `/reset-password` — Password reset
 
-### A. Top Header Navigation (Global)
+**Authenticated:**
 
-Visible on all pages.
+- `/dashboard` — User’s purchased content
+- `/profile`, `/profile/edit` — Profile and edit
 
-Left:
+**Admin (admin middleware):**
 
-- Logo (links to homepage)
-
-Center:
-
-- Main Page
-- Notes (hover dropdown)
-- Possibly About
-- Possibly Extra Content
-
-Right:
-
-- Theme toggle (dark/light)
-- Search bar
-- Login/Profile button
-
----
-
-# 3. HEADER NAVIGATION STRUCTURE
-
-## Notes Dropdown (Multi-Level Hover)
-
-Notes
-└── Grade (hoverable)
-└── Subject (hoverable)
-└── Link to subject page
-
-Structure:
-
-Grade → Subject → Notes
-
-Example:
-Notes
-Grade 1
-Math
-Language
-Grade 2
-Math
-Science
-
-This must be dynamically generated from Supabase data.
+- `/admin` — Overview (stats, quick actions)
+- `/admin/grades`, `/admin/subjects`, `/admin/chapters`, `/admin/categories`, `/admin/lessons`
+- `/admin/users`, `/admin/purchases`
+- `/admin/uploads` — PDF/image upload to Supabase Storage
 
 ---
 
-# 4. MAIN PAGE STRUCTURE
+# 4. DATABASE (SUPABASE)
 
-The main page ("/") will have:
+**Tables:**
 
-- Left side vertical navigation bar (same-page routing via anchor scrolling)
-- Content sections displayed on the right
+- `users` — id, email, name, avatar_url, "isAdmin", email_verified, password_hash, provider, created_at
+- `verification_tokens`, `password_reset_tokens` — Auth flows
+- `grades` — id, name, order
+- `subjects` — id, name, grade_id, image_url, order
+- `categories` — id, name, description, image_url, order
+- `chapters` — id, title, description, grade_id, subject_id, image_url, order, created_at
+- `lessons` — id, chapter_id, subject_id, category_id, title, content, is_free, price, content_url, order, created_at (exactly one parent)
+- `purchases` — id, user_id, lesson_id, stripe_session_id, created_at
+- `downloads` — id, user_id, lesson_id, downloaded_at
 
-Sections:
-
-1. Welcome
-2. Information
-3. Grades Overview (cards linking to grade pages)
-4. Instructions of Use
-5. More Content from Educator
-6. Communication (FormSubmit contact form)
-
-Scrolling should use:
-
-- Smooth scrolling
-- GSAP section reveal animations
+**RLS:** Public read for grades, subjects, categories, chapters, lessons. Own-row for users, purchases, downloads. Admin writes via service role.
 
 ---
 
-# 5. ROUTING STRUCTURE
+# 5. CONTENT MODEL
 
-Public Routes:
-
-/
-/grade/[grade]
-/grade/[grade]/[subject]
-/chapter/[chapterId]
-/lesson/[lessonId]
-/about
-/login
-/register
-
-Authenticated Routes:
-
-/dashboard
-/profile
-
-Admin Routes (protected, admin role only):
-
-/admin
-/admin/grades
-/admin/subjects
-/admin/chapters
-/admin/lessons
-/admin/categories
-/admin/purchases
+- **Lessons** are the content atom. Each lesson belongs to exactly one parent: chapter, subject, or category.
+- **Chapters** belong to a grade and subject.
+- **Categories** are standalone groupings (e.g. “Free Notes”).
+- **Subjects** belong to a grade.
 
 ---
 
-# 6. DATABASE DESIGN (SUPABASE)
+# 6. AUTH & ACCESS
 
-Tables:
-
-users
-
-- id
-- email
-- name
-- isAdmin
-- created_at
-
-grades
-
-- id
-- name
-- order
-
-subjects
-
-- id
-- name
-- grade_id
-
-chapters
-
-- id
-- title
-- description
-- grade_id
-- subject_id
-- thumbnail_url
-- order
-- created_at
-
-categories
-
-- id
-- name
-- description
-- order
-- created_at
-
-lessons
-
-- id
-- chapter_id
-- subject_id
-- category_id
-- title
-- content
-- is_free
-- price
-- pdf_url
-- order
-- created_at
-
-purchases
-
-- id
-- user_id
-- lesson_id
-- stripe_session_id
-- created_at
+- Auth.js: Credentials + Google
+- Roles: admin, student (via `users."isAdmin"`)
+- Middleware: `auth`, `admin`, `guest-only`
+- Access: `canAccessLesson(userId, lessonId)` / `canAccessCourse` in `server/utils/access.ts`
+- Paid content: check `purchases` table; Stripe Checkout + webhook for purchases
 
 ---
 
-# 7. SEARCH FUNCTIONALITY
+# 7. ADMIN FEATURES
 
-A search bar must exist in the header.
-
-Search must:
-
-- Query Supabase
-- Search lessons and chapters by title
-- Display results dropdown live
-- Link to lesson/chapter page
-- Use debounce before making the query
-
-No external search engine.
-Use Supabase queries only.
+- CRUD: grades, subjects, chapters, categories, lessons
+- Reorder: grades, subjects, chapters, categories, lessons (save order)
+- Upload PDFs/images to Supabase Storage via `/api/admin/upload`
+- Attach content to lessons (content_url)
+- View purchases, grant manual access
+- View users, toggle admin, view user details (downloads, purchases)
+- Stats: users, content, downloads, revenue, free vs paid, lessons by grade, recent activity
 
 ---
 
-# 8. AUTHENTICATION
+# 8. SEARCH
 
-Use Auth.js.
-
-Roles:
-
-- admin
-- student
-
-Middleware:
-
-- requireAuth
-- requireAdmin
-
-Paid content access logic:
-
-- If lesson.is_free → allow
-- Else:
-  - Verify user logged in
-  - Verify purchase exists in purchases table
-  - If not → redirect to checkout page
+- Header search bar
+- `/api/search` — Supabase query on chapters and lessons by title
+- Debounced, live dropdown results
 
 ---
 
-# 9. STRIPE PAYMENT FLOW
+# 9. PDF VIEWER
 
-1. User clicks "Buy Lesson"
-2. Nuxt server route creates Stripe Checkout session
-3. User pays on Stripe
-4. Stripe webhook:
-   - Validate signature
-   - Insert purchase record in Supabase (per-lesson)
-5. User gains access
+- PDF.js (client-only)
+- Load only if lesson is free or user has purchase
+- `LessonContentViewer` supports PDF and images; fallback for unsupported formats
 
 ---
 
-# 10. ADMIN PANEL FEATURES
+# 10. ANIMATIONS
 
-Admin can:
-
-- Create/edit/delete grades
-- Create/edit/delete subjects
-- Create/edit/delete chapters
-- Create/edit/delete categories
-- Create/edit lessons (assigned to chapter, subject, or category)
-- Mark lesson as free or paid
-- Set price
-- Upload PDFs to Supabase Storage
-- Attach PDFs to lessons
-- View purchases
-- View users
-
-Admin UI must use:
-
-- shadcn-vue components
-- Clean dashboard layout
+- GSAP: `useGsapReveal()` — section reveals, stagger, hero, badge, parallax
+- `import.meta.client` guards for DOM access
 
 ---
 
-# 11. PDF VIEWER
+# 11. i18n & THEME
 
-Use PDF.js inside lesson page.
-
-Rules:
-
-- Only load PDF if:
-  - lesson is free
-    OR
-  - user has valid purchase
+- `useI18n()` — `t(key)`, `locale`, `setLocale('el'|'en')`
+- Locales: `app/locales/en.json`, `app/locales/el.json`
+- Theme: `useTheme()` — light/dark via class on `<html>`
 
 ---
 
-# 12. ANIMATIONS
+# 12. SECURITY
 
-Use GSAP for:
-
-- Section reveals
-- Page transitions
-- Dropdown smooth animations
-- Hero animations
-- Subtle admin UI transitions
-
-Do not over-animate.
-Educational tone must remain professional.
-
----
-
-# 13. THEME & LANGUAGE
-
-Theme:
-
-- Light/Dark toggle using Tailwind classes
-
-Language:
-
-- Simple i18n structure
-- Store language preference in local storage
-
----
-
-# 14. SECURITY RULES
-
-- All Stripe secrets server-side only
+- Stripe secrets server-side only
 - Webhooks verified
-- Supabase row-level security enforced
-- Paid content always validated server-side
-- No direct public file URLs without validation
+- RLS on Supabase
+- Paid content validated server-side
+- Rate limiting on contact, forgot-password, register, resend-verification
 
 ---
 
-# 15. DEPLOYMENT
+# 13. DEPLOYMENT
 
-Deploy to Vercel.
-
-Setup:
-
-- Environment variables
-- Stripe webhook production URL
-- Supabase production keys
+- Vercel
+- Env: Supabase, Stripe, Resend, Auth.js secrets, Stripe webhook URL
 
 ---
 
-# 16. DESIGN PRINCIPLES
+# 14. DESIGN PRINCIPLES
 
-- Clean
-- Structured
-- Modern
-- Educational
-- Scalable
+- Clean, structured, modern, educational
 - Minimal dependencies
-
-Do not add additional libraries unless absolutely necessary.
-Follow stack restrictions strictly.
+- No hardcoded user-facing strings — use `t('key')`
+- No emojis — use oh-vue-icons and animations

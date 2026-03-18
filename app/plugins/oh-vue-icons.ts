@@ -50,6 +50,7 @@ import {
   BiFolder,
   BiArrowUpShort,
   BiArrowDownShort,
+  BiArrowDownUp,
   BiDash,
   BiGripVertical,
 } from 'oh-vue-icons/icons/bi'
@@ -105,6 +106,7 @@ addIcons(
   BiFolder,
   BiArrowUpShort,
   BiArrowDownShort,
+  BiArrowDownUp,
   BiDash,
   BiGripVertical,
 )

@@ -7,7 +7,7 @@ interface Chapter {
   title: string
   description?: string | null
   subject_id: string
-  thumbnail_url?: string | null
+  image_url?: string | null
   order: number
 }
 

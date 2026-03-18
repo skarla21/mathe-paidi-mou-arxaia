@@ -5,10 +5,11 @@ export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
-  const body = await readBody<{ name?: string; description?: string; order?: number }>(event)
+  const body = await readBody<{ name?: string; description?: string; image_url?: string; order?: number }>(event)
   const updates: Record<string, unknown> = {}
   if (body.name !== undefined) updates.name = body.name.trim()
   if (body.description !== undefined) updates.description = body.description || null
+  if (body.image_url !== undefined) updates.image_url = body.image_url || null
   if (body.order !== undefined) updates.order = body.order
   if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Nothing to update' })
   const supabase = serverSupabaseService()

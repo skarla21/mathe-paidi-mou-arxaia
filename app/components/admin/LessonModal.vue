@@ -280,19 +280,22 @@ async function onSubmit() {
           <!-- Pricing -->
           <fieldset class="space-y-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.price') }}</p>
-            <div class="flex items-center gap-2">
-              <Checkbox id="lesson-free" v-model:checked="isFree" />
-              <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
-            </div>
-            <div class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.price') }}</UiLabel>
-              <UiInput
-                v-model.number="price"
-                type="number"
-                min="0"
-                step="0.1"
-                :disabled="isFree"
-              />
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <Checkbox id="lesson-free" v-model:checked="isFree" />
+                <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
+              </div>
+              <div class="flex-1 flex items-center gap-2">
+                <UiLabel class="shrink-0">{{ t('admin.field.price') }}</UiLabel>
+                <UiInput
+                  v-model.number="price"
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  :disabled="isFree"
+                  class="max-w-[120px]"
+                />
+              </div>
             </div>
           </fieldset>
 

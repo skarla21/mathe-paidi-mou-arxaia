@@ -177,10 +177,6 @@ function onDrop(e: DragEvent, dropIndex: number) {
 
     <!-- Filters -->
     <div class="flex flex-wrap items-center gap-4 mb-6">
-      <div class="relative flex-1 min-w-[200px]">
-        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
-      </div>
       <Select v-model="gradeId">
         <SelectTrigger class="w-[200px]">
           <SelectValue :placeholder="t('admin.selectGrade')" />
@@ -190,6 +186,10 @@ function onDrop(e: DragEvent, dropIndex: number) {
           <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
         </SelectContent>
       </Select>
+      <div class="relative flex-1 min-w-[200px]">
+        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+      </div>
     </div>
 
     <!-- Skeleton -->
