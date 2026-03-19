@@ -17,6 +17,7 @@ import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import AdminSubjectModal from '~/components/admin/SubjectModal.vue'
+import AdminSortModal from '~/components/admin/AdminSortModal.vue'
 import type { Subject } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -30,13 +31,11 @@ const loading = ref(true)
 const search = ref('')
 const gradeId = ref('__all__')
 const modalOpen = ref(false)
+const sortModalOpen = ref(false)
 const editingSubject = ref<Subject | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
-const saveOrderLoading = ref(false)
-const orderedIds = ref<string[]>([])
-const draggedIndex = ref<number | null>(null)
 
 const filteredSubjects = computed(() => {
   let list = subjects.value
@@ -48,32 +47,10 @@ const filteredSubjects = computed(() => {
   return list
 })
 
-const displayedSubjects = computed(() => {
-  const list = filteredSubjects.value
-  if (orderedIds.value.length !== list.length) return list
-  return orderedIds.value
-    .map(id => list.find(s => s.id === id))
-    .filter((s): s is Subject => !!s)
-})
-
-const hasOrderChanged = computed(() => {
-  const list = filteredSubjects.value
-  if (orderedIds.value.length !== list.length) return false
-  return orderedIds.value.some((id, i) => list[i]?.id !== id)
-})
-
-const canReorder = computed(() => !gradeId.value || gradeId.value === '__all__')
-
 function breadcrumb(s: Subject) {
   const gradeName = s.grades?.name ?? ''
   return gradeName ? `${gradeName} > ${s.name}` : s.name
 }
-
-function syncOrderedIds() {
-  orderedIds.value = filteredSubjects.value.map(s => s.id)
-}
-
-watch([gradeId, () => filteredSubjects.value], syncOrderedIds, { deep: true })
 
 async function fetchAll() {
   loading.value = true
@@ -84,7 +61,6 @@ async function fetchAll() {
     ])
     subjects.value = sub
     grades.value = gr
-    syncOrderedIds()
   } catch {
     subjects.value = []
     toast.error(t('common.error'))
@@ -113,48 +89,6 @@ async function confirmDelete() {
     deleteLoading.value = false
   }
 }
-
-async function saveOrder() {
-  if (!hasOrderChanged.value) return
-  saveOrderLoading.value = true
-  try {
-    await adminFetch('/api/admin/subjects/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
-    toast.success(t('admin.saveOrderSuccess'))
-    await fetchAll()
-  } catch {
-    toast.error(t('admin.saveOrderError'))
-  } finally {
-    saveOrderLoading.value = false
-  }
-}
-
-function onDragStart(e: DragEvent, index: number) {
-  draggedIndex.value = index
-  e.dataTransfer!.effectAllowed = 'move'
-  e.dataTransfer!.setData('text/plain', String(index))
-  if (e.target instanceof HTMLElement) e.target.classList.add('opacity-50')
-}
-
-function onDragEnd(e: DragEvent) {
-  draggedIndex.value = null
-  if (e.target instanceof HTMLElement) e.target.classList.remove('opacity-50')
-}
-
-function onDragOver(e: DragEvent) {
-  e.preventDefault()
-  e.dataTransfer!.dropEffect = 'move'
-}
-
-function onDrop(e: DragEvent, dropIndex: number) {
-  e.preventDefault()
-  const from = draggedIndex.value
-  if (from == null || from === dropIndex) return
-  const ids = [...orderedIds.value]
-  const [removed] = ids.splice(from, 1)
-  if (removed == null) return
-  ids.splice(dropIndex, 0, removed)
-  orderedIds.value = ids
-}
 </script>
 
 <template>
@@ -162,11 +96,9 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.subjectsTitle') }}</h1>
       <div class="flex items-center gap-2">
-        <UiButton
-          :disabled="!canReorder || !hasOrderChanged || saveOrderLoading"
-          @click="saveOrder"
-        >
-          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+        <UiButton variant="outline" @click="sortModalOpen = true">
+          <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
+          {{ t('admin.sortSubjects') }}
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
@@ -206,28 +138,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
 
     <!-- Cards -->
     <template v-else>
-      <div v-if="!displayedSubjects.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+      <div v-if="!filteredSubjects.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
         <p>{{ t('admin.subjectsEmpty') }}</p>
       </div>
       <div v-else class="space-y-3">
-        <UiCard
-          v-for="(s, index) in displayedSubjects"
-          :key="s.id"
-          class="transition-opacity"
-          :draggable="canReorder"
-          @dragstart="onDragStart($event, index)"
-          @dragend="onDragEnd"
-          @dragover="onDragOver"
-          @drop="onDrop($event, index)"
-        >
+        <UiCard v-for="s in filteredSubjects" :key="s.id">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <div
-              class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
-              aria-label="Drag to reorder"
-            >
-              <VIcon name="bi-grip-vertical" class="size-5" />
-            </div>
             <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
               <VIcon name="bi-journal-text" class="size-6 text-muted-foreground" />
             </div>
@@ -245,6 +162,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
     </template>
 
     <AdminSubjectModal :open="modalOpen" :subject="editingSubject" @close="modalOpen = false" @saved="fetchAll" />
+
+    <AdminSortModal
+      :open="sortModalOpen"
+      mode="subjects"
+      @close="sortModalOpen = false"
+      @saved="fetchAll"
+    />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
       <UiAlertDialogPortal>

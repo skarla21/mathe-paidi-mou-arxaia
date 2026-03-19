@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
   if (gradeId) {
     q = q.eq('grade_id', gradeId)
   }
-  const { data, error } = await q.order('name', { ascending: true })
+  const { data, error } = await q.order('order', { ascending: true }).order('name', { ascending: true })
   if (error) {
     console.error('[subjects.get]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })

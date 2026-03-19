@@ -8,6 +8,16 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'ids array is required' })
   }
   const supabase = serverSupabaseService()
+  const { data: allCats, error: qErr } = await supabase.from('categories').select('id')
+  if (qErr) {
+    console.error('[admin/categories/reorder]', qErr.message)
+    throw createError({ statusCode: 500, message: 'Failed to load categories' })
+  }
+  const expected = new Set((allCats ?? []).map(c => c.id))
+  const got = new Set(body.ids)
+  if (expected.size !== got.size || body.ids.some(id => !expected.has(id))) {
+    throw createError({ statusCode: 400, message: 'ids must list every category exactly once' })
+  }
   for (let i = 0; i < body.ids.length; i++) {
     const { error } = await supabase
       .from('categories')

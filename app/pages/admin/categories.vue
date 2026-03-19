@@ -16,6 +16,7 @@ import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import AdminCategoryModal from '~/components/admin/CategoryModal.vue'
+import AdminSortModal from '~/components/admin/AdminSortModal.vue'
 import type { Category } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -27,13 +28,11 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const search = ref('')
 const modalOpen = ref(false)
+const sortModalOpen = ref(false)
 const editingCategory = ref<Category | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
-const saveOrderLoading = ref(false)
-const orderedIds = ref<string[]>([])
-const draggedIndex = ref<number | null>(null)
 
 const filteredCategories = computed(() => {
   if (!search.value) return categories.value
@@ -41,34 +40,10 @@ const filteredCategories = computed(() => {
   return categories.value.filter(c => c.name.toLowerCase().includes(q))
 })
 
-const displayedCategories = computed(() => {
-  const list = filteredCategories.value
-  if (orderedIds.value.length !== list.length) return list
-  return orderedIds.value
-    .map(id => list.find(c => c.id === id))
-    .filter((c): c is Category => !!c)
-})
-
-const hasOrderChanged = computed(() => {
-  if (search.value) return false
-  const list = filteredCategories.value
-  if (orderedIds.value.length !== list.length) return false
-  return orderedIds.value.some((id, i) => list[i]?.id !== id)
-})
-
-const canReorder = computed(() => !search.value)
-
-function syncOrderedIds() {
-  orderedIds.value = filteredCategories.value.map(c => c.id)
-}
-
-watch(filteredCategories, syncOrderedIds, { deep: true })
-
 async function fetchCategories() {
   loading.value = true
   try {
     categories.value = await adminFetch<Category[]>('/api/admin/categories')
-    syncOrderedIds()
   } catch {
     categories.value = []
     toast.error(t('common.error'))
@@ -97,48 +72,6 @@ async function confirmDelete() {
     deleteLoading.value = false
   }
 }
-
-async function saveOrder() {
-  if (!hasOrderChanged.value) return
-  saveOrderLoading.value = true
-  try {
-    await adminFetch('/api/admin/categories/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
-    toast.success(t('admin.saveOrderSuccess'))
-    await fetchCategories()
-  } catch {
-    toast.error(t('admin.saveOrderError'))
-  } finally {
-    saveOrderLoading.value = false
-  }
-}
-
-function onDragStart(e: DragEvent, index: number) {
-  draggedIndex.value = index
-  e.dataTransfer!.effectAllowed = 'move'
-  e.dataTransfer!.setData('text/plain', String(index))
-  if (e.target instanceof HTMLElement) e.target.classList.add('opacity-50')
-}
-
-function onDragEnd(e: DragEvent) {
-  draggedIndex.value = null
-  if (e.target instanceof HTMLElement) e.target.classList.remove('opacity-50')
-}
-
-function onDragOver(e: DragEvent) {
-  e.preventDefault()
-  e.dataTransfer!.dropEffect = 'move'
-}
-
-function onDrop(e: DragEvent, dropIndex: number) {
-  e.preventDefault()
-  const from = draggedIndex.value
-  if (from == null || from === dropIndex) return
-  const ids = [...orderedIds.value]
-  const [removed] = ids.splice(from, 1)
-  if (removed == null) return
-  ids.splice(dropIndex, 0, removed)
-  orderedIds.value = ids
-}
 </script>
 
 <template>
@@ -146,11 +79,9 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.categoriesTitle') }}</h1>
       <div class="flex items-center gap-2">
-        <UiButton
-          :disabled="!canReorder || !hasOrderChanged || saveOrderLoading"
-          @click="saveOrder"
-        >
-          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+        <UiButton variant="outline" @click="sortModalOpen = true">
+          <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
+          {{ t('admin.sortCategories') }}
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
@@ -179,30 +110,15 @@ function onDrop(e: DragEvent, dropIndex: number) {
 
     <!-- Cards -->
     <template v-else>
-      <div v-if="!displayedCategories.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+      <div v-if="!filteredCategories.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
         <p>{{ t('admin.categoriesEmpty') }}</p>
       </div>
       <div v-else class="space-y-3">
-        <UiCard
-          v-for="(c, index) in displayedCategories"
-          :key="c.id"
-          class="transition-opacity"
-          :draggable="canReorder"
-          @dragstart="onDragStart($event, index)"
-          @dragend="onDragEnd"
-          @dragover="onDragOver"
-          @drop="onDrop($event, index)"
-        >
+        <UiCard v-for="c in filteredCategories" :key="c.id">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <div
-              class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
-              aria-label="Drag to reorder"
-            >
-              <VIcon name="bi-grip-vertical" class="size-5" />
-            </div>
             <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
-              <VIcon name="bi-tag" class="size-6 text-muted-foreground" />
+              <VIcon name="bi-folder" class="size-6 text-muted-foreground" />
             </div>
             <div class="min-w-0 flex-1">
               <p class="font-medium">{{ c.name }}</p>
@@ -218,6 +134,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
     </template>
 
     <AdminCategoryModal :open="modalOpen" :category="editingCategory" @close="modalOpen = false" @saved="fetchCategories" />
+
+    <AdminSortModal
+      :open="sortModalOpen"
+      mode="categories"
+      @close="sortModalOpen = false"
+      @saved="fetchCategories"
+    />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
       <UiAlertDialogPortal>

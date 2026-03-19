@@ -17,6 +17,7 @@ import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import AdminChapterModal from '~/components/admin/ChapterModal.vue'
+import AdminSortModal from '~/components/admin/AdminSortModal.vue'
 import type { Chapter } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -32,13 +33,11 @@ const search = ref('')
 const gradeId = ref('__all__')
 const subjectId = ref('__all__')
 const modalOpen = ref(false)
+const sortModalOpen = ref(false)
 const editingChapter = ref<Chapter | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
-const saveOrderLoading = ref(false)
-const orderedIds = ref<string[]>([])
-const draggedIndex = ref<number | null>(null)
 
 const filteredChapters = computed(() => {
   let list = chapters.value
@@ -52,22 +51,8 @@ const filteredChapters = computed(() => {
 })
 
 const filteredSubjects = computed(() =>
-  gradeId.value && gradeId.value !== '__all__' ? subjects.value.filter(s => s.grade_id === gradeId.value) : []
+  gradeId.value && gradeId.value !== '__all__' ? subjects.value.filter(s => s.grade_id === gradeId.value) : [],
 )
-
-const displayedChapters = computed(() => {
-  const list = filteredChapters.value
-  if (orderedIds.value.length !== list.length) return list
-  return orderedIds.value
-    .map(id => list.find(c => c.id === id))
-    .filter((c): c is Chapter => !!c)
-})
-
-const hasOrderChanged = computed(() => {
-  const list = filteredChapters.value
-  if (orderedIds.value.length !== list.length) return false
-  return orderedIds.value.some((id, i) => list[i]?.id !== id)
-})
 
 function breadcrumb(c: Chapter) {
   const grade = grades.value.find(g => g.id === c.grade_id)
@@ -87,7 +72,6 @@ async function fetchAll() {
     chapters.value = ch
     grades.value = gr
     subjects.value = sub
-    syncOrderedIds()
   } catch {
     chapters.value = []
     toast.error(t('common.error'))
@@ -96,19 +80,9 @@ async function fetchAll() {
   }
 }
 
-function syncOrderedIds() {
-  orderedIds.value = filteredChapters.value.map(c => c.id)
-}
-
 watch(gradeId, () => {
-  subjectId.value = ''
-  syncOrderedIds()
+  subjectId.value = '__all__'
 })
-watch(subjectId, syncOrderedIds)
-
-watch(filteredChapters, () => {
-  syncOrderedIds()
-}, { deep: true })
 
 onMounted(fetchAll)
 
@@ -130,48 +104,6 @@ async function confirmDelete() {
     deleteLoading.value = false
   }
 }
-
-async function saveOrder() {
-  if (!hasOrderChanged.value) return
-  saveOrderLoading.value = true
-  try {
-    await adminFetch('/api/admin/chapters/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
-    toast.success(t('admin.saveOrderSuccess'))
-    await fetchAll()
-  } catch {
-    toast.error(t('admin.saveOrderError'))
-  } finally {
-    saveOrderLoading.value = false
-  }
-}
-
-function onDragStart(e: DragEvent, index: number) {
-  draggedIndex.value = index
-  e.dataTransfer!.effectAllowed = 'move'
-  e.dataTransfer!.setData('text/plain', String(index))
-  if (e.target instanceof HTMLElement) e.target.classList.add('opacity-50')
-}
-
-function onDragEnd(e: DragEvent) {
-  draggedIndex.value = null
-  if (e.target instanceof HTMLElement) e.target.classList.remove('opacity-50')
-}
-
-function onDragOver(e: DragEvent) {
-  e.preventDefault()
-  e.dataTransfer!.dropEffect = 'move'
-}
-
-function onDrop(e: DragEvent, dropIndex: number) {
-  e.preventDefault()
-  const from = draggedIndex.value
-  if (from == null || from === dropIndex) return
-  const ids = [...orderedIds.value]
-  const [removed] = ids.splice(from, 1)
-  if (removed == null) return
-  ids.splice(dropIndex, 0, removed)
-  orderedIds.value = ids
-}
 </script>
 
 <template>
@@ -179,11 +111,9 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.chaptersTitle') }}</h1>
       <div class="flex items-center gap-2">
-        <UiButton
-          :disabled="!hasOrderChanged || saveOrderLoading"
-          @click="saveOrder"
-        >
-          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+        <UiButton variant="outline" @click="sortModalOpen = true">
+          <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
+          {{ t('admin.sortChapters') }}
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
@@ -236,28 +166,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
 
     <!-- Cards -->
     <template v-else>
-      <div v-if="!displayedChapters.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+      <div v-if="!filteredChapters.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
         <p>{{ t('admin.chaptersEmpty') }}</p>
       </div>
       <div v-else class="space-y-3">
-        <UiCard
-          v-for="(c, index) in displayedChapters"
-          :key="c.id"
-          class="transition-opacity"
-          draggable="true"
-          @dragstart="onDragStart($event, index)"
-          @dragend="onDragEnd"
-          @dragover="onDragOver"
-          @drop="onDrop($event, index)"
-        >
+        <UiCard v-for="c in filteredChapters" :key="c.id">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <div
-              class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
-              aria-label="Drag to reorder"
-            >
-              <VIcon name="bi-grip-vertical" class="size-5" />
-            </div>
             <img
               v-if="c.image_url"
               :src="c.image_url"
@@ -281,6 +196,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
     </template>
 
     <AdminChapterModal :open="modalOpen" :chapter="editingChapter" @close="modalOpen = false" @saved="fetchAll" />
+
+    <AdminSortModal
+      :open="sortModalOpen"
+      mode="chapters"
+      @close="sortModalOpen = false"
+      @saved="fetchAll"
+    />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
       <UiAlertDialogPortal>

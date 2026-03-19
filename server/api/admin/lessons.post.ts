@@ -1,5 +1,6 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
+import { syncLessonOutline } from '../../utils/subjectOutline'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -28,6 +29,16 @@ export default defineEventHandler(async (event) => {
   if (error) {
     console.error('[admin/lessons.post]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
+  try {
+    await syncLessonOutline(supabase, data.id, {
+      chapter_id: data.chapter_id,
+      subject_id: data.subject_id,
+      category_id: data.category_id,
+    })
+  } catch (e) {
+    console.error('[admin/lessons.post] outline', e)
+    throw createError({ statusCode: 500, message: 'Failed to sync subject outline' })
   }
   return data
 })

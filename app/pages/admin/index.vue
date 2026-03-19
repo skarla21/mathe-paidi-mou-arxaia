@@ -102,6 +102,51 @@ const maxLessonsByGrade = computed(() => {
   if (!stats.value?.lessonsByGrade?.length) return 0
   return Math.max(...stats.value.lessonsByGrade.map(g => g.count))
 })
+
+const recentUsersPreview = computed(() => (stats.value?.recentUsers ?? []).slice(0, 2))
+const recentDownloadsPreview = computed(() => (stats.value?.recentDownloads ?? []).slice(0, 2))
+const recentPurchasesPreview = computed(() => (stats.value?.recentPurchases ?? []).slice(0, 2))
+
+const recentColumnEl = ref<HTMLDivElement | null>(null)
+const topLessonsMaxHeightPx = ref<number | null>(null)
+const topLessonsCardStyle = computed(() => {
+  if (topLessonsMaxHeightPx.value == null) return {}
+  const h = `${topLessonsMaxHeightPx.value}px`
+  return { height: h, maxHeight: h, minHeight: h }
+})
+
+let recentColumnResizeObserver: ResizeObserver | null = null
+
+function syncTopLessonsCardMaxHeight() {
+  const el = recentColumnEl.value
+  if (!el) return
+  topLessonsMaxHeightPx.value = Math.round(el.getBoundingClientRect().height)
+}
+
+function teardownTopLessonsHeightSync() {
+  recentColumnResizeObserver?.disconnect()
+  recentColumnResizeObserver = null
+  topLessonsMaxHeightPx.value = null
+}
+
+watch(
+  () => [stats.value, loading.value] as const,
+  async ([s, load]) => {
+    await nextTick()
+    teardownTopLessonsHeightSync()
+    if (!s || load) return
+    const col = recentColumnEl.value
+    if (!col || typeof ResizeObserver === 'undefined') return
+    recentColumnResizeObserver = new ResizeObserver(() => syncTopLessonsCardMaxHeight())
+    recentColumnResizeObserver.observe(col as unknown as Element)
+    syncTopLessonsCardMaxHeight()
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  teardownTopLessonsHeightSync()
+})
 </script>
 
 <template>
@@ -110,12 +155,24 @@ const maxLessonsByGrade = computed(() => {
 
     <!-- Loading skeleton -->
     <template v-if="loading">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <UiCard v-for="i in 4" :key="i" class="shadow-md">
-          <UiCardContent class="p-5 space-y-2">
-            <UiSkeleton class="h-4 w-20" />
-            <UiSkeleton class="h-8 w-16" />
-            <UiSkeleton class="h-3 w-24" />
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
+        <div class="min-w-0 flex-1">
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <UiCard v-for="i in 4" :key="i" class="shadow-md">
+              <UiCardContent class="space-y-2 p-3">
+                <UiSkeleton class="h-3 w-16" />
+                <UiSkeleton class="h-7 w-12" />
+                <UiSkeleton class="h-3 w-full" />
+              </UiCardContent>
+            </UiCard>
+          </div>
+        </div>
+        <UiCard class="shadow-md flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
+          <UiCardContent class="space-y-3 p-4">
+            <UiSkeleton class="h-4 w-32" />
+            <div class="flex flex-col gap-2">
+              <UiSkeleton v-for="j in 4" :key="j" class="h-9 w-full rounded-md" />
+            </div>
           </UiCardContent>
         </UiCard>
       </div>
@@ -130,60 +187,62 @@ const maxLessonsByGrade = computed(() => {
     </template>
 
     <template v-else-if="stats">
-      <!-- KPI Cards + Quick Actions row -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UiCard v-for="card in kpiCards" :key="card.iconLabel" class="shadow-md lg:aspect-square">
-            <UiCardContent class="p-5 h-full flex flex-col">
-              <div class="flex items-start gap-2.5 mb-3">
-                <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                  <VIcon :name="card.icon" class="size-5 text-primary" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-muted-foreground truncate">{{ card.iconLabel }}</span>
-                    <UiBadge
-                      class="border border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold"
-                    >
-                      {{ formatMonthlyDelta(card.monthlyDelta, card.monthlyAsCurrency) }}
-                    </UiBadge>
+      <!-- KPI Cards + Quick Actions — one row on large screens -->
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
+        <div class="min-w-0 flex-1">
+          <div class="grid h-full grid-cols-2 gap-3 md:grid-cols-4 md:gap-3">
+            <UiCard v-for="card in kpiCards" :key="card.iconLabel" class="shadow-md flex min-h-0 flex-col">
+              <UiCardContent class="flex h-full min-h-0 flex-col p-3 sm:p-3.5">
+                <div class="mb-2 flex items-start gap-2">
+                  <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:size-10">
+                    <VIcon :name="card.icon" class="size-[18px] text-primary sm:size-5" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-col gap-1">
+                      <span class="line-clamp-2 text-xs font-medium leading-snug text-muted-foreground sm:text-sm">{{ card.iconLabel }}</span>
+                      <UiBadge
+                        class="w-fit border border-emerald-500/30 bg-emerald-500/15 px-2 py-0 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 sm:text-xs"
+                      >
+                        {{ formatMonthlyDelta(card.monthlyDelta, card.monthlyAsCurrency) }}
+                      </UiBadge>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <p class="text-xs text-muted-foreground">{{ t('admin.stats.total') }}</p>
-              <p class="text-2xl font-bold">{{ card.total }}</p>
-              <div class="mt-auto pt-2">
-                <p class="text-xs text-muted-foreground">{{ card.sub1 }}</p>
-                <p v-if="card.sub2" class="text-xs text-muted-foreground">{{ card.sub2 }}</p>
-              </div>
-            </UiCardContent>
-          </UiCard>
+                <p class="text-xs text-muted-foreground">{{ t('admin.stats.total') }}</p>
+                <p class="text-xl font-bold leading-tight sm:text-2xl">{{ card.total }}</p>
+                <div class="mt-auto pt-2">
+                  <p class="line-clamp-2 text-xs leading-snug text-muted-foreground">{{ card.sub1 }}</p>
+                  <p v-if="card.sub2" class="line-clamp-2 text-xs leading-snug text-muted-foreground">{{ card.sub2 }}</p>
+                </div>
+              </UiCardContent>
+            </UiCard>
+          </div>
         </div>
-        <UiCard class="shadow-md h-fit">
-          <UiCardContent class="p-5">
-            <p class="text-sm font-semibold mb-3">{{ t('admin.stats.quickActions') }}</p>
-            <div class="flex flex-wrap gap-2">
-              <NuxtLink to="/admin/grades">
-                <UiButton variant="outline" size="sm">
-                  <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+        <UiCard class="shadow-md flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
+          <UiCardContent class="flex flex-col gap-3 p-4 sm:p-4">
+            <p class="text-sm font-semibold">{{ t('admin.stats.quickActions') }}</p>
+            <div class="flex flex-col gap-2">
+              <NuxtLink to="/admin/grades" class="w-full">
+                <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
+                  <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
                   {{ t('admin.createGrade') }}
                 </UiButton>
               </NuxtLink>
-              <NuxtLink to="/admin/subjects">
-                <UiButton variant="outline" size="sm">
-                  <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+              <NuxtLink to="/admin/subjects" class="w-full">
+                <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
+                  <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
                   {{ t('admin.createSubject') }}
                 </UiButton>
               </NuxtLink>
-              <NuxtLink to="/admin/chapters">
-                <UiButton variant="outline" size="sm">
-                  <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+              <NuxtLink to="/admin/chapters" class="w-full">
+                <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
+                  <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
                   {{ t('admin.createChapter') }}
                 </UiButton>
               </NuxtLink>
-              <NuxtLink to="/admin/lessons">
-                <UiButton variant="outline" size="sm">
-                  <VIcon name="bi-plus-circle" class="size-3.5 mr-1.5" />
+              <NuxtLink to="/admin/lessons" class="w-full">
+                <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
+                  <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
                   {{ t('admin.createLesson') }}
                 </UiButton>
               </NuxtLink>
@@ -235,17 +294,17 @@ const maxLessonsByGrade = computed(() => {
 
       <Separator />
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="grid grid-cols-1 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:items-start">
+        <div ref="recentColumnEl" class="grid grid-cols-1 gap-6">
           <!-- Recent Signups -->
           <UiCard class="shadow-md">
             <UiCardHeader>
               <p class="font-semibold text-sm">{{ t('admin.stats.recentUsers') }}</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!stats.recentUsers?.length" class="text-sm text-muted-foreground">{{ t('admin.usersEmpty') }}</p>
+              <p v-if="!recentUsersPreview.length" class="text-sm text-muted-foreground">{{ t('admin.usersEmpty') }}</p>
               <ul v-else class="space-y-2.5">
-                <li v-for="u in stats.recentUsers" :key="u.id" class="flex items-center justify-between text-sm">
+                <li v-for="u in recentUsersPreview" :key="u.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
                     <img
                       v-if="u.avatar_url"
@@ -270,9 +329,9 @@ const maxLessonsByGrade = computed(() => {
               <p class="font-semibold text-sm">{{ t('admin.recentDownloads') }}</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!stats.recentDownloads.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
+              <p v-if="!recentDownloadsPreview.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
               <ul v-else class="space-y-2.5">
-                <li v-for="d in stats.recentDownloads" :key="d.id" class="flex items-center justify-between text-sm">
+                <li v-for="d in recentDownloadsPreview" :key="d.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
                     <VIcon name="bi-download" class="size-3.5 text-muted-foreground shrink-0" />
                     <span class="truncate">{{ d.users?.name ?? t('common.empty') }}</span>
@@ -289,9 +348,9 @@ const maxLessonsByGrade = computed(() => {
               <p class="font-semibold text-sm">{{ t('admin.stats.recentPurchases') }}</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!stats.recentPurchases?.length" class="text-sm text-muted-foreground">{{ t('admin.purchasesEmpty') }}</p>
+              <p v-if="!recentPurchasesPreview.length" class="text-sm text-muted-foreground">{{ t('admin.purchasesEmpty') }}</p>
               <ul v-else class="space-y-2.5">
-                <li v-for="p in stats.recentPurchases" :key="p.id" class="flex items-center justify-between text-sm">
+                <li v-for="p in recentPurchasesPreview" :key="p.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
                     <VIcon name="bi-cart" class="size-3.5 text-muted-foreground shrink-0" />
                     <span class="truncate">{{ p.users?.name ?? p.users?.email ?? t('common.empty') }}</span>
@@ -306,11 +365,14 @@ const maxLessonsByGrade = computed(() => {
         </div>
 
         <!-- Top Lessons -->
-        <UiCard class="shadow-md h-full">
-          <UiCardHeader>
+        <UiCard
+          class="shadow-md flex min-h-0 min-w-0 flex-col overflow-hidden lg:self-start"
+          :style="topLessonsCardStyle"
+        >
+          <UiCardHeader class="shrink-0">
             <p class="font-semibold text-sm">{{ t('admin.topLessons') }}</p>
           </UiCardHeader>
-          <UiCardContent>
+          <UiCardContent class="min-h-0 flex-1 overflow-y-auto">
             <p v-if="!stats.topLessons.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
             <div v-else class="space-y-2">
               <div

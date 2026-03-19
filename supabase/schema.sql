@@ -112,6 +112,22 @@ create index if not exists lessons_category_id_idx on public.lessons(category_id
 create index if not exists lessons_title_idx on public.lessons(title);
 create index if not exists lessons_order_idx on public.lessons("order");
 
+-- Subject outline: interleaved order of chapters and subject-level lessons under one subject
+create table if not exists public.subject_outline_items (
+  id uuid primary key default gen_random_uuid(),
+  subject_id uuid not null references public.subjects(id) on delete cascade,
+  position int not null,
+  chapter_id uuid references public.chapters(id) on delete cascade,
+  lesson_id uuid references public.lessons(id) on delete cascade,
+  constraint subject_outline_items_one_child check (
+    (chapter_id is not null)::int + (lesson_id is not null)::int = 1
+  ),
+  constraint subject_outline_items_chapter_unique unique (chapter_id),
+  constraint subject_outline_items_lesson_unique unique (lesson_id),
+  constraint subject_outline_items_subject_position unique (subject_id, position)
+);
+create index if not exists subject_outline_items_subject_id_idx on public.subject_outline_items(subject_id);
+
 -- Purchases (per-lesson purchases, renamed from course_id to lesson_id)
 create table if not exists public.purchases (
   id uuid primary key default gen_random_uuid(),
@@ -145,6 +161,7 @@ alter table public.subjects enable row level security;
 alter table public.categories enable row level security;
 alter table public.chapters enable row level security;
 alter table public.lessons enable row level security;
+alter table public.subject_outline_items enable row level security;
 alter table public.purchases enable row level security;
 alter table public.downloads enable row level security;
 
@@ -160,6 +177,9 @@ create policy "chapters_select_all" on public.chapters for select using (true);
 
 -- Lessons: public read (content access / paid-content gate enforced in app layer)
 create policy "lessons_select_all" on public.lessons for select using (true);
+
+-- Subject outline: public read (ordering for subject pages)
+create policy "subject_outline_items_select_all" on public.subject_outline_items for select using (true);
 
 -- Users: own row only
 create policy "users_select_own" on public.users for select using (auth.uid() = id);

@@ -188,7 +188,8 @@
   "subject": {
     "title": "Subject",
     "free": "Free",
-    "noCoursesYet": "No chapters in this subject yet."
+    "noCoursesYet": "No chapters in this subject yet.",
+    "outlineSection": "Chapters and lessons"
   },
   "admin": {
     "nav": "Admin",
@@ -272,7 +273,7 @@
       "title": "Title",
       "description": "Description",
       "isFree": "Free",
-      "price": "Price (€)",
+      "price": "Price",
       "content": "Content",
       "pdfUrl": "PDF URL",
       "assignedTo": "Assigned to",
@@ -289,7 +290,8 @@
       "contentFile": "File",
       "file": "File",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "currencySymbol": "€"
     },
     "selectChapter": "Select chapter…",
     "selectSubject": "Select subject…",
@@ -344,6 +346,34 @@
     "saveOrder": "Save Order",
     "saveOrderSuccess": "Order saved",
     "saveOrderError": "Failed to save order",
+    "sortMaterial": "Sort material",
+    "sortSubjects": "Sort subjects",
+    "sortChapters": "Sort chapters",
+    "sortCategories": "Sort categories",
+    "sortModal": {
+      "title": "Sort",
+      "titleSubjects": "Sort subjects",
+      "titleChapters": "Sort chapters",
+      "titleLessons": "Sort material",
+      "titleCategories": "Sort categories",
+      "description": "Reorder items and save.",
+      "pickGrade": "Select a grade.",
+      "pickSubject": "Select a subject.",
+      "pickChapter": "Select a chapter.",
+      "pickCategory": "Select a category.",
+      "continue": "Continue",
+      "back": "Back",
+      "dragHint": "Drag rows to reorder, then save.",
+      "emptyList": "Nothing to sort here.",
+      "lessonsPickScope": "What do you want to sort?",
+      "scopeCategory": "Lessons in a category",
+      "scopeChapter": "Lessons in a chapter",
+      "scopeSubjectOutline": "Chapters and subject-level lessons together",
+      "badgeChapter": "Chapter",
+      "badgeLesson": "Lesson",
+      "outlineEmpty": "No chapters or lessons to order for this subject.",
+      "outlineLoadError": "Could not load outline."
+    },
     "lessonModal": {
       "noFile": "No file selected",
       "removeFile": "Remove file",

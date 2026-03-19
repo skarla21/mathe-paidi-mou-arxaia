@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
       .from('downloads')
       .select('id, downloaded_at, users(name), lessons(title)')
       .order('downloaded_at', { ascending: false })
-      .limit(10),
+      .limit(2),
     supabase.rpc('get_top_downloaded_lessons', { lim: 10 }),
 
     // New count queries
@@ -117,14 +117,14 @@ export default defineEventHandler(async (event) => {
       .from('purchases')
       .select('id, created_at, users(name, email), lessons(title, price)')
       .order('created_at', { ascending: false })
-      .limit(5),
+      .limit(2),
 
     // Recent user signups
     supabase
       .from('users')
       .select('id, name, email, avatar_url, created_at')
       .order('created_at', { ascending: false })
-      .limit(5),
+      .limit(2),
 
     // Lessons by grade via chapters relation
     supabase

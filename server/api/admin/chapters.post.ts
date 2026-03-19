@@ -1,5 +1,6 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
+import { appendChapterToOutline } from '../../utils/subjectOutline'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -22,6 +23,12 @@ export default defineEventHandler(async (event) => {
   if (error) {
     console.error('[admin/chapters.post]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
+  try {
+    await appendChapterToOutline(supabase, body.subject_id, data.id)
+  } catch (e) {
+    console.error('[admin/chapters.post] outline', e)
+    throw createError({ statusCode: 500, message: 'Failed to register chapter in subject outline' })
   }
   return data
 })

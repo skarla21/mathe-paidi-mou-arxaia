@@ -280,21 +280,24 @@ async function onSubmit() {
           <!-- Pricing -->
           <fieldset class="space-y-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.price') }}</p>
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center gap-4">
               <div class="flex items-center gap-2">
-                <Checkbox id="lesson-free" v-model:checked="isFree" />
+                <Checkbox id="lesson-free" v-model="isFree" />
                 <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
               </div>
-              <div class="flex-1 flex items-center gap-2">
-                <UiLabel class="shrink-0">{{ t('admin.field.price') }}</UiLabel>
+              <div class="relative min-w-[120px] max-w-[140px] flex-1">
                 <UiInput
                   v-model.number="price"
                   type="number"
                   min="0"
                   step="0.1"
                   :disabled="isFree"
-                  class="max-w-[120px]"
+                  class="pr-8"
                 />
+                <span
+                  class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
+                  aria-hidden="true"
+                >{{ t('admin.field.currencySymbol') }}</span>
               </div>
             </div>
           </fieldset>

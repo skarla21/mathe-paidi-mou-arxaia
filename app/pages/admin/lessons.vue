@@ -17,6 +17,7 @@ import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.
 import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import AdminLessonModal from '~/components/admin/LessonModal.vue'
+import AdminSortModal from '~/components/admin/AdminSortModal.vue'
 import type { Lesson } from '~/types/database'
 
 type Chapter = { id: string; title: string; grade_id: string; subject_id: string }
@@ -40,19 +41,17 @@ const subjectId = ref('__all__')
 const chapterId = ref('__all__')
 const categoryId = ref('__all__')
 const modalOpen = ref(false)
+const sortModalOpen = ref(false)
 const editingLesson = ref<Lesson | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
-const saveOrderLoading = ref(false)
-const orderedIds = ref<string[]>([])
-const draggedIndex = ref<number | null>(null)
 
 const filteredSubjects = computed(() =>
-  gradeId.value && gradeId.value !== '__all__' ? subjects.value.filter(s => s.grade_id === gradeId.value) : []
+  gradeId.value && gradeId.value !== '__all__' ? subjects.value.filter(s => s.grade_id === gradeId.value) : [],
 )
 const filteredChapters = computed(() =>
-  subjectId.value && subjectId.value !== '__all__' ? chapters.value.filter(c => c.subject_id === subjectId.value) : []
+  subjectId.value && subjectId.value !== '__all__' ? chapters.value.filter(c => c.subject_id === subjectId.value) : [],
 )
 
 const filteredLessons = computed(() => {
@@ -77,45 +76,17 @@ const filteredLessons = computed(() => {
   return list
 })
 
-const displayedLessons = computed(() => {
-  const list = filteredLessons.value
-  if (orderedIds.value.length !== list.length) return list
-  return orderedIds.value
-    .map(id => list.find(l => l.id === id))
-    .filter((l): l is Lesson => !!l)
-})
-
-const hasOrderChanged = computed(() => {
-  const list = filteredLessons.value
-  if (orderedIds.value.length !== list.length) return false
-  return orderedIds.value.some((id, i) => list[i]?.id !== id)
-})
-
-function breadcrumb(l: Lesson): string {
-  if (l.chapters?.title) return `${l.chapters.title} > ${l.title}`
-  if (l.subjects?.name) return `${l.subjects.name} > ${l.title}`
-  if (l.categories?.name) return `${l.categories.name} > ${l.title}`
-  return l.title
-}
-
-function syncOrderedIds() {
-  orderedIds.value = filteredLessons.value.map(l => l.id)
-}
-
 watch(gradeId, () => {
   subjectId.value = '__all__'
   chapterId.value = '__all__'
   if (gradeId.value && gradeId.value !== '__all__') categoryId.value = '__all__'
-  syncOrderedIds()
 })
 watch(subjectId, () => {
   chapterId.value = '__all__'
   if (subjectId.value && subjectId.value !== '__all__') categoryId.value = '__all__'
-  syncOrderedIds()
 })
 watch(chapterId, () => {
   if (chapterId.value && chapterId.value !== '__all__') categoryId.value = '__all__'
-  syncOrderedIds()
 })
 watch(categoryId, () => {
   if (categoryId.value && categoryId.value !== '__all__') {
@@ -123,9 +94,7 @@ watch(categoryId, () => {
     subjectId.value = '__all__'
     chapterId.value = '__all__'
   }
-  syncOrderedIds()
 })
-watch(() => filteredLessons.value, syncOrderedIds, { deep: true })
 
 async function fetchAll() {
   loading.value = true
@@ -142,7 +111,6 @@ async function fetchAll() {
     subjects.value = sub
     chapters.value = ch
     categories.value = cat
-    syncOrderedIds()
   } catch {
     lessons.value = []
     toast.error(t('common.error'))
@@ -171,48 +139,6 @@ async function confirmDelete() {
     deleteLoading.value = false
   }
 }
-
-async function saveOrder() {
-  if (!hasOrderChanged.value) return
-  saveOrderLoading.value = true
-  try {
-    await adminFetch('/api/admin/lessons/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
-    toast.success(t('admin.saveOrderSuccess'))
-    await fetchAll()
-  } catch {
-    toast.error(t('admin.saveOrderError'))
-  } finally {
-    saveOrderLoading.value = false
-  }
-}
-
-function onDragStart(e: DragEvent, index: number) {
-  draggedIndex.value = index
-  e.dataTransfer!.effectAllowed = 'move'
-  e.dataTransfer!.setData('text/plain', String(index))
-  if (e.target instanceof HTMLElement) e.target.classList.add('opacity-50')
-}
-
-function onDragEnd(e: DragEvent) {
-  draggedIndex.value = null
-  if (e.target instanceof HTMLElement) e.target.classList.remove('opacity-50')
-}
-
-function onDragOver(e: DragEvent) {
-  e.preventDefault()
-  e.dataTransfer!.dropEffect = 'move'
-}
-
-function onDrop(e: DragEvent, dropIndex: number) {
-  e.preventDefault()
-  const from = draggedIndex.value
-  if (from == null || from === dropIndex) return
-  const ids = [...orderedIds.value]
-  const [removed] = ids.splice(from, 1)
-  if (removed == null) return
-  ids.splice(dropIndex, 0, removed)
-  orderedIds.value = ids
-}
 </script>
 
 <template>
@@ -220,11 +146,9 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-2xl font-bold font-heading">{{ t('admin.lessonsTitle') }}</h1>
       <div class="flex items-center gap-2">
-        <UiButton
-          :disabled="!hasOrderChanged || saveOrderLoading"
-          @click="saveOrder"
-        >
-          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+        <UiButton variant="outline" @click="sortModalOpen = true">
+          <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
+          {{ t('admin.sortMaterial') }}
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
@@ -291,33 +215,17 @@ function onDrop(e: DragEvent, dropIndex: number) {
 
     <!-- Cards -->
     <template v-else>
-      <div v-if="!displayedLessons.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+      <div v-if="!filteredLessons.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
         <p>{{ t('admin.lessonsEmpty') }}</p>
       </div>
       <div v-else class="space-y-3">
-        <UiCard
-          v-for="(l, index) in displayedLessons"
-          :key="l.id"
-          class="transition-opacity"
-          draggable="true"
-          @dragstart="onDragStart($event, index)"
-          @dragend="onDragEnd"
-          @dragover="onDragOver"
-          @drop="onDrop($event, index)"
-        >
+        <UiCard v-for="l in filteredLessons" :key="l.id">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <div
-              class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
-              aria-label="Drag to reorder"
-            >
-              <VIcon name="bi-grip-vertical" class="size-5" />
-            </div>
             <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
-              <VIcon name="bi-file-earmark" class="size-6 text-muted-foreground" />
+              <VIcon name="bi-journal-text" class="size-6 text-muted-foreground" />
             </div>
             <div class="min-w-0 flex-1">
-              <p class="text-sm text-muted-foreground">{{ breadcrumb(l) }}</p>
               <p class="font-medium">{{ l.title }}</p>
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-xs text-muted-foreground">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</span>
@@ -334,6 +242,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
     </template>
 
     <AdminLessonModal :open="modalOpen" :lesson="editingLesson" @close="modalOpen = false" @saved="fetchAll" />
+
+    <AdminSortModal
+      :open="sortModalOpen"
+      mode="lessons"
+      @close="sortModalOpen = false"
+      @saved="fetchAll"
+    />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
       <UiAlertDialogPortal>

@@ -15,6 +15,11 @@ export interface Subject {
   grades?: { name: string } | null
 }
 
+/** Resolved subject page outline (`/api/subjects/:id/outline`). */
+export type SubjectOutlineRow =
+  | { kind: 'chapter'; id: string; title: string }
+  | { kind: 'lesson'; id: string; title: string; is_free: boolean }
+
 export interface Category {
   id: string
   name: string

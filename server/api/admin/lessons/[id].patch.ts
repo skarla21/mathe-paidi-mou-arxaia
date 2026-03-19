@@ -1,10 +1,12 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
+import { syncLessonOutline } from '../../../utils/subjectOutline'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
   if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
+  const supabase = serverSupabaseService()
   const body = await readBody<{
     title?: string; content?: string; is_free?: boolean; price?: number
     content_url?: string; order?: number
@@ -32,11 +34,20 @@ export default defineEventHandler(async (event) => {
   if (body.subject_id !== undefined) updates.subject_id = body.subject_id
   if (body.category_id !== undefined) updates.category_id = body.category_id
   if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Nothing to update' })
-  const supabase = serverSupabaseService()
   const { data, error } = await supabase.from('lessons').update(updates).eq('id', id).select().single()
   if (error) {
     console.error('[admin/lessons/[id].patch]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
+  try {
+    await syncLessonOutline(supabase, id, {
+      chapter_id: data.chapter_id,
+      subject_id: data.subject_id,
+      category_id: data.category_id,
+    })
+  } catch (e) {
+    console.error('[admin/lessons/[id].patch] outline', e)
+    throw createError({ statusCode: 500, message: 'Failed to sync subject outline' })
   }
   return data
 })

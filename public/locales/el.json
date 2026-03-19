@@ -188,7 +188,8 @@
   "subject": {
     "title": "Μάθημα",
     "free": "Δωρεάν",
-    "noCoursesYet": "Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα."
+    "noCoursesYet": "Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα.",
+    "outlineSection": "Κεφάλαια και υλικό"
   },
   "admin": {
     "nav": "Διαχείριση",
@@ -268,7 +269,7 @@
       "title": "Τίτλος",
       "description": "Περιγραφή",
       "isFree": "Δωρεάν",
-      "price": "Τιμή (€)",
+      "price": "Τιμή",
       "content": "Περιεχόμενο",
       "pdfUrl": "URL PDF",
       "assignedTo": "Ανήκει σε",
@@ -285,7 +286,8 @@
       "contentFile": "Αρχείο",
       "file": "Αρχείο",
       "yes": "Ναι",
-      "no": "Όχι"
+      "no": "Όχι",
+      "currencySymbol": "€"
     },
     "selectChapter": "Επιλογή κεφαλαίου…",
     "selectSubject": "Επιλογή μαθήματος…",
@@ -340,6 +342,34 @@
     "saveOrder": "Αποθήκευση σειράς",
     "saveOrderSuccess": "Η σειρά αποθηκεύτηκε",
     "saveOrderError": "Αποτυχία αποθήκευσης σειράς",
+    "sortMaterial": "Ταξινόμηση υλικού",
+    "sortSubjects": "Ταξινόμηση μαθημάτων",
+    "sortChapters": "Ταξινόμηση κεφαλαίων",
+    "sortCategories": "Ταξινόμηση κατηγοριών",
+    "sortModal": {
+      "title": "Ταξινόμηση",
+      "titleSubjects": "Ταξινόμηση μαθημάτων",
+      "titleChapters": "Ταξινόμηση κεφαλαίων",
+      "titleLessons": "Ταξινόμηση υλικού",
+      "titleCategories": "Ταξινόμηση κατηγοριών",
+      "description": "Αναδιάταξη στοιχείων και αποθήκευση.",
+      "pickGrade": "Επίλεξε τάξη.",
+      "pickSubject": "Επίλεξε μάθημα.",
+      "pickChapter": "Επίλεξε κεφάλαιο.",
+      "pickCategory": "Επίλεξε κατηγορία.",
+      "continue": "Συνέχεια",
+      "back": "Πίσω",
+      "dragHint": "Σύρε τις γραμμές για νέα σειρά και αποθήκευσε.",
+      "emptyList": "Δεν υπάρχει κάτι για ταξινόμηση.",
+      "lessonsPickScope": "Τι θέλεις να ταξινομήσεις;",
+      "scopeCategory": "Υλικό σε κατηγορία",
+      "scopeChapter": "Υλικό σε κεφάλαιο",
+      "scopeSubjectOutline": "Κεφάλαια και υλικό απευθείας κάτω από το μάθημα",
+      "badgeChapter": "Κεφάλαιο",
+      "badgeLesson": "Υλικό",
+      "outlineEmpty": "Δεν υπάρχουν κεφάλαια ή υλικό για ταξινόμηση σε αυτό το μάθημα.",
+      "outlineLoadError": "Αδυναμία φόρτωσης της δομής."
+    },
     "lessonModal": {
       "noFile": "Δεν έχει επιλεγεί αρχείο",
       "removeFile": "Αφαίρεση αρχείου",

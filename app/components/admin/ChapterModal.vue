@@ -28,10 +28,17 @@ const adminFetch = useAdminFetch()
 
 const title = ref('')
 const description = ref('')
+const gradeId = ref('')
 const subjectId = ref('')
 const imageUrl = ref('')
-const subjects = ref<{ id: string; name: string }[]>([])
+const grades = ref<{ id: string; name: string }[]>([])
+const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const loading = ref(false)
+const initializing = ref(false)
+
+const filteredSubjects = computed(() =>
+  gradeId.value ? subjects.value.filter(s => s.grade_id === gradeId.value) : [],
+)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const dragActive = ref(false)
@@ -42,11 +49,35 @@ const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
 watch(() => props.open, async (val) => {
   if (!val) return
+  initializing.value = true
   title.value = props.chapter?.title ?? ''
   description.value = props.chapter?.description ?? ''
+  gradeId.value = ''
   subjectId.value = props.chapter?.subject_id ?? ''
   imageUrl.value = props.chapter?.image_url ?? ''
-  try { subjects.value = await adminFetch<{ id: string; name: string }[]>('/api/admin/subjects') } catch { subjects.value = [] }
+  try {
+    const [gr, sub] = await Promise.all([
+      adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
+      adminFetch<{ id: string; name: string; grade_id: string }[]>('/api/admin/subjects'),
+    ])
+    grades.value = gr
+    subjects.value = sub
+    if (props.chapter?.subject_id) {
+      const s = subjects.value.find(x => x.id === props.chapter!.subject_id)
+      if (s) gradeId.value = s.grade_id
+    }
+  } catch {
+    toast.error(t('common.error'))
+    grades.value = []
+    subjects.value = []
+  } finally {
+    nextTick(() => { initializing.value = false })
+  }
+})
+
+watch(gradeId, () => {
+  if (initializing.value) return
+  subjectId.value = ''
 })
 
 async function uploadImage(file: File) {
@@ -108,7 +139,7 @@ function clearImage() {
 }
 
 async function onSubmit() {
-  if (!title.value.trim() || !subjectId.value) return
+  if (!title.value.trim() || !gradeId.value || !subjectId.value) return
   loading.value = true
   try {
     const body = {
@@ -151,13 +182,24 @@ async function onSubmit() {
             <UiTextarea v-model="description" :rows="3" />
           </div>
           <div class="space-y-1.5">
+            <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+            <Select v-model="gradeId">
+              <SelectTrigger>
+                <SelectValue :placeholder="t('admin.selectGrade')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div v-if="gradeId" class="space-y-1.5">
             <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
             <Select v-model="subjectId">
               <SelectTrigger>
                 <SelectValue :placeholder="t('admin.selectSubject')" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem v-for="s in subjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
+                <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
               </SelectContent>
             </Select>
           </div>
