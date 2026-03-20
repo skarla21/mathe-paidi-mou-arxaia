@@ -93,6 +93,24 @@ export interface LessonDownload {
 // User (DB row shape -- NOT the auth session user)
 // ---------------------------------------------------------------------------
 
+export interface LessonRating {
+  id: string
+  user_id: string
+  lesson_id: string
+  rating: number
+  created_at: string
+  updated_at: string
+}
+
+export interface LessonComment {
+  id: string
+  user_id: string
+  lesson_id: string
+  body: string
+  created_at: string
+  updated_at: string
+}
+
 export interface DbUser {
   id: string
   email: string | null

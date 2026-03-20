@@ -38,6 +38,11 @@ export default defineEventHandler(async (event) => {
     recentPurchasesRes,
     recentUsersRes,
     lessonsByGradeRes,
+    ratingsCountRes,
+    commentsCountRes,
+    allRatingsRes,
+    ratingsThisMonthRes,
+    commentsThisMonthRes,
   ] = await Promise.all([
     // Existing queries
     supabase.from('users').select('*', { count: 'exact', head: true }),
@@ -131,6 +136,13 @@ export default defineEventHandler(async (event) => {
       .from('lesson_placements')
       .select('lesson_id, chapters(grade_id, grades(name))')
       .not('chapter_id', 'is', null),
+
+    // Rating & comment stats
+    supabase.from('lesson_ratings').select('*', { count: 'exact', head: true }),
+    supabase.from('lesson_comments').select('*', { count: 'exact', head: true }),
+    supabase.from('lesson_ratings').select('rating'),
+    supabase.from('lesson_ratings').select('*', { count: 'exact', head: true }).gte('created_at', startOfThisMonth),
+    supabase.from('lesson_comments').select('*', { count: 'exact', head: true }).gte('created_at', startOfThisMonth),
   ])
 
   // ── Log any query errors (non-blocking) ────────────────────────────────
@@ -141,6 +153,7 @@ export default defineEventHandler(async (event) => {
     downloadsThisMonthRes, downloadsLastMonthRes, downloadsThisYearRes,
     revenueThisMonthRes, revenueLastMonthRes, revenueThisYearRes,
     recentPurchasesRes, recentUsersRes, lessonsByGradeRes,
+    ratingsCountRes, commentsCountRes, allRatingsRes, ratingsThisMonthRes, commentsThisMonthRes,
   ]
   for (const r of allResults) {
     if (r.error) console.error('[admin/stats]', r.error.message)
@@ -237,6 +250,12 @@ export default defineEventHandler(async (event) => {
     )
   }
 
+  // ── Derive: average rating ───────────────────────────────────────────────
+  const ratingsData = (allRatingsRes.data ?? []) as { rating: number }[]
+  const averageRating = ratingsData.length > 0
+    ? Math.round((ratingsData.reduce((sum, r) => sum + r.rating, 0) / ratingsData.length) * 100) / 100
+    : 0
+
   // ── Response ─────────────────────────────────────────────────────────────
   return {
     // Existing fields
@@ -267,5 +286,12 @@ export default defineEventHandler(async (event) => {
     recentPurchases: recentPurchasesRes.data ?? [],
     recentUsers: recentUsersRes.data ?? [],
     lessonsByGrade,
+
+    // Rating & comment KPIs
+    totalRatings: ratingsCountRes.count ?? 0,
+    averageRating,
+    totalComments: commentsCountRes.count ?? 0,
+    ratingsThisMonth: ratingsThisMonthRes.count ?? 0,
+    commentsThisMonth: commentsThisMonthRes.count ?? 0,
   }
 })

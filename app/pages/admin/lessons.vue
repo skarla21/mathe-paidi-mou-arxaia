@@ -18,6 +18,7 @@ import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import AdminLessonModal from '~/components/admin/LessonModal.vue'
 import AdminSortModal from '~/components/admin/AdminSortModal.vue'
+import AdminLessonDetailModal from '~/components/admin/LessonDetailModal.vue'
 import type { Lesson } from '~/types/database'
 
 type Chapter = { id: string; title: string; grade_id: string; subject_id: string }
@@ -46,6 +47,8 @@ const editingLesson = ref<Lesson | null>(null)
 const deleteDialogOpen = ref(false)
 const deletingId = ref<string | null>(null)
 const deleteLoading = ref(false)
+const detailModalOpen = ref(false)
+const detailLessonId = ref<string | null>(null)
 
 const filteredSubjects = computed(() =>
   gradeId.value && gradeId.value !== '__all__' ? subjects.value.filter(s => s.grade_id === gradeId.value) : [],
@@ -120,6 +123,7 @@ onMounted(fetchAll)
 function openCreate() { editingLesson.value = null; modalOpen.value = true }
 function openEdit(l: Lesson) { editingLesson.value = l; modalOpen.value = true }
 function openDelete(id: string) { deletingId.value = id; deleteDialogOpen.value = true }
+function openDetail(id: string) { detailLessonId.value = id; detailModalOpen.value = true }
 
 async function confirmDelete() {
   if (!deletingId.value) return
@@ -239,9 +243,14 @@ function placementSummary(lesson: Lesson): string {
                 <span class="text-xs text-muted-foreground">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</span>
                 <span v-if="l.content_url" class="text-xs text-muted-foreground">| {{ t('admin.field.file') }}</span>
                 <span v-if="placementSummary(l)" class="text-xs text-muted-foreground">| {{ placementSummary(l) }}</span>
+                <span v-if="l.ratingCount" class="text-xs text-muted-foreground flex items-center gap-0.5">| <VIcon name="bi-star-fill" class="size-3 text-yellow-400" /> {{ l.avgRating?.toFixed(1) }} ({{ l.ratingCount }})</span>
+                <span v-if="l.commentCount" class="text-xs text-muted-foreground flex items-center gap-0.5">| <VIcon name="bi-chat-text" class="size-3" /> {{ l.commentCount }}</span>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <UiButton size="sm" variant="outline" @click.stop="openDetail(l.id)">
+                <VIcon name="bi-eye" class="mr-1 size-3.5" />{{ t('admin.viewDetails') }}
+              </UiButton>
               <UiButton size="sm" variant="outline" @click.stop="openEdit(l)">{{ t('admin.modal.edit') }}</UiButton>
               <UiButton size="sm" variant="destructive" @click.stop="openDelete(l.id)">{{ t('admin.modal.delete') }}</UiButton>
             </div>
@@ -251,6 +260,7 @@ function placementSummary(lesson: Lesson): string {
     </template>
 
     <AdminLessonModal :open="modalOpen" :lesson="editingLesson" @close="modalOpen = false" @saved="fetchAll" />
+    <AdminLessonDetailModal :open="detailModalOpen" :lesson-id="detailLessonId" @close="detailModalOpen = false" />
 
     <AdminSortModal
       :open="sortModalOpen"

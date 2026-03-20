@@ -83,6 +83,15 @@ const kpiCards = computed(() => {
       sub1: `${formatRevenue(s.revenueThisMonth ?? 0)} ${t('admin.stats.thisMonth')}`,
       sub2: `${formatRevenue(s.revenueThisYear ?? 0)} ${t('admin.stats.thisYear')}`,
     },
+    {
+      iconLabel: t('admin.stats.cardRatings'),
+      icon: 'bi-star-fill',
+      total: s.totalRatings ?? 0,
+      monthlyDelta: s.ratingsThisMonth ?? 0,
+      monthlyAsCurrency: false,
+      sub1: `${t('admin.stats.avgRating')}: ${s.averageRating?.toFixed(1) ?? '0'}`,
+      sub2: `${s.totalComments ?? 0} ${t('admin.stats.cardComments').toLowerCase()}`,
+    },
   ]
 })
 
@@ -157,8 +166,8 @@ onBeforeUnmount(() => {
     <template v-if="loading">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
         <div class="min-w-0 flex-1">
-          <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <UiCard v-for="i in 4" :key="i" class="shadow-md">
+          <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+            <UiCard v-for="i in 5" :key="i" class="shadow-md">
               <UiCardContent class="space-y-2 p-3">
                 <UiSkeleton class="h-3 w-16" />
                 <UiSkeleton class="h-7 w-12" />
@@ -190,7 +199,7 @@ onBeforeUnmount(() => {
       <!-- KPI Cards + Quick Actions — one row on large screens -->
       <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
         <div class="min-w-0 flex-1">
-          <div class="grid h-full grid-cols-2 gap-3 md:grid-cols-4 md:gap-3">
+          <div class="grid h-full grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 md:gap-3">
             <UiCard v-for="card in kpiCards" :key="card.iconLabel" class="shadow-md flex min-h-0 flex-col">
               <UiCardContent class="flex h-full min-h-0 flex-col p-3 sm:p-3.5">
                 <div class="mb-2 flex items-start gap-2">

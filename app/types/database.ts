@@ -59,6 +59,10 @@ export interface Lesson {
   created_at: string
   /** Many-to-many placements — present when fetched with joins */
   placements?: LessonPlacement[]
+  /** Aggregated rating/comment data — present on admin listing */
+  avgRating?: number
+  ratingCount?: number
+  commentCount?: number
 }
 
 export interface User {
@@ -73,6 +77,8 @@ export interface User {
   /** Aggregated counts — present on admin user listing */
   downloadCount?: number
   purchaseCount?: number
+  ratingCount?: number
+  commentCount?: number
 }
 
 export interface Purchase {
@@ -90,6 +96,32 @@ export interface Download {
   user_id: string
   lesson_id: string
   downloaded_at: string
+  /** Joined relation */
+  lessons?: { title: string } | null
+}
+
+export interface LessonRating {
+  id: string
+  user_id: string
+  lesson_id: string
+  rating: number
+  created_at: string
+  updated_at: string
+  /** Joined relation */
+  users?: { name: string | null; avatar_url: string | null; email?: string | null } | null
+  /** Joined relation */
+  lessons?: { title: string } | null
+}
+
+export interface LessonComment {
+  id: string
+  user_id: string
+  lesson_id: string
+  body: string
+  created_at: string
+  updated_at: string
+  /** Joined relation */
+  users?: { name: string | null; avatar_url: string | null; email?: string | null } | null
   /** Joined relation */
   lessons?: { title: string } | null
 }
@@ -163,4 +195,10 @@ export interface AdminStats {
     grade: string
     count: number
   }[]
+  /** Rating & comment KPIs */
+  totalRatings: number
+  averageRating: number
+  totalComments: number
+  ratingsThisMonth: number
+  commentsThisMonth: number
 }
