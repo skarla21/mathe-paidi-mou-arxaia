@@ -14,9 +14,9 @@ import { useDragReorderList } from '~/composables/useDragReorderList'
 
 export type AdminSortModalMode = 'subjects' | 'chapters' | 'lessons' | 'categories'
 
-type SortRow = { id: string; label: string; kind?: 'chapter' | 'lesson' }
+type SortRow = { id: string; label: string }
 
-type LessonSortKind = 'category' | 'chapter' | 'subjectOutline' | null
+type LessonSortKind = 'category' | 'chapter' | null
 
 const props = defineProps<{ open: boolean; mode: AdminSortModalMode }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -36,7 +36,6 @@ const lessonKind = ref<LessonSortKind>(null)
 const grades = ref<{ id: string; name: string }[]>([])
 const subjects = ref<{ id: string; name: string; grade_id: string; order: number }[]>([])
 const chapters = ref<{ id: string; title: string; grade_id: string; subject_id: string; order: number }[]>([])
-const lessons = ref<{ id: string; title: string; chapter_id: string | null; subject_id: string | null; category_id: string | null; order: number }[]>([])
 const categories = ref<{ id: string; name: string; order: number }[]>([])
 
 const orderedRows = ref<SortRow[]>([])
@@ -77,17 +76,15 @@ watch(() => props.open, async (open) => {
   loading.value = true
   resetState()
   try {
-    const [gr, sub, ch, less, cat] = await Promise.all([
+    const [gr, sub, ch, cat] = await Promise.all([
       adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
       adminFetch<{ id: string; name: string; grade_id: string; order: number }[]>('/api/admin/subjects'),
       adminFetch<{ id: string; title: string; grade_id: string; subject_id: string; order: number }[]>('/api/admin/chapters'),
-      adminFetch<{ id: string; title: string; chapter_id: string | null; subject_id: string | null; category_id: string | null; order: number }[]>('/api/admin/lessons'),
       adminFetch<{ id: string; name: string; order: number }[]>('/api/admin/categories'),
     ])
     grades.value = gr
     subjects.value = sub
     chapters.value = ch
-    lessons.value = less
     categories.value = cat
 
     if (props.mode === 'categories') {
@@ -122,61 +119,29 @@ function goChaptersList() {
   step.value = 2
 }
 
-function buildOutlineFallbackRows(subjectId: string): SortRow[] {
-  const chs = chapters.value
-    .filter(c => c.subject_id === subjectId)
-    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-    .map(c => ({ id: c.id, label: c.title, kind: 'chapter' as const }))
-  const les = lessons.value
-    .filter(l => l.subject_id === subjectId && l.chapter_id == null)
-    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-    .map(l => ({ id: l.id, label: l.title, kind: 'lesson' as const }))
-  return [...chs, ...les]
-}
-
 async function goLessonsList() {
   if (lessonKind.value === 'category') {
     if (!selCategory.value) return
-    const list = lessons.value
-      .filter(l => l.category_id === selCategory.value)
+    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
+      '/api/lessons',
+      { query: { category_id: selCategory.value } },
+    )
+    orderedRows.value = [...list]
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-    orderedRows.value = list.map(l => ({ id: l.id, label: l.title }))
+      .map(l => ({ id: l.id, label: l.title }))
     step.value = 2
     return
   }
   if (lessonKind.value === 'chapter') {
     if (!selChapter.value) return
-    const list = lessons.value
-      .filter(l => l.chapter_id === selChapter.value)
+    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
+      '/api/lessons',
+      { query: { chapter_id: selChapter.value } },
+    )
+    orderedRows.value = [...list]
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-    orderedRows.value = list.map(l => ({ id: l.id, label: l.title }))
+      .map(l => ({ id: l.id, label: l.title }))
     step.value = 2
-    return
-  }
-  if (lessonKind.value === 'subjectOutline') {
-    if (!selSubject.value) return
-    try {
-      const outline = await $fetch<Array<{ kind: 'chapter' | 'lesson'; id: string; title: string }>>(
-        `/api/subjects/${selSubject.value}/outline`,
-      )
-      if (outline.length) {
-        orderedRows.value = outline.map(o => ({
-          id: o.id,
-          label: o.title,
-          kind: o.kind,
-        }))
-      } else {
-        const fb = buildOutlineFallbackRows(selSubject.value)
-        if (!fb.length) {
-          toast.error(t('admin.sortModal.outlineEmpty'))
-          return
-        }
-        orderedRows.value = fb
-      }
-      step.value = 2
-    } catch {
-      toast.error(t('admin.sortModal.outlineLoadError'))
-    }
   }
 }
 
@@ -260,15 +225,6 @@ async function saveOrder() {
           method: 'PATCH',
           body: { chapter_id: selChapter.value, ids },
         })
-      } else if (lessonKind.value === 'subjectOutline') {
-        const items = orderedRows.value.map(r => ({
-          kind: r.kind ?? 'lesson',
-          id: r.id,
-        }))
-        await adminFetch(`/api/admin/subjects/${selSubject.value}/outline-reorder`, {
-          method: 'PATCH',
-          body: { items },
-        })
       }
     }
     toast.success(t('admin.saveOrderSuccess'))
@@ -296,7 +252,6 @@ function canProceedChaptersStep1() {
 function canProceedLessonsStep1() {
   if (lessonKind.value === 'category') return !!selCategory.value
   if (lessonKind.value === 'chapter') return !!selGrade.value && !!selSubject.value && !!selChapter.value
-  if (lessonKind.value === 'subjectOutline') return !!selGrade.value && !!selSubject.value
   return false
 }
 
@@ -361,8 +316,6 @@ watch(selSubject, () => {
                   <VIcon name="bi-grip-vertical" class="size-5" />
                 </div>
                 <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
-                <span v-if="row.kind === 'chapter'" class="text-xs text-muted-foreground shrink-0">{{ t('admin.sortModal.badgeChapter') }}</span>
-                <span v-else-if="row.kind === 'lesson'" class="text-xs text-muted-foreground shrink-0">{{ t('admin.sortModal.badgeLesson') }}</span>
               </div>
             </div>
           </template>
@@ -458,9 +411,6 @@ watch(selSubject, () => {
                 <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('chapter')">
                   <span class="text-left">{{ t('admin.sortModal.scopeChapter') }}</span>
                 </UiButton>
-                <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('subjectOutline')">
-                  <span class="text-left">{{ t('admin.sortModal.scopeSubjectOutline') }}</span>
-                </UiButton>
               </div>
             </div>
 
@@ -507,27 +457,6 @@ watch(selSubject, () => {
                 </Select>
               </template>
 
-              <template v-else-if="lessonKind === 'subjectOutline'">
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
-                <Select v-model="selGrade">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectGrade')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickSubject') }}</p>
-                <Select v-model="selSubject">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectSubject')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </template>
-
               <UiButton :disabled="!canProceedLessonsStep1()" class="w-full" @click="goLessonsList">
                 {{ t('admin.sortModal.continue') }}
               </UiButton>
@@ -553,8 +482,6 @@ watch(selSubject, () => {
                   <VIcon name="bi-grip-vertical" class="size-5" />
                 </div>
                 <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
-                <span v-if="lessonKind === 'subjectOutline' && row.kind === 'chapter'" class="text-xs text-muted-foreground shrink-0">{{ t('admin.sortModal.badgeChapter') }}</span>
-                <span v-else-if="lessonKind === 'subjectOutline' && row.kind === 'lesson'" class="text-xs text-muted-foreground shrink-0">{{ t('admin.sortModal.badgeLesson') }}</span>
               </div>
             </div>
           </template>

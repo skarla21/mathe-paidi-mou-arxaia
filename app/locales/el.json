@@ -189,7 +189,7 @@
     "title": "Μάθημα",
     "free": "Δωρεάν",
     "noCoursesYet": "Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα.",
-    "outlineSection": "Κεφάλαια και υλικό"
+    "chaptersSection": "Κεφάλαια"
   },
   "admin": {
     "nav": "Διαχείριση",
@@ -281,7 +281,7 @@
       "imageUrl": "URL εικόνας",
       "content": "Περιεχόμενο",
       "pdfUrl": "URL PDF",
-      "assignedTo": "Ανήκει σε",
+      "placements": "Τοποθετήσεις",
       "chapter": "Κεφάλαιο",
       "lesson": "Υλικό",
       "category": "Κατηγορία",
@@ -306,9 +306,12 @@
       "url": "https://..."
     },
     "navAria": "Πλοήγηση διαχείρισης",
-    "assignChapter": "Μέρος κεφαλαίου",
-    "assignCategory": "Αυτόνομη κατηγορία",
-    "assignSubject": "Αυτόνομο υλικό μαθήματος",
+    "placementType": "Τύπος",
+    "placementChapter": "Κεφάλαιο",
+    "placementCategory": "Κατηγορία",
+    "addPlacement": "Προσθήκη τοποθέτησης",
+    "removePlacement": "Αφαίρεση τοποθέτησης",
+    "placementRequired": "Απαιτείται τουλάχιστον μία έγκυρη τοποθέτηση",
     "grantAccess": "Χορήγηση πρόσβασης",
     "grantSuccess": "Η πρόσβαση χορηγήθηκε",
     "grantError": "Αποτυχία χορήγησης",
@@ -375,11 +378,6 @@
       "lessonsPickScope": "Τι θέλεις να ταξινομήσεις;",
       "scopeCategory": "Υλικό σε κατηγορία",
       "scopeChapter": "Υλικό σε κεφάλαιο",
-      "scopeSubjectOutline": "Κεφάλαια και υλικό απευθείας κάτω από το μάθημα",
-      "badgeChapter": "Κεφάλαιο",
-      "badgeLesson": "Υλικό",
-      "outlineEmpty": "Δεν υπάρχουν κεφάλαια ή υλικό για ταξινόμηση σε αυτό το μάθημα.",
-      "outlineLoadError": "Αδυναμία φόρτωσης της δομής."
     },
     "lessonModal": {
       "noFile": "Δεν έχει επιλεγεί αρχείο",

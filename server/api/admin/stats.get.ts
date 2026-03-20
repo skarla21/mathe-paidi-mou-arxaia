@@ -126,10 +126,10 @@ export default defineEventHandler(async (event) => {
       .order('created_at', { ascending: false })
       .limit(2),
 
-    // Lessons by grade via chapters relation
+    // Lessons by grade via lesson_placements → chapters
     supabase
-      .from('lessons')
-      .select('chapters(grade_id, grades(name))')
+      .from('lesson_placements')
+      .select('lesson_id, chapters(grade_id, grades(name))')
       .not('chapter_id', 'is', null),
   ])
 
@@ -187,24 +187,25 @@ export default defineEventHandler(async (event) => {
 
   // ── Derive: lessons by grade ─────────────────────────────────────────────
   type LessonByGradeRow = {
+    lesson_id?: string
     chapters?: {
       grade_id?: string | null
       grades?: { name?: string | null } | null
     } | null
   }
-  const gradeCountMap: Record<string, { name: string; count: number }> = {}
+  const gradeCountMap: Record<string, { name: string; lessonIds: Set<string> }> = {}
   for (const row of (lessonsByGradeRes.data ?? []) as LessonByGradeRow[]) {
     const chapter = row.chapters
-    if (!chapter?.grade_id) continue
+    if (!chapter?.grade_id || !row.lesson_id) continue
     const gradeName = chapter.grades?.name ?? chapter.grade_id
     const gid = chapter.grade_id
     if (!gradeCountMap[gid]) {
-      gradeCountMap[gid] = { name: gradeName, count: 0 }
+      gradeCountMap[gid] = { name: gradeName, lessonIds: new Set() }
     }
-    gradeCountMap[gid]!.count++
+    gradeCountMap[gid]!.lessonIds.add(row.lesson_id)
   }
   const lessonsByGrade = Object.values(gradeCountMap)
-    .map(({ name, count }) => ({ grade: name, count }))
+    .map(({ name, lessonIds }) => ({ grade: name, count: lessonIds.size }))
     .sort((a, b) => b.count - a.count)
 
   // ── Derive: topLessons (keep existing fallback logic) ────────────────────

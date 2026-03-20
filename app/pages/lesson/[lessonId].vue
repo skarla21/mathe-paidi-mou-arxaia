@@ -9,9 +9,6 @@ interface Lesson {
   title: string
   content?: string | null
   is_free: boolean
-  chapter_id: string | null
-  subject_id: string | null
-  category_id: string | null
   price: number
   content_url?: string | null
 }

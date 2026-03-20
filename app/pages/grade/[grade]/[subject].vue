@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import UiCard from '~/components/ui/Card.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
-import type { Grade, Subject, SubjectOutlineRow } from '~/types/database'
+import type { Grade, Subject, Chapter } from '~/types/database'
 
 const route = useRoute()
 const gradeId = route.params.grade as string
@@ -15,14 +15,18 @@ const { data: gradesData } = await useFetch('/api/grades')
 const { data: subjectsData } = await useFetch('/api/subjects', {
   query: { grade_id: gradeId },
 })
-const { data: outlineData } = await useFetch<SubjectOutlineRow[]>(`/api/subjects/${subjectId}/outline`)
+const { data: chaptersData } = await useFetch<Chapter[]>('/api/chapters', {
+  query: { subject_id: subjectId },
+})
 
 grade.value =
   (gradesData.value as Grade[] | null)?.find((g) => g.id === gradeId) ?? null
 subject.value =
   (subjectsData.value as Subject[] | null)?.find((s) => s.id === subjectId) ?? null
 
-const outline = computed(() => outlineData.value ?? [])
+const chapters = computed(() =>
+  (chaptersData.value ?? []).slice().sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)),
+)
 
 useHead(() => ({
   title: subject.value
@@ -44,15 +48,15 @@ useHead(() => ({
       {{ subject?.name ?? t('subject.title') }}
     </h1>
 
-    <div v-if="outline.length > 0" class="mt-8">
+    <div v-if="chapters.length > 0" class="mt-8">
       <h2 class="font-heading text-xl font-semibold mb-4">
-        {{ t('subject.outlineSection') }}
+        {{ t('subject.chaptersSection') }}
       </h2>
       <div class="grid gap-4 sm:grid-cols-2">
         <NuxtLink
-          v-for="item in outline"
-          :key="`${item.kind}-${item.id}`"
-          :to="item.kind === 'chapter' ? `/chapter/${item.id}` : `/lesson/${item.id}`"
+          v-for="chapter in chapters"
+          :key="chapter.id"
+          :to="`/chapter/${chapter.id}`"
           class="block"
         >
           <UiCard
@@ -61,15 +65,14 @@ useHead(() => ({
             <UiCardContent class="p-0 flex items-center justify-between w-full gap-2">
               <span class="flex items-center gap-2 min-w-0">
                 <VIcon
-                  :name="item.kind === 'chapter' ? 'bi-journal-bookmark' : 'bi-journal-text'"
+                  name="bi-journal-bookmark"
                   class="size-4 text-primary shrink-0"
                   aria-hidden="true"
                 />
-                <span class="font-medium truncate">{{ item.title }}</span>
+                <span class="font-medium truncate">{{ chapter.title }}</span>
               </span>
               <VIcon
-                v-if="item.kind === 'lesson' && !item.is_free"
-                name="bi-gem"
+                name="bi-arrow-right"
                 class="size-4 text-muted-foreground shrink-0"
                 aria-hidden="true"
               />
@@ -83,7 +86,7 @@ useHead(() => ({
       v-else
       class="text-muted-foreground mt-8"
     >
-      {{ t('chapter.noLessonsYet') }}
+      {{ t('subject.noCoursesYet') }}
     </p>
   </div>
 </template>

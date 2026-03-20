@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const pattern = `%${q}%`
   const [chaptersRes, lessonsRes] = await Promise.all([
     supabase.from('chapters').select('id, title').ilike('title', pattern).limit(10),
-    supabase.from('lessons').select('id, title, chapter_id').ilike('title', pattern).limit(10),
+    supabase.from('lessons').select('id, title').ilike('title', pattern).limit(10),
   ])
   const results: { type: 'chapter' | 'lesson'; id: string; title: string; url: string }[] = []
   for (const row of chaptersRes.data ?? []) {

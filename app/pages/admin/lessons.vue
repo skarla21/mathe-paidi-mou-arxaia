@@ -61,17 +61,13 @@ const filteredLessons = computed(() => {
     list = list.filter(l => l.title.toLowerCase().includes(q))
   }
   if (chapterId.value && chapterId.value !== '__all__') {
-    list = list.filter(l => l.chapter_id === chapterId.value)
+    list = list.filter(l => l.placements?.some(p => p.chapter_id === chapterId.value))
   } else if (subjectId.value && subjectId.value !== '__all__') {
-    list = list.filter(l => l.subject_id === subjectId.value)
+    list = list.filter(l => l.placements?.some(p => p.chapters?.subject_id === subjectId.value))
   } else if (categoryId.value && categoryId.value !== '__all__') {
-    list = list.filter(l => l.category_id === categoryId.value)
+    list = list.filter(l => l.placements?.some(p => p.category_id === categoryId.value))
   } else if (gradeId.value && gradeId.value !== '__all__') {
-    list = list.filter(l => {
-      if (l.chapters?.grade_id) return l.chapters.grade_id === gradeId.value
-      if (l.subjects?.grade_id) return l.subjects.grade_id === gradeId.value
-      return false
-    })
+    list = list.filter(l => l.placements?.some(p => p.chapters?.grade_id === gradeId.value))
   }
   return list
 })
@@ -138,6 +134,18 @@ async function confirmDelete() {
   } finally {
     deleteLoading.value = false
   }
+}
+
+function placementSummary(lesson: Lesson): string {
+  if (!lesson.placements?.length) return ''
+  return lesson.placements
+    .map(p => {
+      if (p.chapters) return p.chapters.title
+      if (p.categories) return p.categories.name
+      return null
+    })
+    .filter(Boolean)
+    .join(', ')
 }
 </script>
 
@@ -227,9 +235,10 @@ async function confirmDelete() {
             </div>
             <div class="min-w-0 flex-1">
               <p class="font-medium">{{ l.title }}</p>
-              <div class="flex items-center gap-2 mt-1">
+              <div class="flex items-center gap-2 mt-1 flex-wrap">
                 <span class="text-xs text-muted-foreground">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</span>
                 <span v-if="l.content_url" class="text-xs text-muted-foreground">| {{ t('admin.field.file') }}</span>
+                <span v-if="placementSummary(l)" class="text-xs text-muted-foreground">| {{ placementSummary(l) }}</span>
               </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">

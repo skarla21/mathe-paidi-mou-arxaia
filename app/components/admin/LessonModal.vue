@@ -14,15 +14,33 @@ import UiLabel from '~/components/ui/Label.vue'
 import UiTextarea from '~/components/ui/Textarea.vue'
 import UiProgress from '~/components/ui/Progress.vue'
 import { Checkbox } from '~/components/ui/checkbox'
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+
+interface PlacementRow {
+  key: number
+  type: 'chapter' | 'category'
+  gradeId: string
+  subjectId: string
+  chapterId: string
+  categoryId: string
+}
 
 const props = defineProps<{
   open: boolean
   lesson: {
-    id: string; title: string; content: string | null; is_free: boolean
-    content_url: string | null; order: number; price: number
-    chapter_id: string | null; subject_id: string | null; category_id: string | null
+    id: string
+    title: string
+    content: string | null
+    is_free: boolean
+    content_url: string | null
+    price: number
+    placements?: Array<{
+      id: string
+      chapter_id: string | null
+      category_id: string | null
+      chapters?: { title: string; grade_id?: string; subject_id?: string } | null
+      categories?: { name: string } | null
+    }>
   } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -34,14 +52,13 @@ const content = ref('')
 const isFree = ref(true)
 const price = ref(0)
 const contentUrl = ref('')
-const assignment = ref<'chapter' | 'subject' | 'category'>('chapter')
-const gradeId = ref('')
-const chapterId = ref('')
-const subjectId = ref('')
-const categoryId = ref('')
+
+let placementKey = 0
+const placements = ref<PlacementRow[]>([])
+
 const grades = ref<{ id: string; name: string }[]>([])
-const chapters = ref<{ id: string; title: string; subject_id: string; grade_id: string; subjects?: { name: string; grades?: { name: string } } }[]>([])
-const subjects = ref<{ id: string; name: string; grade_id: string; grades?: { name: string } }[]>([])
+const chapters = ref<{ id: string; title: string; subject_id: string; grade_id: string }[]>([])
+const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const categories = ref<{ id: string; name: string }[]>([])
 const loading = ref(false)
 const uploading = ref(false)
@@ -49,38 +66,64 @@ const uploadProgress = ref(0)
 const dragActive = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const filteredSubjects = computed(() =>
-  gradeId.value ? subjects.value.filter(s => s.grade_id === gradeId.value) : []
-)
-const filteredChapters = computed(() =>
-  subjectId.value ? chapters.value.filter(c => c.subject_id === subjectId.value) : []
-)
+function subjectsForGrade(gradeId: string) {
+  return subjects.value.filter(s => s.grade_id === gradeId)
+}
 
-const initializing = ref(false)
+function chaptersForSubject(subjectId: string) {
+  return chapters.value.filter(c => c.subject_id === subjectId)
+}
+
+function addPlacement() {
+  placements.value.push({
+    key: placementKey++,
+    type: 'chapter',
+    gradeId: '',
+    subjectId: '',
+    chapterId: '',
+    categoryId: '',
+  })
+}
+
+function removePlacement(key: number) {
+  if (placements.value.length <= 1) return
+  placements.value = placements.value.filter(p => p.key !== key)
+}
+
+function onPlacementTypeChange(row: PlacementRow, newType: 'chapter' | 'category') {
+  row.type = newType
+  row.gradeId = ''
+  row.subjectId = ''
+  row.chapterId = ''
+  row.categoryId = ''
+}
+
+function onPlacementGradeChange(row: PlacementRow, newGradeId: string) {
+  row.gradeId = newGradeId
+  row.subjectId = ''
+  row.chapterId = ''
+}
+
+function onPlacementSubjectChange(row: PlacementRow, newSubjectId: string) {
+  row.subjectId = newSubjectId
+  row.chapterId = ''
+}
 
 watch(() => props.open, async (val) => {
   if (!val) return
-  initializing.value = true
+
   title.value = props.lesson?.title ?? ''
   content.value = props.lesson?.content ?? ''
   isFree.value = props.lesson?.is_free ?? true
   price.value = props.lesson?.price ?? 0
   contentUrl.value = props.lesson?.content_url ?? ''
-  assignment.value = props.lesson?.chapter_id
-    ? 'chapter'
-    : props.lesson?.subject_id
-      ? 'subject'
-      : 'category'
-  gradeId.value = ''
-  subjectId.value = ''
-  chapterId.value = ''
-  categoryId.value = ''
+  placements.value = []
 
   try {
     const [gr, ch, sub, cat] = await Promise.all([
       adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
-      adminFetch<{ id: string; title: string; subject_id: string; grade_id: string; subjects?: { name: string; grades?: { name: string } } }[]>('/api/admin/chapters'),
-      adminFetch<{ id: string; name: string; grade_id: string; grades?: { name: string } }[]>('/api/admin/subjects'),
+      adminFetch<{ id: string; title: string; subject_id: string; grade_id: string }[]>('/api/admin/chapters'),
+      adminFetch<{ id: string; name: string; grade_id: string }[]>('/api/admin/subjects'),
       adminFetch<{ id: string; name: string }[]>('/api/admin/categories'),
     ])
     grades.value = gr
@@ -88,36 +131,41 @@ watch(() => props.open, async (val) => {
     subjects.value = sub
     categories.value = cat
 
-    if (props.lesson?.chapter_id) {
-      const chFound = chapters.value.find(c => c.id === props.lesson!.chapter_id)
-      if (chFound) {
-        gradeId.value = chFound.grade_id
-        subjectId.value = chFound.subject_id
-        chapterId.value = chFound.id
-      }
-    } else if (props.lesson?.subject_id) {
-      const s = subjects.value.find(s => s.id === props.lesson!.subject_id)
-      if (s) {
-        gradeId.value = s.grade_id
-        subjectId.value = s.id
-      }
+    if (props.lesson?.placements && props.lesson.placements.length > 0) {
+      placements.value = props.lesson.placements.map(p => {
+        const row: PlacementRow = {
+          key: placementKey++,
+          type: p.chapter_id ? 'chapter' : 'category',
+          gradeId: '',
+          subjectId: '',
+          chapterId: '',
+          categoryId: '',
+        }
+        if (p.chapter_id) {
+          const chFound = chapters.value.find(c => c.id === p.chapter_id)
+          if (chFound) {
+            row.gradeId = chFound.grade_id
+            row.subjectId = chFound.subject_id
+            row.chapterId = chFound.id
+          }
+        } else if (p.category_id) {
+          row.categoryId = p.category_id
+        }
+        return row
+      })
+    } else {
+      placements.value = [{
+        key: placementKey++,
+        type: 'chapter',
+        gradeId: '',
+        subjectId: '',
+        chapterId: '',
+        categoryId: '',
+      }]
     }
-    categoryId.value = props.lesson?.category_id ?? ''
   } catch {
     toast.error(t('common.error'))
-  } finally {
-    nextTick(() => { initializing.value = false })
   }
-})
-
-watch(gradeId, () => {
-  if (initializing.value) return
-  subjectId.value = ''
-  chapterId.value = ''
-})
-watch(subjectId, () => {
-  if (initializing.value) return
-  chapterId.value = ''
 })
 
 const ALLOWED_MIMES = ['application/pdf', 'image/jpeg', 'image/png'] as const
@@ -182,6 +230,18 @@ function clearContent() {
 }
 
 async function onSubmit() {
+  const placementPayload = placements.value
+    .map(p => ({
+      chapter_id: p.type === 'chapter' ? p.chapterId || null : null,
+      category_id: p.type === 'category' ? p.categoryId || null : null,
+    }))
+    .filter(p => p.chapter_id || p.category_id)
+
+  if (placementPayload.length === 0) {
+    toast.error(t('admin.placementRequired'))
+    return
+  }
+
   loading.value = true
   try {
     const body = {
@@ -190,10 +250,7 @@ async function onSubmit() {
       is_free: isFree.value,
       price: isFree.value ? 0 : price.value,
       content_url: contentUrl.value || null,
-      order: 0,
-      chapter_id: assignment.value === 'chapter' ? chapterId.value || null : null,
-      subject_id: assignment.value === 'subject' ? subjectId.value || null : null,
-      category_id: assignment.value === 'category' ? categoryId.value || null : null,
+      placements: placementPayload,
     }
     if (props.lesson) {
       await adminFetch(`/api/admin/lessons/${props.lesson.id}`, { method: 'PATCH', body })
@@ -302,93 +359,106 @@ async function onSubmit() {
             </div>
           </fieldset>
 
-          <!-- Assignment -->
+          <!-- Placements -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.assignedTo') }}</p>
-            <RadioGroup v-model="assignment" class="flex flex-col gap-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.placements') }}</p>
+
+            <div
+              v-for="row in placements"
+              :key="row.key"
+              class="rounded-lg border border-border p-3 space-y-3"
+            >
+              <!-- Row header: type selector + remove button -->
               <div class="flex items-center gap-2">
-                <RadioGroupItem id="assign-chapter" value="chapter" />
-                <UiLabel for="assign-chapter">{{ t('admin.assignChapter') }}</UiLabel>
+                <div class="flex-1 space-y-1">
+                  <UiLabel>{{ t('admin.placementType') }}</UiLabel>
+                  <Select
+                    :model-value="row.type"
+                    @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'chapter' | 'category')"
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
+                      <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <UiButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="mt-5 shrink-0 text-muted-foreground hover:text-destructive"
+                  :disabled="placements.length <= 1"
+                  :aria-label="t('admin.removePlacement')"
+                  @click="removePlacement(row.key)"
+                >
+                  <VIcon name="bi-x-circle" class="size-4" />
+                </UiButton>
               </div>
-              <div class="flex items-center gap-2">
-                <RadioGroupItem id="assign-subject" value="subject" />
-                <UiLabel for="assign-subject">{{ t('admin.assignSubject') }}</UiLabel>
-              </div>
-              <div class="flex items-center gap-2">
-                <RadioGroupItem id="assign-category" value="category" />
-                <UiLabel for="assign-category">{{ t('admin.assignCategory') }}</UiLabel>
-              </div>
-            </RadioGroup>
-            <template v-if="assignment === 'chapter'">
-              <div class="space-y-1.5">
-                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
-                <Select v-model="gradeId">
+
+              <!-- Chapter cascade -->
+              <template v-if="row.type === 'chapter'">
+                <div class="space-y-1.5">
+                  <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                  <Select
+                    :model-value="row.gradeId"
+                    @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
+                  >
+                    <SelectTrigger>
+                      <SelectValue :placeholder="t('admin.selectGrade')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div v-if="row.gradeId" class="space-y-1.5">
+                  <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                  <Select
+                    :model-value="row.subjectId"
+                    @update:model-value="(v) => onPlacementSubjectChange(row, String(v))"
+                  >
+                    <SelectTrigger>
+                      <SelectValue :placeholder="t('admin.selectSubject')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div v-if="row.subjectId" class="space-y-1.5">
+                  <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
+                  <Select v-model="row.chapterId">
+                    <SelectTrigger>
+                      <SelectValue :placeholder="t('admin.selectChapter')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="c in chaptersForSubject(row.subjectId)" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </template>
+
+              <!-- Category -->
+              <div v-else class="space-y-1.5">
+                <UiLabel>{{ t('admin.field.category') }}</UiLabel>
+                <Select v-model="row.categoryId">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectGrade')" />
+                    <SelectValue :placeholder="t('admin.selectCategory')" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+                    <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div v-if="gradeId" class="space-y-1.5">
-                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
-                <Select v-model="subjectId">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectSubject')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div v-if="subjectId" class="space-y-1.5">
-                <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
-                <Select v-model="chapterId">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectChapter')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="c in filteredChapters" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </template>
-            <template v-else-if="assignment === 'subject'">
-              <div class="space-y-1.5">
-                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
-                <Select v-model="gradeId">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectGrade')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div v-if="gradeId" class="space-y-1.5">
-                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
-                <Select v-model="subjectId">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectSubject')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </template>
-            <div v-if="assignment === 'category'" class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.category') }}</UiLabel>
-              <Select v-model="categoryId">
-                <SelectTrigger>
-                  <SelectValue :placeholder="t('admin.selectCategory')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
+
+            <UiButton type="button" variant="outline" size="sm" class="gap-1.5" @click="addPlacement">
+              <VIcon name="bi-plus-circle" class="size-4" />
+              {{ t('admin.addPlacement') }}
+            </UiButton>
           </fieldset>
 
           <UiDialogFooter>

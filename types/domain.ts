@@ -35,18 +35,25 @@ export interface Chapter {
   created_at: string
 }
 
+export interface LessonPlacement {
+  id: string
+  lesson_id: string
+  chapter_id: string | null
+  category_id: string | null
+  order: number
+  chapters?: { title: string; grade_id?: string; subject_id?: string } | null
+  categories?: { name: string } | null
+}
+
 export interface Lesson {
   id: string
-  chapter_id: string | null
-  subject_id: string | null
-  category_id: string | null
   title: string
   content: string | null
   is_free: boolean
   price: number
   content_url: string | null
-  order: number
   created_at: string
+  placements?: LessonPlacement[]
 }
 
 /**

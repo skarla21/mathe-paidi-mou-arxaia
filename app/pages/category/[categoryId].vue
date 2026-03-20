@@ -12,7 +12,6 @@ interface Lesson {
   id: string
   title: string
   is_free: boolean
-  category_id: string
 }
 
 const route = useRoute()
@@ -26,7 +25,7 @@ const { data: categoryData } = await useFetch(`/api/categories/${categoryId}`)
 const { data: lessonsData } = await useFetch('/api/lessons', { query: { category_id: categoryId } })
 
 category.value = categoryData.value as Category | null
-lessons.value = (lessonsData.value as Lesson[]) ?? []
+lessons.value = (lessonsData.value as unknown as Lesson[]) ?? []
 
 useHead(() => ({ title: category.value ? category.value.name : t('category.title') }))
 

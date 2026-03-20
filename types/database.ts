@@ -15,11 +15,6 @@ export interface Subject {
   grades?: { name: string } | null
 }
 
-/** Resolved subject page outline (`/api/subjects/:id/outline`). */
-export type SubjectOutlineRow =
-  | { kind: 'chapter'; id: string; title: string }
-  | { kind: 'lesson'; id: string; title: string; is_free: boolean }
-
 export interface Category {
   id: string
   name: string
@@ -42,22 +37,27 @@ export interface Chapter {
   subjects?: { name: string } | null
 }
 
+export interface LessonPlacement {
+  id: string
+  lesson_id: string
+  chapter_id: string | null
+  category_id: string | null
+  order: number
+  /** Joined relations — present when select includes these */
+  chapters?: { title: string; grade_id?: string; subject_id?: string; subjects?: { name: string; grades?: { name: string } } } | null
+  categories?: { name: string } | null
+}
+
 export interface Lesson {
   id: string
-  chapter_id: string | null
-  subject_id: string | null
-  category_id: string | null
   title: string
   content: string | null
   is_free: boolean
   price: number
   content_url: string | null
-  order: number
   created_at: string
-  /** Joined relations — present when select includes these */
-  chapters?: { title: string } | null
-  subjects?: { name: string } | null
-  categories?: { name: string } | null
+  /** Many-to-many placements — present when fetched with joins */
+  placements?: LessonPlacement[]
 }
 
 export interface User {

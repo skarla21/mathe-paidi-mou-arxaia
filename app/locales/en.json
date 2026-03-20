@@ -189,7 +189,7 @@
     "title": "Subject",
     "free": "Free",
     "noCoursesYet": "No chapters in this subject yet.",
-    "outlineSection": "Chapters and lessons"
+    "chaptersSection": "Chapters"
   },
   "admin": {
     "nav": "Admin",
@@ -281,7 +281,7 @@
       "imageUrl": "Image URL",
       "content": "Content",
       "pdfUrl": "PDF URL",
-      "assignedTo": "Assigned to",
+      "placements": "Placements",
       "chapter": "Chapter",
       "lesson": "Content",
       "category": "Category",
@@ -306,9 +306,12 @@
       "url": "https://..."
     },
     "navAria": "Admin navigation",
-    "assignChapter": "Part of a chapter",
-    "assignCategory": "Standalone category",
-    "assignSubject": "Standalone subject lesson",
+    "placementType": "Type",
+    "placementChapter": "Chapter",
+    "placementCategory": "Category",
+    "addPlacement": "Add placement",
+    "removePlacement": "Remove placement",
+    "placementRequired": "At least one valid placement is required",
     "grantAccess": "Grant Access",
     "grantSuccess": "Access granted",
     "grantError": "Failed to grant access",
@@ -375,11 +378,6 @@
       "lessonsPickScope": "What do you want to sort?",
       "scopeCategory": "Lessons in a category",
       "scopeChapter": "Lessons in a chapter",
-      "scopeSubjectOutline": "Chapters and subject-level lessons together",
-      "badgeChapter": "Chapter",
-      "badgeLesson": "Lesson",
-      "outlineEmpty": "No chapters or lessons to order for this subject.",
-      "outlineLoadError": "Could not load outline."
     },
     "lessonModal": {
       "noFile": "No file selected",

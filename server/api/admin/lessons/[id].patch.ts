@@ -1,6 +1,5 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
-import { syncLessonOutline } from '../../../utils/subjectOutline'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -9,45 +8,65 @@ export default defineEventHandler(async (event) => {
   const supabase = serverSupabaseService()
   const body = await readBody<{
     title?: string; content?: string; is_free?: boolean; price?: number
-    content_url?: string; order?: number
-    chapter_id?: string | null; subject_id?: string | null; category_id?: string | null
+    content_url?: string
+    placements?: Array<{ chapter_id?: string | null; category_id?: string | null }>
   }>(event)
-  const hasParentChange = body.chapter_id !== undefined || body.subject_id !== undefined || body.category_id !== undefined
-  if (hasParentChange) {
-    const parentCount = [
-      body.chapter_id !== undefined ? body.chapter_id : undefined,
-      body.subject_id !== undefined ? body.subject_id : undefined,
-      body.category_id !== undefined ? body.category_id : undefined,
-    ].filter((v) => v !== undefined && v !== null).length
-    if (parentCount !== 1) {
-      throw createError({ statusCode: 400, message: 'Exactly one of chapter_id, subject_id, or category_id must be set' })
-    }
-  }
+
+  // Build lesson field updates
   const updates: Record<string, unknown> = {}
   if (body.title !== undefined) updates.title = body.title.trim()
   if (body.content !== undefined) updates.content = body.content || null
   if (body.is_free !== undefined) updates.is_free = body.is_free
   if (body.price !== undefined) updates.price = body.is_free ? 0 : body.price
   if (body.content_url !== undefined) updates.content_url = body.content_url || null
-  if (body.order !== undefined) updates.order = body.order
-  if (body.chapter_id !== undefined) updates.chapter_id = body.chapter_id
-  if (body.subject_id !== undefined) updates.subject_id = body.subject_id
-  if (body.category_id !== undefined) updates.category_id = body.category_id
-  if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Nothing to update' })
-  const { data, error } = await supabase.from('lessons').update(updates).eq('id', id).select().single()
-  if (error) {
-    console.error('[admin/lessons/[id].patch]', error.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' })
+
+  // Update lesson fields if any
+  let data
+  if (Object.keys(updates).length) {
+    const result = await supabase.from('lessons').update(updates).eq('id', id).select().single()
+    if (result.error) {
+      console.error('[admin/lessons/[id].patch]', result.error.message)
+      throw createError({ statusCode: 500, message: 'Database operation failed' })
+    }
+    data = result.data
   }
-  try {
-    await syncLessonOutline(supabase, id, {
-      chapter_id: data.chapter_id,
-      subject_id: data.subject_id,
-      category_id: data.category_id,
-    })
-  } catch (e) {
-    console.error('[admin/lessons/[id].patch] outline', e)
-    throw createError({ statusCode: 500, message: 'Failed to sync subject outline' })
+
+  // Update placements if provided
+  if (body.placements !== undefined) {
+    if (!body.placements?.length) {
+      throw createError({ statusCode: 400, message: 'At least one placement is required' })
+    }
+    for (const p of body.placements) {
+      const count = [p.chapter_id, p.category_id].filter(Boolean).length
+      if (count !== 1) {
+        throw createError({ statusCode: 400, message: 'Each placement must have exactly one of chapter_id or category_id' })
+      }
+    }
+    // Delete existing placements and insert new ones
+    const { error: delErr } = await supabase.from('lesson_placements').delete().eq('lesson_id', id)
+    if (delErr) {
+      console.error('[admin/lessons/[id].patch] delete placements', delErr.message)
+      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+    }
+    const placementRows = body.placements.map((p, i) => ({
+      lesson_id: id,
+      chapter_id: p.chapter_id ?? null,
+      category_id: p.category_id ?? null,
+      order: i,
+    }))
+    const { error: insErr } = await supabase.from('lesson_placements').insert(placementRows)
+    if (insErr) {
+      console.error('[admin/lessons/[id].patch] insert placements', insErr.message)
+      if (insErr.code === '23505') {
+        throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that chapter or category' })
+      }
+      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+    }
   }
-  return data
+
+  if (!data && !body.placements) {
+    throw createError({ statusCode: 400, message: 'Nothing to update' })
+  }
+
+  return data ?? { ok: true }
 })

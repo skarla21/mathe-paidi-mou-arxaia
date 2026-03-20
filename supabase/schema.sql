@@ -87,46 +87,38 @@ create index if not exists chapters_subject_id_idx on public.chapters(subject_id
 create index if not exists chapters_title_idx on public.chapters(title);
 
 -- Lessons (universal content atom)
--- Each lesson belongs to exactly one parent: chapter, subject, or category.
+-- Lessons are placed into chapters and/or categories via lesson_placements (many-to-many).
 create table if not exists public.lessons (
   id uuid primary key default gen_random_uuid(),
-  chapter_id uuid references public.chapters(id) on delete cascade,
-  subject_id uuid references public.subjects(id) on delete cascade,
-  category_id uuid references public.categories(id) on delete cascade,
   title text not null,
   content text,
   is_free boolean not null default true,
   price int not null default 0,
   content_url text,
+  created_at timestamptz not null default now()
+);
+create index if not exists lessons_title_idx on public.lessons(title);
+
+-- Lesson placements (many-to-many: a lesson can appear in multiple chapters and/or categories)
+create table if not exists public.lesson_placements (
+  id uuid primary key default gen_random_uuid(),
+  lesson_id uuid not null references public.lessons(id) on delete cascade,
+  chapter_id uuid references public.chapters(id) on delete cascade,
+  category_id uuid references public.categories(id) on delete cascade,
   "order" int not null default 0,
   created_at timestamptz not null default now(),
-  constraint lessons_parent_check check (
-    (chapter_id  is not null)::int +
-    (subject_id  is not null)::int +
-    (category_id is not null)::int = 1
+  constraint lesson_placements_parent_check check (
+    (chapter_id is not null)::int + (category_id is not null)::int = 1
   )
 );
-create index if not exists lessons_chapter_id_idx on public.lessons(chapter_id);
-create index if not exists lessons_subject_id_idx on public.lessons(subject_id);
-create index if not exists lessons_category_id_idx on public.lessons(category_id);
-create index if not exists lessons_title_idx on public.lessons(title);
-create index if not exists lessons_order_idx on public.lessons("order");
-
--- Subject outline: interleaved order of chapters and subject-level lessons under one subject
-create table if not exists public.subject_outline_items (
-  id uuid primary key default gen_random_uuid(),
-  subject_id uuid not null references public.subjects(id) on delete cascade,
-  position int not null,
-  chapter_id uuid references public.chapters(id) on delete cascade,
-  lesson_id uuid references public.lessons(id) on delete cascade,
-  constraint subject_outline_items_one_child check (
-    (chapter_id is not null)::int + (lesson_id is not null)::int = 1
-  ),
-  constraint subject_outline_items_chapter_unique unique (chapter_id),
-  constraint subject_outline_items_lesson_unique unique (lesson_id),
-  constraint subject_outline_items_subject_position unique (subject_id, position)
-);
-create index if not exists subject_outline_items_subject_id_idx on public.subject_outline_items(subject_id);
+create index if not exists lesson_placements_lesson_id_idx on public.lesson_placements(lesson_id);
+create index if not exists lesson_placements_chapter_id_idx on public.lesson_placements(chapter_id);
+create index if not exists lesson_placements_category_id_idx on public.lesson_placements(category_id);
+create index if not exists lesson_placements_order_idx on public.lesson_placements("order");
+create unique index if not exists lesson_placements_chapter_unique
+  on public.lesson_placements(lesson_id, chapter_id) where chapter_id is not null;
+create unique index if not exists lesson_placements_category_unique
+  on public.lesson_placements(lesson_id, category_id) where category_id is not null;
 
 -- Purchases (per-lesson purchases, renamed from course_id to lesson_id)
 create table if not exists public.purchases (
@@ -161,7 +153,7 @@ alter table public.subjects enable row level security;
 alter table public.categories enable row level security;
 alter table public.chapters enable row level security;
 alter table public.lessons enable row level security;
-alter table public.subject_outline_items enable row level security;
+alter table public.lesson_placements enable row level security;
 alter table public.purchases enable row level security;
 alter table public.downloads enable row level security;
 
@@ -178,8 +170,8 @@ create policy "chapters_select_all" on public.chapters for select using (true);
 -- Lessons: public read (content access / paid-content gate enforced in app layer)
 create policy "lessons_select_all" on public.lessons for select using (true);
 
--- Subject outline: public read (ordering for subject pages)
-create policy "subject_outline_items_select_all" on public.subject_outline_items for select using (true);
+-- Lesson placements: public read
+create policy "lesson_placements_select_all" on public.lesson_placements for select using (true);
 
 -- Users: own row only
 create policy "users_select_own" on public.users for select using (auth.uid() = id);
