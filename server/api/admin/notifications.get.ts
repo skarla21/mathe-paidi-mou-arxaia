@@ -14,6 +14,8 @@ function allowedKindsFromPrefs(prefs: typeof DEFAULT_ADMIN_NOTIFICATION_PREFS): 
   if (prefs.notify_rating) out.push('rating')
   if (prefs.notify_comment) out.push('comment')
   if (prefs.notify_contact) out.push('contact')
+  if (prefs.notify_article_like) out.push('article_like')
+  if (prefs.notify_article_comment) out.push('article_comment')
   return out
 }
 
@@ -26,7 +28,7 @@ export default defineEventHandler(async (event) => {
   const { data: prefRow } = await supabase
     .from('admin_notification_preferences')
     .select(
-      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact',
+      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact, notify_article_like, notify_article_comment',
     )
     .eq('admin_user_id', userId)
     .maybeSingle()

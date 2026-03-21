@@ -79,6 +79,41 @@ export interface User {
   purchaseCount?: number
   ratingCount?: number
   commentCount?: number
+  articleLikeCount?: number
+  articleCommentCount?: number
+}
+
+export interface Article {
+  id: string
+  title: string
+  body: string
+  tags: string[]
+  reading_time_minutes: number
+  published: boolean
+  created_at: string
+  updated_at: string
+  likeCount?: number
+  commentCount?: number
+}
+
+export interface ArticleLike {
+  id: string
+  user_id: string
+  article_id: string
+  created_at: string
+  users?: { name: string | null; avatar_url: string | null; email?: string | null } | null
+  articles?: { title: string } | null
+}
+
+export interface ArticleComment {
+  id: string
+  user_id: string
+  article_id: string
+  body: string
+  created_at: string
+  updated_at: string
+  users?: { name: string | null; avatar_url: string | null; email?: string | null } | null
+  articles?: { title: string } | null
 }
 
 export interface Purchase {
@@ -149,6 +184,8 @@ export type AdminNotificationKind =
   | 'rating'
   | 'comment'
   | 'contact'
+  | 'article_like'
+  | 'article_comment'
 
 export interface AdminNotificationItem {
   id: string

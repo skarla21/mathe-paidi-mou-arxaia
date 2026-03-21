@@ -12,13 +12,15 @@ export default defineEventHandler(async (event) => {
     notify_rating?: boolean
     notify_comment?: boolean
     notify_contact?: boolean
+    notify_article_like?: boolean
+    notify_article_comment?: boolean
   }>(event)
 
   const supabase = serverSupabaseService()
   const { data: existing } = await supabase
     .from('admin_notification_preferences')
     .select(
-      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact',
+      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact, notify_article_like, notify_article_comment',
     )
     .eq('admin_user_id', userId)
     .maybeSingle()
@@ -31,6 +33,8 @@ export default defineEventHandler(async (event) => {
     notify_rating: body.notify_rating ?? base.notify_rating,
     notify_comment: body.notify_comment ?? base.notify_comment,
     notify_contact: body.notify_contact ?? base.notify_contact,
+    notify_article_like: body.notify_article_like ?? base.notify_article_like,
+    notify_article_comment: body.notify_article_comment ?? base.notify_article_comment,
   }
 
   const { error } = await supabase.from('admin_notification_preferences').upsert(row, {

@@ -29,6 +29,8 @@ const prefs = ref({
   notify_rating: true,
   notify_comment: true,
   notify_contact: true,
+  notify_article_like: true,
+  notify_article_comment: true,
 })
 
 async function loadPrefs() {
@@ -116,6 +118,15 @@ function lineForKind(item: AdminNotificationItem): string {
         excerpt: ex,
       })
     }
+    case 'article_like': {
+      const at = typeof p.article_title === 'string' ? p.article_title : ''
+      return t('admin.notifications.lineArticleLike', { name: displayName(p), article: at })
+    }
+    case 'article_comment': {
+      const at = typeof p.article_title === 'string' ? p.article_title : ''
+      const ex = typeof p.excerpt === 'string' ? p.excerpt : ''
+      return t('admin.notifications.lineArticleComment', { name: displayName(p), article: at, excerpt: ex })
+    }
     case 'contact':
       return ''
     default:
@@ -148,7 +159,14 @@ async function markAllRead() {
 }
 
 function togglePref(
-  key: 'notify_purchase' | 'notify_download' | 'notify_rating' | 'notify_comment' | 'notify_contact',
+  key:
+    | 'notify_purchase'
+    | 'notify_download'
+    | 'notify_rating'
+    | 'notify_comment'
+    | 'notify_contact'
+    | 'notify_article_like'
+    | 'notify_article_comment',
   v: boolean,
 ) {
   prefs.value[key] = v
@@ -206,6 +224,20 @@ function togglePref(
                 <Switch
                   :checked="prefs.notify_contact"
                   @update:checked="(v: boolean) => togglePref('notify_contact', v)"
+                />
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleLike') }}</UiLabel>
+                <Switch
+                  :checked="prefs.notify_article_like"
+                  @update:checked="(v: boolean) => togglePref('notify_article_like', v)"
+                />
+              </div>
+              <div class="flex items-center justify-between gap-3">
+                <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleComment') }}</UiLabel>
+                <Switch
+                  :checked="prefs.notify_article_comment"
+                  @update:checked="(v: boolean) => togglePref('notify_article_comment', v)"
                 />
               </div>
             </template>

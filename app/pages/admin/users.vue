@@ -88,12 +88,12 @@ onMounted(fetchUsers)
         <Table class="text-base">
           <TableHeader>
             <TableRow>
-              <TableHead v-for="i in 6" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
+              <TableHead v-for="i in 8" :key="i"><UiSkeleton class="h-4 w-20" /></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow v-for="i in 5" :key="i">
-              <TableCell v-for="j in 6" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
+              <TableCell v-for="j in 8" :key="j"><UiSkeleton class="h-4 w-full" /></TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -163,13 +163,15 @@ onMounted(fetchUsers)
                   />
                 </button>
               </TableHead>
+              <TableHead class="text-center border-r border-border/60 text-xs">{{ t('admin.field.articleLikes') }}</TableHead>
+              <TableHead class="text-center border-r border-border/60 text-xs">{{ t('admin.field.articleComments') }}</TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredUsers.length">
-              <TableCell :colspan="6" class="h-32 text-center border-r border-border/60">
+              <TableCell :colspan="8" class="h-32 text-center border-r border-border/60">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
                   <p>{{ t('admin.usersEmpty') }}</p>
@@ -196,6 +198,8 @@ onMounted(fetchUsers)
               </TableCell>
               <TableCell class="text-center border-r border-border/60">{{ u.downloadCount ?? 0 }}</TableCell>
               <TableCell class="text-center border-r border-border/60">{{ u.purchaseCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border/60">{{ u.articleLikeCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border/60">{{ u.articleCommentCount ?? 0 }}</TableCell>
               <TableCell class="text-right">
                 <UiButton size="sm" variant="outline" @click="detailUserId = u.id">
                   {{ t('admin.userDetails') }}

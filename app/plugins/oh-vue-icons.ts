@@ -57,6 +57,10 @@ import {
   BiStarFill,
   BiStarHalf,
   BiBell,
+  BiHeart,
+  BiHeartFill,
+  BiLink45Deg,
+  BiNewspaper,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -117,6 +121,10 @@ addIcons(
   BiStarFill,
   BiStarHalf,
   BiBell,
+  BiHeart,
+  BiHeartFill,
+  BiLink45Deg,
+  BiNewspaper,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

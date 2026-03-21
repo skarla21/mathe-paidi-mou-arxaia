@@ -1,0 +1,173 @@
+<script setup lang="ts">
+import { toast } from 'vue-sonner'
+import UiButton from '~/components/ui/Button.vue'
+import UiInput from '~/components/ui/Input.vue'
+import UiSkeleton from '~/components/ui/Skeleton.vue'
+import UiCard from '~/components/ui/Card.vue'
+import UiCardContent from '~/components/ui/CardContent.vue'
+import UiBadge from '~/components/ui/Badge.vue'
+import UiAlertDialogRoot from '~/components/ui/alert-dialog/AlertDialogRoot.vue'
+import UiAlertDialogPortal from '~/components/ui/alert-dialog/AlertDialogPortal.vue'
+import UiAlertDialogOverlay from '~/components/ui/alert-dialog/AlertDialogOverlay.vue'
+import UiAlertDialogContent from '~/components/ui/alert-dialog/AlertDialogContent.vue'
+import UiAlertDialogHeader from '~/components/ui/alert-dialog/AlertDialogHeader.vue'
+import UiAlertDialogFooter from '~/components/ui/alert-dialog/AlertDialogFooter.vue'
+import UiAlertDialogTitle from '~/components/ui/alert-dialog/AlertDialogTitle.vue'
+import UiAlertDialogDescription from '~/components/ui/alert-dialog/AlertDialogDescription.vue'
+import UiAlertDialogCancel from '~/components/ui/alert-dialog/AlertDialogCancel.vue'
+import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.vue'
+import type { Article } from '~/types/database'
+
+definePageMeta({ layout: 'admin', middleware: 'admin' })
+const { t } = useI18n()
+useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.articlesTitle')}` }))
+
+const adminFetch = useAdminFetch()
+const articles = ref<Article[]>([])
+const loading = ref(true)
+const search = ref('')
+const modalOpen = ref(false)
+const editingArticle = ref<Article | null>(null)
+const deleteDialogOpen = ref(false)
+const deletingId = ref<string | null>(null)
+const deleteLoading = ref(false)
+const detailModalOpen = ref(false)
+const detailArticleId = ref<string | null>(null)
+
+const filteredArticles = computed(() => {
+  if (!search.value) return articles.value
+  const q = search.value.toLowerCase()
+  return articles.value.filter(a => a.title.toLowerCase().includes(q))
+})
+
+async function fetchAll() {
+  loading.value = true
+  try {
+    articles.value = await adminFetch<Article[]>('/api/admin/articles')
+  } catch {
+    articles.value = []
+    toast.error(t('common.error'))
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchAll)
+
+function openCreate() {
+  editingArticle.value = null
+  modalOpen.value = true
+}
+function openEdit(a: Article) {
+  editingArticle.value = a
+  modalOpen.value = true
+}
+function openDelete(id: string) {
+  deletingId.value = id
+  deleteDialogOpen.value = true
+}
+function openDetail(id: string) {
+  detailArticleId.value = id
+  detailModalOpen.value = true
+}
+
+async function confirmDelete() {
+  if (!deletingId.value) return
+  deleteLoading.value = true
+  try {
+    await adminFetch(`/api/admin/articles/${deletingId.value}`, { method: 'DELETE' })
+    await fetchAll()
+    deleteDialogOpen.value = false
+  } catch {
+    toast.error(t('common.error'))
+  } finally {
+    deleteLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <div>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-2xl font-bold font-heading">{{ t('admin.articlesTitle') }}</h1>
+      <UiButton @click="openCreate">
+        <VIcon name="bi-plus-circle" class="mr-2 size-4" />
+        {{ t('admin.modal.create') }}
+      </UiButton>
+    </div>
+
+    <div class="relative mb-6 max-w-md">
+      <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+    </div>
+
+    <template v-if="loading">
+      <div class="space-y-3">
+        <UiCard v-for="i in 5" :key="i">
+          <UiCardContent class="p-4 flex items-center gap-4">
+            <UiSkeleton class="size-8 shrink-0" />
+            <UiSkeleton class="h-4 flex-1" />
+          </UiCardContent>
+        </UiCard>
+      </div>
+    </template>
+
+    <template v-else>
+      <div v-if="!filteredArticles.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+        <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
+        <p>{{ t('admin.articlesEmpty') }}</p>
+      </div>
+      <div v-else class="space-y-3">
+        <UiCard v-for="a in filteredArticles" :key="a.id">
+          <UiCardContent class="p-4 flex items-center gap-4 flex-wrap">
+            <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
+              <VIcon name="bi-newspaper" class="size-6 text-muted-foreground" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="font-medium">{{ a.title }}</p>
+              <div class="flex items-center gap-2 mt-1 flex-wrap text-xs text-muted-foreground">
+                <UiBadge :variant="a.published ? 'default' : 'secondary'">
+                  {{ a.published ? t('admin.field.published') : t('admin.draft') }}
+                </UiBadge>
+                <span>| {{ t('admin.field.readingTime') }}: {{ t('articlesPage.readTime', { n: a.reading_time_minutes }) }}</span>
+                <span v-if="a.tags?.length" class="flex items-center gap-1 flex-wrap">
+                  | <span v-for="tag in a.tags" :key="tag" class="rounded bg-muted px-1.5 py-0.5">{{ tag }}</span>
+                </span>
+                <span class="flex items-center gap-0.5">| <VIcon name="bi-heart" class="size-3" /> {{ a.likeCount ?? 0 }}</span>
+                <span class="flex items-center gap-0.5">| <VIcon name="bi-chat-text" class="size-3" /> {{ a.commentCount ?? 0 }}</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <UiButton size="sm" variant="outline" @click.stop="openDetail(a.id)">
+                <VIcon name="bi-eye" class="mr-1 size-3.5" />{{ t('admin.viewDetails') }}
+              </UiButton>
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(a)">{{ t('admin.modal.edit') }}</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(a.id)">{{ t('admin.modal.delete') }}</UiButton>
+            </div>
+          </UiCardContent>
+        </UiCard>
+      </div>
+    </template>
+
+    <AdminArticleModal :open="modalOpen" :article="editingArticle" @close="modalOpen = false" @saved="fetchAll" />
+    <AdminArticleDetailModal :open="detailModalOpen" :article-id="detailArticleId" @close="detailModalOpen = false" />
+
+    <UiAlertDialogRoot v-model:open="deleteDialogOpen">
+      <UiAlertDialogPortal>
+        <UiAlertDialogOverlay />
+        <UiAlertDialogContent>
+          <UiAlertDialogHeader>
+            <UiAlertDialogTitle>{{ t('admin.confirmDeleteArticleTitle') }}</UiAlertDialogTitle>
+            <UiAlertDialogDescription>{{ t('admin.confirmDeleteArticle') }}</UiAlertDialogDescription>
+          </UiAlertDialogHeader>
+          <UiAlertDialogFooter>
+            <UiAlertDialogCancel><UiButton variant="outline">{{ t('admin.modal.cancel') }}</UiButton></UiAlertDialogCancel>
+            <UiAlertDialogAction as-child>
+              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">{{ t('admin.modal.delete') }}</UiButton>
+            </UiAlertDialogAction>
+          </UiAlertDialogFooter>
+        </UiAlertDialogContent>
+      </UiAlertDialogPortal>
+    </UiAlertDialogRoot>
+  </div>
+</template>

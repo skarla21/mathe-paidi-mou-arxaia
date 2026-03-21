@@ -171,10 +171,49 @@ create table if not exists public.lesson_comments (
 create index if not exists lesson_comments_user_id_idx   on public.lesson_comments(user_id);
 create index if not exists lesson_comments_lesson_id_idx on public.lesson_comments(lesson_id);
 
+-- Articles (blog-style content)
+create table if not exists public.articles (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  body text not null,
+  tags text[] not null default '{}',
+  reading_time_minutes smallint not null,
+  published boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists articles_published_idx on public.articles(published);
+create index if not exists articles_created_at_idx on public.articles(created_at desc);
+
+create table if not exists public.article_likes (
+  id uuid primary key default gen_random_uuid(),
+  article_id uuid not null references public.articles(id) on delete cascade,
+  user_id uuid not null references public.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique(user_id, article_id)
+);
+create index if not exists article_likes_article_id_idx on public.article_likes(article_id);
+create index if not exists article_likes_user_id_idx on public.article_likes(user_id);
+
+create table if not exists public.article_comments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  article_id uuid not null references public.articles(id) on delete cascade,
+  body text not null check (char_length(body) >= 1 and char_length(body) <= 2000),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id, article_id)
+);
+create index if not exists article_comments_user_id_idx on public.article_comments(user_id);
+create index if not exists article_comments_article_id_idx on public.article_comments(article_id);
+
 -- Admin in-app notifications (feed + per-admin read state + preferences)
 create table if not exists public.admin_notifications (
   id uuid primary key default gen_random_uuid(),
-  kind text not null check (kind in ('purchase', 'download', 'rating', 'comment', 'contact')),
+  kind text not null check (kind in (
+    'purchase', 'download', 'rating', 'comment', 'contact',
+    'article_like', 'article_comment'
+  )),
   payload jsonb not null default '{}',
   source_id uuid,
   created_at timestamptz not null default now()
@@ -197,7 +236,9 @@ create table if not exists public.admin_notification_preferences (
   notify_download boolean not null default true,
   notify_rating boolean not null default true,
   notify_comment boolean not null default true,
-  notify_contact boolean not null default true
+  notify_contact boolean not null default true,
+  notify_article_like boolean not null default true,
+  notify_article_comment boolean not null default true
 );
 
 
@@ -214,6 +255,9 @@ alter table public.purchases enable row level security;
 alter table public.downloads enable row level security;
 alter table public.lesson_ratings enable row level security;
 alter table public.lesson_comments enable row level security;
+alter table public.articles enable row level security;
+alter table public.article_likes enable row level security;
+alter table public.article_comments enable row level security;
 alter table public.admin_notifications enable row level security;
 alter table public.admin_notification_reads enable row level security;
 alter table public.admin_notification_preferences enable row level security;
@@ -251,6 +295,11 @@ create policy "lesson_ratings_select_all" on public.lesson_ratings for select us
 -- Lesson comments: public read
 create policy "lesson_comments_select_all" on public.lesson_comments for select using (true);
 
+-- Articles & engagement: public read (draft filtering in app layer)
+create policy "articles_select_all" on public.articles for select using (true);
+create policy "article_likes_select_all" on public.article_likes for select using (true);
+create policy "article_comments_select_all" on public.article_comments for select using (true);
+
 -- Note: all admin/server writes use the service role key (supabaseServiceKey),
 -- which bypasses RLS entirely. No insert/update/delete policies are needed for anon.
 
@@ -285,4 +334,12 @@ create trigger lesson_ratings_set_updated_at
 
 create trigger lesson_comments_set_updated_at
   before update on public.lesson_comments
+  for each row execute function public.set_updated_at();
+
+create trigger articles_set_updated_at
+  before update on public.articles
+  for each row execute function public.set_updated_at();
+
+create trigger article_comments_set_updated_at
+  before update on public.article_comments
   for each row execute function public.set_updated_at();

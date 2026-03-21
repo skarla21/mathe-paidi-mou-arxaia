@@ -50,6 +50,10 @@ const peopleLinks = computed(() => [
   { to: '/admin/purchases', label: t('admin.purchases'), icon: 'bi-cart' },
 ])
 
+const publishingLinks = computed(() => [
+  { to: '/admin/articles', label: t('admin.articles'), icon: 'bi-newspaper' },
+])
+
 const mobileMenuOpen = ref(false)
 
 function isActive(to: string) {
@@ -134,6 +138,18 @@ function onNotificationsRefresh() {
         <VIcon :name="link.icon" class="size-4" />
         {{ link.label }}
       </NuxtLink>
+      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionArticles') }}</p>
+      <NuxtLink
+        v-for="link in publishingLinks"
+        :key="link.to"
+        :to="link.to"
+        class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
+        :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
+        @click="mobileMenuOpen = false"
+      >
+        <VIcon :name="link.icon" class="size-4" />
+        {{ link.label }}
+      </NuxtLink>
       <NuxtLink
         to="/"
         class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
@@ -196,6 +212,19 @@ function onNotificationsRefresh() {
             <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionPeople') }}</p>
             <NuxtLink
               v-for="link in peopleLinks"
+              :key="link.to"
+              :to="link.to"
+              class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors"
+              :class="isActive(link.to) ? 'bg-primary/10 text-primary font-medium' : ''"
+            >
+              <VIcon :name="link.icon" class="size-4" />
+              {{ link.label }}
+            </NuxtLink>
+          </div>
+          <div>
+            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionArticles') }}</p>
+            <NuxtLink
+              v-for="link in publishingLinks"
               :key="link.to"
               :to="link.to"
               class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors"

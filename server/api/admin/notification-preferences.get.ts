@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
   const { data } = await supabase
     .from('admin_notification_preferences')
     .select(
-      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact',
+      'notify_purchase, notify_download, notify_rating, notify_comment, notify_contact, notify_article_like, notify_article_comment',
     )
     .eq('admin_user_id', userId)
     .maybeSingle()

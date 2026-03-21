@@ -6,6 +6,8 @@ export type AdminNotificationKind =
   | 'rating'
   | 'comment'
   | 'contact'
+  | 'article_like'
+  | 'article_comment'
 
 export interface AdminNotificationPreferencesRow {
   admin_user_id: string
@@ -14,6 +16,8 @@ export interface AdminNotificationPreferencesRow {
   notify_rating: boolean
   notify_comment: boolean
   notify_contact: boolean
+  notify_article_like: boolean
+  notify_article_comment: boolean
 }
 
 const KIND_TO_COLUMN: Record<
@@ -25,6 +29,8 @@ const KIND_TO_COLUMN: Record<
     | 'notify_rating'
     | 'notify_comment'
     | 'notify_contact'
+    | 'notify_article_like'
+    | 'notify_article_comment'
   >
 > = {
   purchase: 'notify_purchase',
@@ -32,6 +38,8 @@ const KIND_TO_COLUMN: Record<
   rating: 'notify_rating',
   comment: 'notify_comment',
   contact: 'notify_contact',
+  article_like: 'notify_article_like',
+  article_comment: 'notify_article_comment',
 }
 
 export const DEFAULT_ADMIN_NOTIFICATION_PREFS: Omit<
@@ -43,6 +51,8 @@ export const DEFAULT_ADMIN_NOTIFICATION_PREFS: Omit<
   notify_rating: true,
   notify_comment: true,
   notify_contact: true,
+  notify_article_like: true,
+  notify_article_comment: true,
 }
 
 export function kindAllowedByPrefs(
@@ -85,6 +95,11 @@ export async function cleanupOldAdminNotifications(supabase: SupabaseClient): Pr
 
 async function lessonTitle(supabase: SupabaseClient, lessonId: string): Promise<string> {
   const { data } = await supabase.from('lessons').select('title').eq('id', lessonId).maybeSingle()
+  return data?.title ?? ''
+}
+
+async function articleTitle(supabase: SupabaseClient, articleId: string): Promise<string> {
+  const { data } = await supabase.from('articles').select('title').eq('id', articleId).maybeSingle()
   return data?.title ?? ''
 }
 
@@ -229,6 +244,71 @@ export async function notifyContactMessage(
     payload: {
       email,
       message,
+    },
+  })
+}
+
+export async function notifyArticleLikeCreated(
+  supabase: SupabaseClient,
+  likeId: string,
+): Promise<void> {
+  const { data: row, error } = await supabase
+    .from('article_likes')
+    .select('id, user_id, article_id')
+    .eq('id', likeId)
+    .single()
+  if (error || !row) {
+    if (error) console.error('[notifyArticleLikeCreated]', error.message)
+    return
+  }
+  const [article_title, u] = await Promise.all([
+    articleTitle(supabase, row.article_id),
+    userDisplay(supabase, row.user_id),
+  ])
+  await createAdminNotification(supabase, {
+    kind: 'article_like',
+    sourceId: row.id,
+    payload: {
+      like_id: row.id,
+      article_id: row.article_id,
+      article_title,
+      user_id: row.user_id,
+      user_name: u.name,
+      user_email: u.email,
+    },
+  })
+}
+
+export async function notifyArticleCommentCreated(
+  supabase: SupabaseClient,
+  commentId: string,
+): Promise<void> {
+  const { data: row, error } = await supabase
+    .from('article_comments')
+    .select('id, user_id, article_id, body')
+    .eq('id', commentId)
+    .single()
+  if (error || !row) {
+    if (error) console.error('[notifyArticleCommentCreated]', error.message)
+    return
+  }
+  const [article_title, u] = await Promise.all([
+    articleTitle(supabase, row.article_id),
+    userDisplay(supabase, row.user_id),
+  ])
+  const body = typeof row.body === 'string' ? row.body : ''
+  const excerpt = body.length > 200 ? `${body.slice(0, 200)}…` : body
+  await createAdminNotification(supabase, {
+    kind: 'article_comment',
+    sourceId: row.id,
+    payload: {
+      comment_id: row.id,
+      article_id: row.article_id,
+      article_title,
+      user_id: row.user_id,
+      user_name: u.name,
+      user_email: u.email,
+      excerpt,
     },
   })
 }
