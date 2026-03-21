@@ -1,3 +1,4 @@
+import { notifyPurchaseCreated } from '../../../utils/adminNotifications'
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
 
@@ -13,10 +14,15 @@ export default defineEventHandler(async (event) => {
     .eq('lesson_id', lessonId)
     .maybeSingle()
   if (existing) return { ok: true }
-  const { error } = await supabase.from('purchases').insert({ user_id: userId, lesson_id: lessonId, stripe_session_id: null })
+  const { data: inserted, error } = await supabase
+    .from('purchases')
+    .insert({ user_id: userId, lesson_id: lessonId, stripe_session_id: null })
+    .select('id')
+    .single()
   if (error) {
     console.error('[admin/purchases/grant.post]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })
   }
+  if (inserted?.id) await notifyPurchaseCreated(supabase, inserted.id)
   return { ok: true }
 })

@@ -2,9 +2,40 @@
 import 'vue-sonner/style.css'
 import { Toaster } from 'vue-sonner'
 import { NuxtLink } from '#components'
+import AdminNotificationsModal from '~/components/admin/AdminNotificationsModal.vue'
+import UiBadge from '~/components/ui/Badge.vue'
 
 const { t } = useI18n()
 const route = useRoute()
+const adminFetch = useAdminFetch()
+
+const notificationsOpen = ref(false)
+const unreadCount = ref(0)
+
+const badgeText = computed(() => (unreadCount.value > 9 ? '9+' : String(unreadCount.value)))
+
+async function fetchUnreadCount() {
+  try {
+    const res = await adminFetch<{ unreadCount: number }>('/api/admin/notifications', {
+      query: { limit: 1 },
+    })
+    unreadCount.value = res.unreadCount ?? 0
+  } catch {
+    /* ignore */
+  }
+}
+
+onMounted(() => {
+  fetchUnreadCount()
+  if (import.meta.client) {
+    const id = window.setInterval(fetchUnreadCount, 60_000)
+    onUnmounted(() => clearInterval(id))
+  }
+})
+
+watch(notificationsOpen, (open) => {
+  if (open) fetchUnreadCount()
+})
 
 const contentLinks = computed(() => [
   { to: '/admin/grades', label: t('admin.grades'), icon: 'bi-mortarboard' },
@@ -24,6 +55,10 @@ const mobileMenuOpen = ref(false)
 function isActive(to: string) {
   return route.path === to
 }
+
+function onNotificationsRefresh() {
+  fetchUnreadCount()
+}
 </script>
 
 <template>
@@ -31,12 +66,32 @@ function isActive(to: string) {
     <Toaster />
     <AuthModal />
     <EditProfileModal />
+    <AdminNotificationsModal
+      :open="notificationsOpen"
+      @close="notificationsOpen = false"
+      @refresh="onNotificationsRefresh"
+    />
 
     <!-- Mobile top bar -->
-    <header class="md:hidden flex items-center gap-3 px-4 py-3 bg-card border-b">
-      <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1">{{ t('admin.nav') }}</NuxtLink>
+    <header class="md:hidden flex items-center gap-2 px-4 py-3 bg-card border-b">
+      <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1 min-w-0">{{ t('admin.nav') }}</NuxtLink>
       <button
-        class="p-1 rounded-md hover:bg-muted"
+        type="button"
+        class="relative p-2 rounded-md hover:bg-muted shrink-0"
+        :aria-label="t('admin.notifications.openAria')"
+        @click="notificationsOpen = true"
+      >
+        <VIcon name="bi-bell" class="size-5 text-foreground" />
+        <UiBadge
+          v-if="unreadCount > 0"
+          variant="destructive"
+          class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full p-0 text-[10px] leading-none border-0"
+        >
+          {{ badgeText }}
+        </UiBadge>
+      </button>
+      <button
+        class="p-1 rounded-md hover:bg-muted shrink-0"
         :aria-label="mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
@@ -92,11 +147,26 @@ function isActive(to: string) {
     <!-- Desktop layout -->
     <div class="flex flex-1">
       <aside class="hidden md:flex w-56 border-r bg-card shrink-0 flex-col">
-        <div class="p-4 border-b">
-          <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex items-center gap-2">
-            <VIcon name="bi-shield-check" class="size-5 text-primary" />
-            {{ t('admin.nav') }}
+        <div class="p-4 border-b flex items-center justify-between gap-2">
+          <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex items-center gap-2 min-w-0">
+            <VIcon name="bi-shield-check" class="size-5 text-primary shrink-0" />
+            <span class="truncate">{{ t('admin.nav') }}</span>
           </NuxtLink>
+          <button
+            type="button"
+            class="relative p-2 rounded-md hover:bg-muted shrink-0"
+            :aria-label="t('admin.notifications.openAria')"
+            @click="notificationsOpen = true"
+          >
+            <VIcon name="bi-bell" class="size-5 text-foreground" />
+            <UiBadge
+              v-if="unreadCount > 0"
+              variant="destructive"
+              class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] px-0.5 flex items-center justify-center rounded-full p-0 text-[10px] leading-none border-0"
+            >
+              {{ badgeText }}
+            </UiBadge>
+          </button>
         </div>
         <nav :aria-label="t('admin.navAria')" class="p-2 flex-1 space-y-4 overflow-y-auto">
           <div>

@@ -1,5 +1,7 @@
+import { notifyContactMessage } from "../utils/adminNotifications";
 import { sendContactEmail } from "../utils/email";
 import { checkRateLimit } from "../utils/rateLimit";
+import { serverSupabaseService } from "../utils/supabaseServer";
 import { EMAIL_REGEX } from "../utils/validation";
 
 export default defineEventHandler(async (event) => {
@@ -39,6 +41,16 @@ export default defineEventHandler(async (event) => {
   } catch (e) {
     console.error("[contact] Resend error:", e);
     throw createError({ statusCode: 502, message: "Failed to send message" });
+  }
+
+  try {
+    const supabase = serverSupabaseService();
+    await notifyContactMessage(supabase, {
+      email: sanitizedEmail,
+      message: body.message.trim(),
+    });
+  } catch (e) {
+    console.error("[contact] admin notification:", e);
   }
 
   return { success: true };

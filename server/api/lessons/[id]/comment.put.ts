@@ -1,3 +1,4 @@
+import { notifyCommentCreated } from '../../../utils/adminNotifications'
 import { requireAuth } from '../../../utils/requireAuth'
 import { canAccessLesson } from '../../../utils/access'
 import { serverSupabaseService } from '../../../utils/supabaseServer'
@@ -17,6 +18,13 @@ export default defineEventHandler(async (event) => {
   }
 
   const supabase = serverSupabaseService()
+  const { data: existing } = await supabase
+    .from('lesson_comments')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('lesson_id', lessonId)
+    .maybeSingle()
+
   const { data, error } = await supabase
     .from('lesson_comments')
     .upsert(
@@ -29,6 +37,14 @@ export default defineEventHandler(async (event) => {
   if (error) {
     console.error('[lessons/[id]/comment.put]', error.message)
     throw createError({ statusCode: 500, message: 'Database operation failed' })
+  }
+
+  if (!existing && data?.id) {
+    try {
+      await notifyCommentCreated(supabase, data.id)
+    } catch (e) {
+      console.error('[lessons/[id]/comment.put] notify', e)
+    }
   }
 
   return data

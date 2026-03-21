@@ -296,6 +296,38 @@
     "placeholder": {
       "url": "https://..."
     },
+    "notifications": {
+      "title": "Ειδοποιήσεις",
+      "description": "Δραστηριότητα διαχειριστή και μηνύματα φόρμας επικοινωνίας.",
+      "openAria": "Άνοιγμα ειδοποιήσεων",
+      "empty": "Δεν υπάρχουν ειδοποιήσεις ακόμα.",
+      "markRead": "Ανάγνωση",
+      "markAllRead": "Σήμανση όλων ως αναγνωσμένων",
+      "prefsTitle": "Εμφάνιση στην εφαρμογή",
+      "pref": {
+        "purchase": "Αγορές",
+        "download": "Λήψεις",
+        "rating": "Αξιολογήσεις",
+        "comment": "Σχόλια",
+        "contact": "Φόρμα επικοινωνίας"
+      },
+      "unreadCount": "{count} μη αναγνωσμένα",
+      "anonymousUser": "Χρήστης",
+      "linePurchase": "Ο/Η {name} αγόρασε \"{lesson}\".",
+      "lineDownload": "Ο/Η {name} έκανε λήψη του \"{lesson}\".",
+      "lineRating": "Ο/Η {name} αξιολόγησε \"{lesson}\" ({rating}/5).",
+      "lineComment": "Ο/Η {name} στο \"{lesson}\": {excerpt}",
+      "loadError": "Δεν ήταν δυνατή η φόρτωση των ειδοποιήσεων.",
+      "savePrefsError": "Δεν ήταν δυνατή η αποθήκευση των προτιμήσεων.",
+      "markReadError": "Δεν ήταν δυνατή η ενημέρωση της κατάστασης ανάγνωσης.",
+      "kind": {
+        "purchase": "Αγορά",
+        "download": "Λήψη",
+        "rating": "Αξιολόγηση",
+        "comment": "Σχόλιο",
+        "contact": "Επικοινωνία"
+      }
+    },
     "navAria": "Πλοήγηση διαχείρισης",
     "placementType": "Τύπος",
     "placementChapter": "Κεφάλαιο",

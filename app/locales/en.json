@@ -314,6 +314,38 @@
     "placeholder": {
       "url": "https://..."
     },
+    "notifications": {
+      "title": "Notifications",
+      "description": "Administrative activity and contact form messages.",
+      "openAria": "Open notifications",
+      "empty": "No notifications yet.",
+      "markRead": "Mark read",
+      "markAllRead": "Mark all as read",
+      "prefsTitle": "Show in app",
+      "pref": {
+        "purchase": "Purchases",
+        "download": "Downloads",
+        "rating": "Ratings",
+        "comment": "Comments",
+        "contact": "Contact form"
+      },
+      "unreadCount": "{count} unread",
+      "anonymousUser": "User",
+      "linePurchase": "{name} purchased \"{lesson}\".",
+      "lineDownload": "{name} downloaded \"{lesson}\".",
+      "lineRating": "{name} rated \"{lesson}\" ({rating}/5).",
+      "lineComment": "{name} on \"{lesson}\": {excerpt}",
+      "loadError": "Could not load notifications.",
+      "savePrefsError": "Could not save preferences.",
+      "markReadError": "Could not update read status.",
+      "kind": {
+        "purchase": "Purchase",
+        "download": "Download",
+        "rating": "Rating",
+        "comment": "Comment",
+        "contact": "Contact"
+      }
+    },
     "navAria": "Admin navigation",
     "placementType": "Type",
     "placementChapter": "Chapter",

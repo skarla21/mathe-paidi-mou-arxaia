@@ -105,7 +105,7 @@ onMounted(() => {
         </template>
       </ClientOnly>
       <div v-if="canAccess && canAccessContent && lesson.content_url" class="mt-8">
-        <LessonContentViewer :src="lesson.content_url" />
+        <LessonContentViewer :src="lesson.content_url" :lesson-id="lessonId" />
       </div>
       <div
         v-else-if="canAccess && !canAccessContent && lesson.content_url"

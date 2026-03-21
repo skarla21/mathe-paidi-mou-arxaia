@@ -143,6 +143,21 @@ export interface PasswordResetToken {
   created_at: string
 }
 
+export type AdminNotificationKind =
+  | 'purchase'
+  | 'download'
+  | 'rating'
+  | 'comment'
+  | 'contact'
+
+export interface AdminNotificationItem {
+  id: string
+  kind: AdminNotificationKind
+  payload: Record<string, unknown>
+  created_at: string
+  read: boolean
+}
+
 export interface AdminStats {
   totalUsers: number
   totalLessons: number

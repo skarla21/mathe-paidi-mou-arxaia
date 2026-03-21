@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
 
-const props = defineProps<{ src: string }>()
+const props = defineProps<{ src: string; lessonId?: string }>()
 const { t } = useI18n()
+
+onMounted(() => {
+  if (!import.meta.client || !props.lessonId) return
+  $fetch(`/api/lessons/${props.lessonId}/record-download`, {
+    method: 'POST',
+    credentials: 'include',
+  }).catch(() => {})
+})
 
 const pathPart = computed(() => (props.src || '').split('?')[0] ?? '')
 const isPdf = computed(() => /\.pdf$/i.test(pathPart.value))

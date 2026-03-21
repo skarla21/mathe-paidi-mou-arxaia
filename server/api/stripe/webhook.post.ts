@@ -42,14 +42,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Lesson not found' })
   }
 
-  const { error: insertError } = await supabase.from('purchases').insert({
-    user_id: userId,
-    lesson_id: lessonId,
-    stripe_session_id: session.id,
-  })
+  const { data: purchaseRow, error: insertError } = await supabase
+    .from('purchases')
+    .insert({
+      user_id: userId,
+      lesson_id: lessonId,
+      stripe_session_id: session.id,
+    })
+    .select('id')
+    .single()
   if (insertError) {
     console.error('Purchase insert failed:', insertError)
     throw createError({ statusCode: 500, message: 'Failed to record purchase' })
+  }
+  if (purchaseRow?.id) {
+    const { notifyPurchaseCreated } = await import('../../utils/adminNotifications')
+    await notifyPurchaseCreated(supabase, purchaseRow.id)
   }
   return { received: true }
 })
