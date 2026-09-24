@@ -54,6 +54,7 @@ const content = ref('')
 const isFree = ref(true)
 const price = ref(0)
 const contentUrl = ref('')
+const fileName = ref('')
 
 let placementKey = 0
 const placements = ref<PlacementRow[]>([])
@@ -67,6 +68,19 @@ const uploading = ref(false)
 const uploadProgress = ref(0)
 const dragActive = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+
+function fileLabelFromUrl(url: string): string {
+  try {
+    const segment = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() || '')
+    const name = segment.replace(/^\d{10,}-/, '') || segment
+    const stem = name.replace(/\.[^.]+$/, '')
+    // Older uploads replaced Greek (and any non-ASCII) with underscores.
+    if (!/[\p{L}\p{N}]/u.test(stem)) return ''
+    return name
+  } catch {
+    return ''
+  }
+}
 
 function subjectsForGrade(gradeId: string) {
   return subjects.value.filter(s => s.grade_id === gradeId)
@@ -119,6 +133,7 @@ watch(() => props.open, async (val) => {
   isFree.value = props.lesson?.is_free ?? true
   price.value = props.lesson?.price ?? 0
   contentUrl.value = props.lesson?.content_url ?? ''
+  fileName.value = contentUrl.value ? fileLabelFromUrl(contentUrl.value) : ''
   placements.value = []
 
   try {
@@ -201,6 +216,7 @@ async function uploadFile(file: File) {
     formData.append('file', file)
     const res = await adminFetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
     contentUrl.value = res.url
+    fileName.value = file.name
     uploadProgress.value = 100
     toast.success(t('admin.uploads.uploadSuccess'))
   } catch {
@@ -235,6 +251,7 @@ function onDragLeave() {
 
 function clearContent() {
   contentUrl.value = ''
+  fileName.value = ''
 }
 
 async function onSubmit() {
@@ -281,7 +298,7 @@ async function onSubmit() {
   <UiDialog :open="props.open" @update:open="(v: boolean) => !v && emit('close')">
     <UiDialogPortal>
       <UiDialogOverlay />
-      <UiDialogContent class="max-w-xl max-h-[90vh] overflow-y-auto">
+      <UiDialogContent class="max-w-5xl max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
           <UiDialogTitle>{{ props.lesson ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.lessons') }}</UiDialogTitle>
           <UiDialogDescription class="sr-only">{{ t('admin.modal.lessonDescription') }}</UiDialogDescription>
@@ -296,7 +313,7 @@ async function onSubmit() {
               <UiInput v-model="title" required />
             </div>
             <div class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.content') }}</UiLabel>
+              <UiLabel>{{ t('admin.field.description') }}</UiLabel>
               <UiTextarea v-model="content" :rows="3" />
             </div>
             <div class="space-y-1.5">
@@ -331,15 +348,13 @@ async function onSubmit() {
                 </div>
                 <UiProgress v-if="uploading" :model-value="uploadProgress" class="mt-3 h-2" />
                 <div v-else-if="contentUrl" class="mt-3 flex items-center justify-center gap-2">
-                  <span class="truncate text-xs text-muted-foreground max-w-[200px]">{{ contentUrl }}</span>
+                  <span class="truncate text-xs text-muted-foreground max-w-md">{{ fileName || t('admin.lessonModal.fileAttached') }}</span>
                   <UiButton type="button" variant="ghost" size="sm" @click="clearContent">
                     {{ t('admin.lessonModal.removeFile') }}
                   </UiButton>
                 </div>
                 <p v-else class="mt-2 text-xs text-muted-foreground">{{ t('admin.lessonModal.noFile') }}</p>
               </div>
-              <p class="text-xs text-muted-foreground">{{ t('admin.lessonModal.orPasteUrl') }}</p>
-              <UiInput v-model="contentUrl" :placeholder="t('admin.placeholder.url')" />
             </div>
           </fieldset>
 
@@ -372,44 +387,31 @@ async function onSubmit() {
           <fieldset class="space-y-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.placements') }}</p>
 
+            <div class="space-y-3">
             <div
               v-for="row in placements"
               :key="row.key"
-              class="rounded-lg border border-border p-3 space-y-3"
+              class="flex items-end gap-3 rounded-lg border border-border p-3"
             >
-              <!-- Row header: type selector + remove button -->
-              <div class="flex items-center gap-2">
-                <div class="flex-1 space-y-1">
-                  <UiLabel>{{ t('admin.placementType') }}</UiLabel>
-                  <Select
-                    :model-value="row.type"
-                    @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'subject' | 'chapter' | 'category')"
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
-                      <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
-                      <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <UiButton
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  class="mt-5 shrink-0 text-muted-foreground hover:text-destructive"
-                  :disabled="placements.length <= 1"
-                  :aria-label="t('admin.removePlacement')"
-                  @click="removePlacement(row.key)"
+              <div class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.placementType') }}</UiLabel>
+                <Select
+                  :model-value="row.type"
+                  @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'subject' | 'chapter' | 'category')"
                 >
-                  <VIcon name="bi-x-circle" class="size-4" />
-                </UiButton>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
+                    <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
+                    <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <template v-if="row.type === 'subject'">
-                <div class="space-y-1.5">
+                <div class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
                   <Select
                     :model-value="row.gradeId"
@@ -423,7 +425,7 @@ async function onSubmit() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div v-if="row.gradeId" class="space-y-1.5">
+                <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
                   <Select
                     :model-value="row.subjectId"
@@ -441,7 +443,7 @@ async function onSubmit() {
 
               <!-- Chapter cascade -->
               <template v-else-if="row.type === 'chapter'">
-                <div class="space-y-1.5">
+                <div class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
                   <Select
                     :model-value="row.gradeId"
@@ -455,7 +457,7 @@ async function onSubmit() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div v-if="row.gradeId" class="space-y-1.5">
+                <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
                   <Select
                     :model-value="row.subjectId"
@@ -469,7 +471,7 @@ async function onSubmit() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div v-if="row.subjectId" class="space-y-1.5">
+                <div v-if="row.subjectId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
                   <Select v-model="row.chapterId">
                     <SelectTrigger>
@@ -483,7 +485,7 @@ async function onSubmit() {
               </template>
 
               <!-- Category -->
-              <div v-else class="space-y-1.5">
+              <div v-else class="min-w-0 flex-1 space-y-1.5">
                 <UiLabel>{{ t('admin.field.category') }}</UiLabel>
                 <Select v-model="row.categoryId">
                   <SelectTrigger>
@@ -494,6 +496,18 @@ async function onSubmit() {
                   </SelectContent>
                 </Select>
               </div>
+              <UiButton
+                v-if="placements.length > 1"
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="mb-0.5 shrink-0 text-muted-foreground hover:text-destructive"
+                :aria-label="t('admin.removePlacement')"
+                @click="removePlacement(row.key)"
+              >
+                <VIcon name="bi-trash" class="size-4" />
+              </UiButton>
+            </div>
             </div>
 
             <UiButton type="button" variant="outline" size="sm" class="gap-1.5" @click="addPlacement">

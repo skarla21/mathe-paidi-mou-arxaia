@@ -27,6 +27,17 @@ function validateMagicBytes(data: Buffer, mimeType: string): boolean {
 
 const IMAGE_TYPES = ["image/jpeg", "image/png"] as const;
 
+function safeStorageName(filename: string): string {
+  const cleaned = filename
+    .normalize("NFC")
+    .replace(/[^\p{L}\p{N}._ -]/gu, "_")
+    .replace(/\.{2,}/g, ".")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
+  return cleaned || "file";
+}
+
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
   const formData = await readMultipartFormData(event);
@@ -73,7 +84,7 @@ export default defineEventHandler(async (event) => {
     });
   }
   const supabase = serverSupabaseService();
-  const safeName = file.filename.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 200);
+  const safeName = safeStorageName(file.filename);
   const path = isImage
     ? `entity-images/${entity}-${Date.now()}-${safeName}`
     : `lesson-content/${Date.now()}-${safeName}`;

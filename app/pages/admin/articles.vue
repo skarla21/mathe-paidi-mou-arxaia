@@ -149,7 +149,7 @@ async function confirmDelete() {
       </div>
     </template>
 
-    <AdminArticleModal :open="modalOpen" :article="editingArticle" @close="modalOpen = false" @saved="fetchAll" />
+    <AdminArticleModal :open="modalOpen" :article="editingArticle" :articles="articles" @close="modalOpen = false" @saved="fetchAll" />
     <AdminArticleDetailModal :open="detailModalOpen" :article-id="detailArticleId" @close="detailModalOpen = false" />
 
     <UiAlertDialogRoot v-model:open="deleteDialogOpen">
