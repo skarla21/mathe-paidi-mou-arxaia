@@ -64,6 +64,7 @@ const chapters = ref<{ id: string; title: string; subject_id: string; grade_id: 
 const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const categories = ref<{ id: string; name: string }[]>([])
 const loading = ref(false)
+const attempted = ref(false)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const dragActive = ref(false)
@@ -125,8 +126,25 @@ function onPlacementSubjectChange(row: PlacementRow, newSubjectId: string) {
   row.chapterId = ''
 }
 
+function rowGap(row: PlacementRow): 'grade' | 'subject' | 'chapter' | 'category' | null {
+  if (row.type === 'category') return row.categoryId ? null : 'category'
+  if (!row.gradeId) return 'grade'
+  if (!row.subjectId) return 'subject'
+  if (row.type === 'chapter' && !row.chapterId) return 'chapter'
+  return null
+}
+
+function placementGap(row: PlacementRow): 'grade' | 'subject' | 'chapter' | 'category' | null {
+  if (!attempted.value) return null
+  if (placements.value.some(candidate => !rowGap(candidate))) return null
+  return rowGap(row)
+}
+
+const titleMissing = computed(() => attempted.value && !title.value.trim())
+
 watch(() => props.open, async (val) => {
   if (!val) return
+  attempted.value = false
 
   title.value = props.lesson?.title ?? ''
   content.value = props.lesson?.content ?? ''
@@ -255,6 +273,7 @@ function clearContent() {
 }
 
 async function onSubmit() {
+  attempted.value = true
   const placementPayload = placements.value
     .map(p => ({
       subject_id: p.type === 'subject' ? p.subjectId || null : null,
@@ -263,10 +282,7 @@ async function onSubmit() {
     }))
     .filter(p => p.subject_id || p.chapter_id || p.category_id)
 
-  if (placementPayload.length === 0) {
-    toast.error(t('admin.placementRequired'))
-    return
-  }
+  if (!title.value.trim() || placementPayload.length === 0) return
 
   loading.value = true
   try {
@@ -310,7 +326,8 @@ async function onSubmit() {
             <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.sectionContent') }}</p>
             <div class="space-y-1.5">
               <UiLabel>{{ t('admin.field.title') }}</UiLabel>
-              <UiInput v-model="title" required />
+              <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
+              <p v-if="titleMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.title') }) }}</p>
             </div>
             <div class="space-y-1.5">
               <UiLabel>{{ t('admin.field.description') }}</UiLabel>
@@ -417,13 +434,14 @@ async function onSubmit() {
                     :model-value="row.gradeId"
                     @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
                       <SelectValue :placeholder="t('admin.selectGrade')" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
                 </div>
                 <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
@@ -431,13 +449,14 @@ async function onSubmit() {
                     :model-value="row.subjectId"
                     @update:model-value="(v) => (row.subjectId = String(v))"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
                       <SelectValue :placeholder="t('admin.selectSubject')" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.subject') }) }}</p>
                 </div>
               </template>
 
@@ -449,13 +468,14 @@ async function onSubmit() {
                     :model-value="row.gradeId"
                     @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
                       <SelectValue :placeholder="t('admin.selectGrade')" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
                 </div>
                 <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
@@ -463,24 +483,26 @@ async function onSubmit() {
                     :model-value="row.subjectId"
                     @update:model-value="(v) => onPlacementSubjectChange(row, String(v))"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
                       <SelectValue :placeholder="t('admin.selectSubject')" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.subject') }) }}</p>
                 </div>
                 <div v-if="row.subjectId" class="min-w-0 flex-1 space-y-1.5">
                   <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
                   <Select v-model="row.chapterId">
-                    <SelectTrigger>
+                    <SelectTrigger :aria-invalid="placementGap(row) === 'chapter' || undefined">
                       <SelectValue :placeholder="t('admin.selectChapter')" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="c in chaptersForSubject(row.subjectId)" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p v-if="placementGap(row) === 'chapter'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.chapter') }) }}</p>
                 </div>
               </template>
 
@@ -488,13 +510,14 @@ async function onSubmit() {
               <div v-else class="min-w-0 flex-1 space-y-1.5">
                 <UiLabel>{{ t('admin.field.category') }}</UiLabel>
                 <Select v-model="row.categoryId">
-                  <SelectTrigger>
+                  <SelectTrigger :aria-invalid="placementGap(row) === 'category' || undefined">
                     <SelectValue :placeholder="t('admin.selectCategory')" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
                   </SelectContent>
                 </Select>
+                <p v-if="placementGap(row) === 'category'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.category') }) }}</p>
               </div>
               <UiButton
                 v-if="placements.length > 1"
@@ -517,7 +540,7 @@ async function onSubmit() {
           </fieldset>
 
           <UiDialogFooter>
-            <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
           </UiDialogFooter>
         </form>

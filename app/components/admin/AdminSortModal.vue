@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
+import UiLabel from '~/components/ui/Label.vue'
 import UiDialog from '~/components/ui/dialog/Dialog.vue'
 import UiDialogPortal from '~/components/ui/dialog/DialogPortal.vue'
 import UiDialogOverlay from '~/components/ui/dialog/DialogOverlay.vue'
@@ -16,7 +17,7 @@ export type AdminSortModalMode = 'subjects' | 'chapters' | 'lessons' | 'categori
 
 type SortRow = { id: string; label: string }
 
-type LessonSortKind = 'category' | 'chapter' | 'subject' | null
+type LessonSortKind = 'category' | 'chapter' | 'subject'
 
 const props = defineProps<{ open: boolean; mode: AdminSortModalMode }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -25,13 +26,13 @@ const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const loading = ref(false)
+const listLoading = ref(false)
 const saveLoading = ref(false)
-const step = ref(0)
 const selGrade = ref('')
 const selSubject = ref('')
 const selChapter = ref('')
 const selCategory = ref('')
-const lessonKind = ref<LessonSortKind>(null)
+const lessonKind = ref<LessonSortKind>('chapter')
 
 const grades = ref<{ id: string; name: string }[]>([])
 const subjects = ref<{ id: string; name: string; grade_id: string; order: number }[]>([])
@@ -40,6 +41,8 @@ const categories = ref<{ id: string; name: string; order: number }[]>([])
 
 const orderedRows = ref<SortRow[]>([])
 const { onDragStart, onDragEnd, onDragOver, onDrop } = useDragReorderList(orderedRows)
+
+let lessonFetchGen = 0
 
 const filteredSubjects = computed(() =>
   selGrade.value ? subjects.value.filter(s => s.grade_id === selGrade.value) : [],
@@ -58,14 +61,95 @@ const modalTitle = computed(() => {
   }
 })
 
+const lessonTargetReady = computed(() => {
+  if (lessonKind.value === 'category') return !!selCategory.value
+  if (lessonKind.value === 'subject') return !!selSubject.value
+  return !!selChapter.value
+})
+
+const showList = computed(() => {
+  if (props.mode === 'categories') return true
+  if (props.mode === 'subjects') return !!selGrade.value
+  if (props.mode === 'chapters') return !!selGrade.value && !!selSubject.value
+  return lessonTargetReady.value || listLoading.value
+})
+
 function resetState() {
-  step.value = 0
+  lessonFetchGen++
+  listLoading.value = false
   selGrade.value = ''
   selSubject.value = ''
   selChapter.value = ''
   selCategory.value = ''
-  lessonKind.value = null
+  lessonKind.value = 'chapter'
   orderedRows.value = []
+}
+
+function syncSubjectRows() {
+  if (!selGrade.value) {
+    orderedRows.value = []
+    return
+  }
+  orderedRows.value = subjects.value
+    .filter(s => s.grade_id === selGrade.value)
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+    .map(s => ({ id: s.id, label: s.name }))
+}
+
+function syncChapterRows() {
+  if (!selSubject.value) {
+    orderedRows.value = []
+    return
+  }
+  orderedRows.value = chapters.value
+    .filter(c => c.subject_id === selSubject.value)
+    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
+    .map(c => ({ id: c.id, label: c.title }))
+}
+
+function onLessonTypeChange(next: LessonSortKind) {
+  lessonFetchGen++
+  listLoading.value = false
+  orderedRows.value = []
+  selGrade.value = ''
+  selSubject.value = ''
+  selChapter.value = ''
+  selCategory.value = ''
+  lessonKind.value = next
+}
+
+async function loadLessons() {
+  const kind = lessonKind.value
+  const categoryId = selCategory.value
+  const subjectId = selSubject.value
+  const chapterId = selChapter.value
+  if (kind === 'category' && !categoryId) return
+  if (kind === 'subject' && !subjectId) return
+  if (kind === 'chapter' && !chapterId) return
+
+  const gen = ++lessonFetchGen
+  listLoading.value = true
+  try {
+    const query = kind === 'category'
+      ? { category_id: categoryId }
+      : kind === 'subject'
+        ? { subject_id: subjectId }
+        : { chapter_id: chapterId }
+    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
+      '/api/lessons',
+      { query },
+    )
+    if (gen !== lessonFetchGen) return
+    orderedRows.value = [...list]
+      .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
+      .map(l => ({ id: l.id, label: l.title }))
+  } catch {
+    if (gen !== lessonFetchGen) return
+    orderedRows.value = []
+    toast.error(t('common.error'))
+  } finally {
+    if (gen === lessonFetchGen) listLoading.value = false
+  }
 }
 
 watch(() => props.open, async (open) => {
@@ -91,7 +175,6 @@ watch(() => props.open, async (open) => {
       orderedRows.value = [...cat]
         .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
         .map(c => ({ id: c.id, label: c.name }))
-      step.value = 1
     }
   } catch {
     toast.error(t('common.error'))
@@ -101,110 +184,45 @@ watch(() => props.open, async (open) => {
   }
 })
 
-function goSubjectsList() {
-  if (!selGrade.value) return
-  const list = subjects.value
-    .filter(s => s.grade_id === selGrade.value)
-    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
-  orderedRows.value = list.map(s => ({ id: s.id, label: s.name }))
-  step.value = 1
-}
-
-function goChaptersList() {
-  if (!selSubject.value) return
-  const list = chapters.value
-    .filter(c => c.subject_id === selSubject.value)
-    .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-  orderedRows.value = list.map(c => ({ id: c.id, label: c.title }))
-  step.value = 2
-}
-
-async function goLessonsList() {
-  if (lessonKind.value === 'category') {
-    if (!selCategory.value) return
-    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
-      '/api/lessons',
-      { query: { category_id: selCategory.value } },
-    )
-    orderedRows.value = [...list]
-      .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-      .map(l => ({ id: l.id, label: l.title }))
-    step.value = 2
-    return
-  }
-  if (lessonKind.value === 'chapter') {
-    if (!selChapter.value) return
-    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
-      '/api/lessons',
-      { query: { chapter_id: selChapter.value } },
-    )
-    orderedRows.value = [...list]
-      .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-      .map(l => ({ id: l.id, label: l.title }))
-    step.value = 2
-    return
-  }
-  if (lessonKind.value === 'subject') {
-    if (!selSubject.value) return
-    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
-      '/api/lessons',
-      { query: { subject_id: selSubject.value } },
-    )
-    orderedRows.value = [...list]
-      .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
-      .map(l => ({ id: l.id, label: l.title }))
-    step.value = 2
-  }
-}
-
-function pickLessonKind(k: NonNullable<LessonSortKind>) {
-  lessonKind.value = k
-  selGrade.value = ''
+watch(selGrade, () => {
   selSubject.value = ''
   selChapter.value = ''
-  selCategory.value = ''
-  step.value = 1
-}
+  if (props.mode === 'subjects') syncSubjectRows()
+  if (props.mode === 'chapters') orderedRows.value = []
+})
 
-function back() {
-  if (props.mode === 'categories') {
-    emit('close')
-    return
-  }
-  if (props.mode === 'subjects') {
-    if (step.value >= 1) {
-      step.value = 0
+watch(selSubject, () => {
+  selChapter.value = ''
+  if (props.mode === 'chapters') syncChapterRows()
+  if (props.mode === 'lessons' && lessonKind.value === 'subject') {
+    if (selSubject.value) loadLessons()
+    else {
+      lessonFetchGen++
+      listLoading.value = false
       orderedRows.value = []
     }
-    return
   }
-  if (props.mode === 'chapters') {
-    if (step.value === 2) {
-      step.value = 1
-      orderedRows.value = []
-    } else if (step.value === 1) {
-      step.value = 0
-      selSubject.value = ''
-      orderedRows.value = []
-    }
-    return
+})
+
+watch(selChapter, () => {
+  if (props.mode !== 'lessons' || lessonKind.value !== 'chapter') return
+  if (selChapter.value) loadLessons()
+  else {
+    lessonFetchGen++
+    listLoading.value = false
+    orderedRows.value = []
   }
-  if (props.mode === 'lessons') {
-    if (step.value === 2) {
-      step.value = 1
-      orderedRows.value = []
-      return
-    }
-    if (step.value === 1) {
-      step.value = 0
-      lessonKind.value = null
-      selGrade.value = ''
-      selSubject.value = ''
-      selChapter.value = ''
-      selCategory.value = ''
-    }
+})
+
+watch(selCategory, () => {
+  if (props.mode !== 'lessons' || lessonKind.value !== 'category') return
+  if (selCategory.value) loadLessons()
+  else {
+    lessonFetchGen++
+    listLoading.value = false
+    orderedRows.value = []
   }
-}
+})
 
 async function saveOrder() {
   if (!orderedRows.value.length) return
@@ -253,41 +271,16 @@ async function saveOrder() {
     saveLoading.value = false
   }
 }
-
-function canProceedSubjects() {
-  return !!selGrade.value
-}
-
-function canProceedChaptersStep0() {
-  return !!selGrade.value
-}
-
-function canProceedChaptersStep1() {
-  return !!selSubject.value
-}
-
-function canProceedLessonsStep1() {
-  if (lessonKind.value === 'category') return !!selCategory.value
-  if (lessonKind.value === 'chapter') return !!selGrade.value && !!selSubject.value && !!selChapter.value
-  if (lessonKind.value === 'subject') return !!selGrade.value && !!selSubject.value
-  return false
-}
-
-watch(selGrade, () => {
-  selSubject.value = ''
-  selChapter.value = ''
-})
-
-watch(selSubject, () => {
-  selChapter.value = ''
-})
 </script>
 
 <template>
   <UiDialog :open="props.open" @update:open="(v: boolean) => !v && emit('close')">
     <UiDialogPortal>
       <UiDialogOverlay />
-      <UiDialogContent class="max-w-lg max-h-[90vh] overflow-y-auto">
+      <UiDialogContent
+        class="max-h-[90vh] overflow-y-auto"
+        :class="mode === 'lessons' ? 'max-w-5xl' : 'max-w-lg'"
+      >
         <UiDialogHeader>
           <UiDialogTitle>{{ modalTitle }}</UiDialogTitle>
           <UiDialogDescription class="sr-only">{{ t('admin.sortModal.description') }}</UiDialogDescription>
@@ -298,50 +291,21 @@ watch(selSubject, () => {
         </div>
 
         <template v-else>
-          <!-- Subjects -->
-          <template v-if="mode === 'subjects'">
-            <div v-if="step === 0" class="space-y-4 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
-              <Select v-model="selGrade">
-                <SelectTrigger>
-                  <SelectValue :placeholder="t('admin.selectGrade')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
-                </SelectContent>
-              </Select>
-              <UiButton :disabled="!canProceedSubjects()" class="w-full" @click="goSubjectsList">
-                {{ t('admin.sortModal.continue') }}
-              </UiButton>
-            </div>
-            <div v-else class="space-y-3 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
-              <div v-if="!orderedRows.length" class="text-sm text-muted-foreground py-6 text-center">
-                {{ t('admin.sortModal.emptyList') }}
-              </div>
-              <div
-                v-for="(row, index) in orderedRows"
-                v-else
-                :key="row.id"
-                class="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-opacity"
-                draggable="true"
-                @dragstart="onDragStart($event, index)"
-                @dragend="onDragEnd"
-                @dragover="onDragOver"
-                @drop="onDrop($event, index)"
-              >
-                <div class="cursor-grab active:cursor-grabbing text-muted-foreground shrink-0 rounded p-1 hover:bg-muted" aria-hidden="true">
-                  <VIcon name="bi-grip-vertical" class="size-5" />
-                </div>
-                <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
-              </div>
-            </div>
-          </template>
+          <div v-if="mode === 'subjects'" class="space-y-1.5 py-2">
+            <UiLabel>{{ t('admin.sortModal.pickGrade') }}</UiLabel>
+            <Select v-model="selGrade">
+              <SelectTrigger>
+                <SelectValue :placeholder="t('admin.selectGrade')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-          <!-- Chapters -->
-          <template v-else-if="mode === 'chapters'">
-            <div v-if="step === 0" class="space-y-4 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
+          <div v-else-if="mode === 'chapters'" class="flex flex-col gap-3 py-2 sm:flex-row sm:items-end">
+            <div class="min-w-0 flex-1 space-y-1.5">
+              <UiLabel>{{ t('admin.sortModal.pickGrade') }}</UiLabel>
               <Select v-model="selGrade">
                 <SelectTrigger>
                   <SelectValue :placeholder="t('admin.selectGrade')" />
@@ -350,12 +314,9 @@ watch(selSubject, () => {
                   <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                 </SelectContent>
               </Select>
-              <UiButton :disabled="!canProceedChaptersStep0()" class="w-full" @click="step = 1">
-                {{ t('admin.sortModal.continue') }}
-              </UiButton>
             </div>
-            <div v-else-if="step === 1" class="space-y-4 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickSubject') }}</p>
+            <div class="min-w-0 flex-1 space-y-1.5">
+              <UiLabel>{{ t('admin.sortModal.pickSubject') }}</UiLabel>
               <Select v-model="selSubject">
                 <SelectTrigger>
                   <SelectValue :placeholder="t('admin.selectSubject')" />
@@ -364,92 +325,30 @@ watch(selSubject, () => {
                   <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                 </SelectContent>
               </Select>
-              <UiButton :disabled="!canProceedChaptersStep1()" class="w-full" @click="goChaptersList">
-                {{ t('admin.sortModal.continue') }}
-              </UiButton>
             </div>
-            <div v-else class="space-y-3 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
-              <div v-if="!orderedRows.length" class="text-sm text-muted-foreground py-6 text-center">
-                {{ t('admin.sortModal.emptyList') }}
-              </div>
-              <div
-                v-for="(row, index) in orderedRows"
-                v-else
-                :key="row.id"
-                class="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-opacity"
-                draggable="true"
-                @dragstart="onDragStart($event, index)"
-                @dragend="onDragEnd"
-                @dragover="onDragOver"
-                @drop="onDrop($event, index)"
+          </div>
+
+          <div v-else-if="mode === 'lessons'" class="flex items-end gap-3 py-2">
+            <div class="min-w-0 flex-1 space-y-1.5">
+              <UiLabel>{{ t('admin.placementType') }}</UiLabel>
+              <Select
+                :model-value="lessonKind"
+                @update:model-value="(v) => onLessonTypeChange(String(v) as LessonSortKind)"
               >
-                <div class="cursor-grab active:cursor-grabbing text-muted-foreground shrink-0 rounded p-1 hover:bg-muted" aria-hidden="true">
-                  <VIcon name="bi-grip-vertical" class="size-5" />
-                </div>
-                <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
-              </div>
-            </div>
-          </template>
-
-          <!-- Categories -->
-          <template v-else-if="mode === 'categories'">
-            <div v-if="step === 1" class="space-y-3 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
-              <div v-if="!orderedRows.length" class="text-sm text-muted-foreground py-6 text-center">
-                {{ t('admin.sortModal.emptyList') }}
-              </div>
-              <div
-                v-for="(row, index) in orderedRows"
-                v-else
-                :key="row.id"
-                class="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-opacity"
-                draggable="true"
-                @dragstart="onDragStart($event, index)"
-                @dragend="onDragEnd"
-                @dragover="onDragOver"
-                @drop="onDrop($event, index)"
-              >
-                <div class="cursor-grab active:cursor-grabbing text-muted-foreground shrink-0 rounded p-1 hover:bg-muted" aria-hidden="true">
-                  <VIcon name="bi-grip-vertical" class="size-5" />
-                </div>
-                <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
-              </div>
-            </div>
-          </template>
-
-          <!-- Lessons -->
-          <template v-else-if="mode === 'lessons'">
-            <div v-if="step === 0" class="space-y-3 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.lessonsPickScope') }}</p>
-              <div class="flex flex-col gap-2">
-                <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('category')">
-                  <span class="text-left">{{ t('admin.sortModal.scopeCategory') }}</span>
-                </UiButton>
-                <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('subject')">
-                  <span class="text-left">{{ t('admin.sortModal.scopeSubject') }}</span>
-                </UiButton>
-                <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('chapter')">
-                  <span class="text-left">{{ t('admin.sortModal.scopeChapter') }}</span>
-                </UiButton>
-              </div>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
+                  <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
+                  <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div v-else-if="step === 1" class="space-y-4 py-2">
-              <template v-if="lessonKind === 'category'">
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickCategory') }}</p>
-                <Select v-model="selCategory">
-                  <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectCategory')" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </template>
-
-              <template v-else-if="lessonKind === 'subject'">
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
+            <template v-if="lessonKind === 'subject'">
+              <div class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
                 <Select v-model="selGrade">
                   <SelectTrigger>
                     <SelectValue :placeholder="t('admin.selectGrade')" />
@@ -458,7 +357,9 @@ watch(selSubject, () => {
                     <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickSubject') }}</p>
+              </div>
+              <div v-if="selGrade" class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
                 <Select v-model="selSubject">
                   <SelectTrigger>
                     <SelectValue :placeholder="t('admin.selectSubject')" />
@@ -467,10 +368,12 @@ watch(selSubject, () => {
                     <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                   </SelectContent>
                 </Select>
-              </template>
+              </div>
+            </template>
 
-              <template v-else-if="lessonKind === 'chapter'">
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
+            <template v-else-if="lessonKind === 'chapter'">
+              <div class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
                 <Select v-model="selGrade">
                   <SelectTrigger>
                     <SelectValue :placeholder="t('admin.selectGrade')" />
@@ -479,7 +382,9 @@ watch(selSubject, () => {
                     <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickSubject') }}</p>
+              </div>
+              <div v-if="selGrade" class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
                 <Select v-model="selSubject">
                   <SelectTrigger>
                     <SelectValue :placeholder="t('admin.selectSubject')" />
@@ -488,7 +393,9 @@ watch(selSubject, () => {
                     <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickChapter') }}</p>
+              </div>
+              <div v-if="selSubject" class="min-w-0 flex-1 space-y-1.5">
+                <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
                 <Select v-model="selChapter">
                   <SelectTrigger>
                     <SelectValue :placeholder="t('admin.selectChapter')" />
@@ -497,21 +404,30 @@ watch(selSubject, () => {
                     <SelectItem v-for="c in filteredChapters" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
                   </SelectContent>
                 </Select>
-              </template>
-
-              <UiButton :disabled="!canProceedLessonsStep1()" class="w-full" @click="goLessonsList">
-                {{ t('admin.sortModal.continue') }}
-              </UiButton>
-            </div>
-
-            <div v-else-if="step === 2" class="space-y-3 py-2">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
-              <div v-if="!orderedRows.length" class="text-sm text-muted-foreground py-6 text-center">
-                {{ t('admin.sortModal.emptyList') }}
               </div>
+            </template>
+
+            <div v-else class="min-w-0 flex-1 space-y-1.5">
+              <UiLabel>{{ t('admin.field.category') }}</UiLabel>
+              <Select v-model="selCategory">
+                <SelectTrigger>
+                  <SelectValue :placeholder="t('admin.selectCategory')" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div v-if="showList" class="space-y-3 py-2">
+            <p v-if="listLoading" class="py-6 text-center text-sm text-muted-foreground">
+              {{ t('common.loading') }}
+            </p>
+            <template v-else-if="orderedRows.length">
+              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
               <div
                 v-for="(row, index) in orderedRows"
-                v-else
                 :key="row.id"
                 class="flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-opacity"
                 draggable="true"
@@ -520,26 +436,22 @@ watch(selSubject, () => {
                 @dragover="onDragOver"
                 @drop="onDrop($event, index)"
               >
-                <div class="cursor-grab active:cursor-grabbing text-muted-foreground shrink-0 rounded p-1 hover:bg-muted" aria-hidden="true">
+                <div class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 text-muted-foreground hover:bg-muted" aria-hidden="true">
                   <VIcon name="bi-grip-vertical" class="size-5" />
                 </div>
                 <span class="min-w-0 flex-1 font-medium">{{ row.label }}</span>
               </div>
+            </template>
+            <div v-else class="py-6 text-center text-sm text-muted-foreground">
+              {{ t('admin.sortModal.emptyList') }}
             </div>
-          </template>
+          </div>
         </template>
 
         <UiDialogFooter class="gap-2 sm:gap-0">
-          <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
           <UiButton
-            v-if="!loading && step > 0 && mode !== 'categories'"
-            variant="outline"
-            @click="back"
-          >
-            {{ t('admin.sortModal.back') }}
-          </UiButton>
-          <UiButton
-            v-if="!loading && orderedRows.length > 0 && (step > 0 || mode === 'categories')"
+            v-if="!loading && !listLoading && orderedRows.length > 0"
             :disabled="saveLoading"
             @click="saveOrder"
           >

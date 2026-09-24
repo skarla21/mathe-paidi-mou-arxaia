@@ -254,7 +254,7 @@ async function confirmDelete() {
           </TabsContent>
         </Tabs>
         <UiDialogFooter class="mt-4 min-w-0">
-          <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>
@@ -286,7 +286,7 @@ async function confirmDelete() {
         </UiAlertDialogHeader>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel>
-            <UiButton variant="outline">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
           </UiAlertDialogCancel>
           <UiAlertDialogAction as-child>
             <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">

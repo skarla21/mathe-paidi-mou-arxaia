@@ -34,6 +34,7 @@ const imageUrl = ref('')
 const grades = ref<{ id: string; name: string }[]>([])
 const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const loading = ref(false)
+const attempted = ref(false)
 const initializing = ref(false)
 
 const filteredSubjects = computed(() =>
@@ -47,8 +48,13 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png'] as const
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
+const titleMissing = computed(() => attempted.value && !title.value.trim())
+const gradeMissing = computed(() => attempted.value && !gradeId.value)
+const subjectMissing = computed(() => attempted.value && !!gradeId.value && !subjectId.value)
+
 watch(() => props.open, async (val) => {
   if (!val) return
+  attempted.value = false
   initializing.value = true
   title.value = props.chapter?.title ?? ''
   description.value = props.chapter?.description ?? ''
@@ -139,7 +145,8 @@ function clearImage() {
 }
 
 async function onSubmit() {
-  if (!title.value.trim() || !gradeId.value || !subjectId.value) return
+  attempted.value = true
+  if (titleMissing.value || !gradeId.value || !subjectId.value) return
   loading.value = true
   try {
     const body = {
@@ -175,7 +182,8 @@ async function onSubmit() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.title') }}</UiLabel>
-            <UiInput v-model="title" required />
+            <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
+            <p v-if="titleMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.title') }) }}</p>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.description') }}</UiLabel>
@@ -184,24 +192,26 @@ async function onSubmit() {
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
             <Select v-model="gradeId">
-              <SelectTrigger>
+              <SelectTrigger :aria-invalid="gradeMissing || undefined">
                 <SelectValue :placeholder="t('admin.selectGrade')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
               </SelectContent>
             </Select>
+            <p v-if="gradeMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
           </div>
           <div v-if="gradeId" class="space-y-1.5">
             <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
             <Select v-model="subjectId">
-              <SelectTrigger>
+              <SelectTrigger :aria-invalid="subjectMissing || undefined">
                 <SelectValue :placeholder="t('admin.selectSubject')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
               </SelectContent>
             </Select>
+            <p v-if="subjectMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.subject') }) }}</p>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.imageUrl') }}</UiLabel>
@@ -245,7 +255,7 @@ async function onSubmit() {
             <UiInput v-model="imageUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
           </UiDialogFooter>
         </form>

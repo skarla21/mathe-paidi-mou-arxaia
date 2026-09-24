@@ -401,6 +401,7 @@
     "addPlacement": "Προσθήκη τοποθέτησης",
     "removePlacement": "Αφαίρεση τοποθέτησης",
     "placementRequired": "Απαιτείται τουλάχιστον μία έγκυρη τοποθέτηση",
+    "fieldRequired": "Το πεδίο «{field}» είναι υποχρεωτικό",
     "grantAccess": "Χορήγηση πρόσβασης",
     "grantSuccess": "Η πρόσβαση χορηγήθηκε",
     "grantError": "Αποτυχία χορήγησης",

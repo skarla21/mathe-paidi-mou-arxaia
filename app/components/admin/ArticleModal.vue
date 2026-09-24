@@ -31,11 +31,16 @@ const tagDraft = ref('')
 const published = ref(false)
 const tagFieldFocused = ref(false)
 const saving = ref(false)
+const attempted = ref(false)
+
+const titleMissing = computed(() => attempted.value && !title.value.trim())
+const bodyMissing = computed(() => attempted.value && !body.value.trim())
 
 watch(
   () => props.open,
   (open) => {
     if (!open) return
+    attempted.value = false
     if (props.article) {
       title.value = props.article.title
       body.value = props.article.body
@@ -108,16 +113,10 @@ const tagSuggestions = computed(() => {
 })
 
 async function save() {
+  attempted.value = true
   const tVal = title.value.trim()
-  if (!tVal) {
-    toast.error(t('common.error'))
-    return
-  }
   const bVal = body.value.trim()
-  if (!bVal) {
-    toast.error(t('common.error'))
-    return
-  }
+  if (!tVal || !bVal) return
   saving.value = true
   if (tagDraft.value.trim()) commitDraft(tagDraft.value)
   try {
@@ -155,7 +154,8 @@ async function save() {
         <div class="space-y-4 py-2">
           <div>
             <UiLabel class="mb-1.5 block">{{ t('admin.field.title') }}</UiLabel>
-            <UiInput v-model="title" />
+            <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
+            <p v-if="titleMissing" class="mt-1.5 text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.title') }) }}</p>
           </div>
           <div>
             <UiLabel class="mb-1.5 block">{{ t('admin.field.tags') }}</UiLabel>
@@ -207,7 +207,8 @@ async function save() {
           </div>
           <div>
             <UiLabel class="mb-1.5 block">{{ t('admin.field.content') }}</UiLabel>
-            <UiTextarea v-model="body" class="min-h-[200px] font-mono text-sm" />
+            <UiTextarea v-model="body" class="min-h-[200px] font-mono text-sm" :class="bodyMissing ? 'border-destructive' : ''" :aria-invalid="bodyMissing || undefined" />
+            <p v-if="bodyMissing" class="mt-1.5 text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.content') }) }}</p>
           </div>
           <div class="flex items-center justify-between gap-3">
             <UiLabel>{{ t('admin.field.published') }}</UiLabel>
@@ -215,7 +216,7 @@ async function save() {
           </div>
         </div>
         <UiDialogFooter class="gap-2">
-          <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
           <UiButton :disabled="saving" @click="save">{{ t('admin.modal.save') }}</UiButton>
         </UiDialogFooter>
       </UiDialogContent>

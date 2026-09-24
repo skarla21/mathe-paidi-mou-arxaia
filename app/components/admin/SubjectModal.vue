@@ -27,6 +27,7 @@ const gradeId = ref('')
 const imageUrl = ref('')
 const grades = ref<{ id: string; name: string }[]>([])
 const loading = ref(false)
+const attempted = ref(false)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const dragActive = ref(false)
@@ -35,8 +36,12 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png'] as const
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
+const nameMissing = computed(() => attempted.value && !name.value.trim())
+const gradeMissing = computed(() => attempted.value && !gradeId.value)
+
 watch(() => props.open, async (val) => {
   if (!val) return
+  attempted.value = false
   name.value = props.subject?.name ?? ''
   gradeId.value = props.subject?.grade_id ?? ''
   imageUrl.value = props.subject?.image_url ?? ''
@@ -98,7 +103,8 @@ function onDragLeave() {
 }
 
 async function onSubmit() {
-  if (!name.value.trim() || !gradeId.value) return
+  attempted.value = true
+  if (nameMissing.value || gradeMissing.value) return
   loading.value = true
   try {
     const body = { name: name.value, grade_id: gradeId.value, image_url: imageUrl.value || null }
@@ -130,18 +136,20 @@ async function onSubmit() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
             <UiLabel for="subject-name">{{ t('admin.field.name') }}</UiLabel>
-            <UiInput id="subject-name" v-model="name" required />
+            <UiInput id="subject-name" v-model="name" :aria-invalid="nameMissing || undefined" :class="nameMissing ? 'border-destructive' : ''" />
+            <p v-if="nameMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.name') }) }}</p>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
             <Select v-model="gradeId">
-              <SelectTrigger>
+              <SelectTrigger :aria-invalid="gradeMissing || undefined">
                 <SelectValue :placeholder="t('admin.selectGrade')" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
               </SelectContent>
             </Select>
+            <p v-if="gradeMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.imageUrl') }}</UiLabel>
@@ -173,7 +181,7 @@ async function onSubmit() {
             <UiInput v-model="imageUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
           </UiDialogFooter>
         </form>

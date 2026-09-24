@@ -200,7 +200,7 @@ function copyStripeId(value: string | null | undefined) {
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
             <UiAlertDialogCancel>
-              <UiButton variant="outline">{{ t('admin.modal.cancel') }}</UiButton>
+              <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
             </UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
               <UiButton :disabled="!!grantingId" @click="confirmGrantAccess">

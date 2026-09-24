@@ -267,7 +267,7 @@ async function confirmLogout() {
                 </UiAlertDialogHeader>
                 <UiAlertDialogFooter>
                   <UiAlertDialogCancel>
-                    <UiButton variant="outline">{{
+                    <UiButton variant="cancel">{{
                       t("auth.logoutConfirm.cancel")
                     }}</UiButton>
                   </UiAlertDialogCancel>

@@ -25,6 +25,7 @@ const name = ref('')
 const description = ref('')
 const imageUrl = ref('')
 const loading = ref(false)
+const attempted = ref(false)
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const dragActive = ref(false)
@@ -34,8 +35,11 @@ const adminFetch = useAdminFetch()
 const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png'] as const
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 
+const nameMissing = computed(() => attempted.value && !name.value.trim())
+
 watch(() => props.open, (val) => {
   if (val) {
+    attempted.value = false
     name.value = props.category?.name ?? ''
     description.value = props.category?.description ?? ''
     imageUrl.value = props.category?.image_url ?? ''
@@ -97,7 +101,8 @@ function onDragLeave() {
 }
 
 async function onSubmit() {
-  if (!name.value.trim()) return
+  attempted.value = true
+  if (nameMissing.value) return
   loading.value = true
   try {
     const body = { name: name.value, description: description.value || null, image_url: imageUrl.value || null }
@@ -129,7 +134,8 @@ async function onSubmit() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
             <UiLabel for="category-name">{{ t('admin.field.name') }}</UiLabel>
-            <UiInput id="category-name" v-model="name" required />
+            <UiInput id="category-name" v-model="name" :aria-invalid="nameMissing || undefined" :class="nameMissing ? 'border-destructive' : ''" />
+            <p v-if="nameMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.name') }) }}</p>
           </div>
           <div class="space-y-1.5">
             <UiLabel>{{ t('admin.field.description') }}</UiLabel>
@@ -165,7 +171,7 @@ async function onSubmit() {
             <UiInput v-model="imageUrl" :placeholder="t('admin.placeholder.url')" />
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
           </UiDialogFooter>
         </form>

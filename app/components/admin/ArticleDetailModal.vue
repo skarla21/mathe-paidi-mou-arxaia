@@ -176,7 +176,7 @@ function formatDate(iso: string) {
         </Tabs>
 
         <UiDialogFooter class="mt-4">
-          <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>
@@ -192,7 +192,7 @@ function formatDate(iso: string) {
         </UiAlertDialogHeader>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel>
-            <UiButton variant="outline">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
           </UiAlertDialogCancel>
           <UiAlertDialogAction as-child>
             <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">

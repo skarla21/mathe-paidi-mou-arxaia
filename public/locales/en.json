@@ -401,6 +401,7 @@
     "addPlacement": "Add placement",
     "removePlacement": "Remove placement",
     "placementRequired": "At least one valid placement is required",
+    "fieldRequired": "{field} is required",
     "grantAccess": "Grant Access",
     "grantSuccess": "Access granted",
     "grantError": "Failed to grant access",

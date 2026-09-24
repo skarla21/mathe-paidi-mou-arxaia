@@ -21,16 +21,21 @@ const { t } = useI18n()
 
 const name = ref('')
 const loading = ref(false)
+const attempted = ref(false)
 const adminFetch = useAdminFetch()
+
+const nameMissing = computed(() => attempted.value && !name.value.trim())
 
 watch(() => props.open, (val) => {
   if (val) {
+    attempted.value = false
     name.value = props.grade?.name ?? ''
   }
 })
 
 async function onSubmit() {
-  if (!name.value.trim()) return
+  attempted.value = true
+  if (nameMissing.value) return
   loading.value = true
   try {
     if (props.grade) {
@@ -61,10 +66,11 @@ async function onSubmit() {
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
             <UiLabel for="grade-name">{{ t('admin.field.name') }}</UiLabel>
-            <UiInput id="grade-name" v-model="name" required />
+            <UiInput id="grade-name" v-model="name" :aria-invalid="nameMissing || undefined" :class="nameMissing ? 'border-destructive' : ''" />
+            <p v-if="nameMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.name') }) }}</p>
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
             <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
           </UiDialogFooter>
         </form>
