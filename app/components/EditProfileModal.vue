@@ -18,7 +18,7 @@ import UiLabel from '~/components/ui/Label.vue'
 
 const { isOpen, close } = useEditProfileModal()
 const { session, fetchSession, updateUser } = useCurrentUser()
-const { t } = useI18n()
+const { t, translateApiError } = useI18n()
 
 const name = ref('')
 const avatarPreview = ref<string | null>(null)
@@ -43,11 +43,10 @@ async function resendVerification() {
     const err = e as { data?: { message?: string; statusCode?: number }; statusCode?: number } | null
     const status = err?.statusCode ?? err?.data?.statusCode
     const msg = err?.data?.message ?? ''
-    if (status === 429) {
-      toast.error(t('auth.verification.resendCooldown'))
-    } else {
-      toast.error(msg === 'Email already verified' ? t('auth.verification.verified') : (msg || t('auth.verification.resendError')))
-    }
+    toast.error(translateApiError(
+      msg,
+      status === 429 ? t('auth.verification.resendCooldown') : t('auth.verification.resendError'),
+    ))
   } finally {
     resendVerificationLoading.value = false
   }

@@ -10,19 +10,23 @@ export default defineEventHandler(async (event) => {
   const tokenHash = hashToken(token)
   const supabase = serverSupabaseService()
 
-  const { data: row } = await supabase
-    .from('verification_tokens')
-    .select('user_id')
-    .eq('token_hash', tokenHash)
-    .gt('expires_at', new Date().toISOString())
-    .maybeSingle()
+  const { data: consumed, error } = await supabase.rpc('consume_verification_token', {
+    p_token_hash: tokenHash,
+  })
 
-  if (!row) {
+  if (error) {
+    console.error('[verify-email]', error.message)
+    return sendRedirect(event, '/profile/edit?error=unavailable', 302)
+  }
+
+  if (consumed === true) {
+    return sendRedirect(event, '/profile/edit?verified=1', 302)
+  }
+
+  if (consumed === false) {
     return sendRedirect(event, '/profile/edit?error=expired_token', 302)
   }
 
-  await supabase.from('users').update({ email_verified: true }).eq('id', row.user_id)
-  await supabase.from('verification_tokens').delete().eq('token_hash', tokenHash)
-
-  return sendRedirect(event, '/profile/edit?verified=1', 302)
+  console.error('[verify-email]', 'consume_verification_token returned no boolean')
+  return sendRedirect(event, '/profile/edit?error=unavailable', 302)
 })

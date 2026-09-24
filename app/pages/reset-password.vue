@@ -9,7 +9,7 @@ import UiLabel from "~/components/ui/Label.vue";
 import UiPasswordInput from "~/components/ui/PasswordInput.vue";
 
 const route = useRoute();
-const { t } = useI18n();
+const { t, translateApiError } = useI18n();
 
 useHead(() => ({
   title: t("auth.resetPassword.title"),
@@ -44,9 +44,9 @@ async function onSubmit() {
     await navigateTo("/login");
   } catch (e: unknown) {
     const err = e as { data?: { message?: string }; message?: string };
-    toast.error(
-      err?.data?.message ?? err?.message ?? t("auth.resetPassword.error"),
-    );
+    const msg =
+      err?.data?.message ?? err?.message ?? "auth.resetPassword.error";
+    toast.error(translateApiError(msg, t("auth.resetPassword.error")));
   } finally {
     loading.value = false;
   }

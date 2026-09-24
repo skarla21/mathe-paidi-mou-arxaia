@@ -196,6 +196,15 @@ const supabase = serverSupabaseService(); // admin/server — bypasses RLS
 const supabase = serverSupabaseAnon(); // public reads — respects RLS
 ```
 
+### Auth tokens
+
+Routes never insert token rows. They delete only the row they just created when the email send fails (`forgot-password`, `resend-verification`, and `register`). Call the service-role functions in `supabase/schema.sql`:
+
+- `register_credentials_user` / `issue_verification_token` / `consume_verification_token`
+- `issue_password_reset_token` / `mark_password_reset_sent` / `password_reset_token_active` / `consume_password_reset`
+
+`register_credentials_user` lowercases the email, inserts a credentials user and the first verification token in one transaction, and returns null when that email already exists, including a unique-violation race. A token failure rolls the new user back. Each other call is one transaction and only changes that user's rows. There is no scheduled cleanup. Issuing or consuming a link deletes that user's other token rows. Consuming a reset deletes that user's reset rows; it does not mark them used. `EXECUTE` is granted only to `service_role`. `issue_password_reset_token` returns `issued`, `cooldown`, or `busy`. `sent_at` is set only by `mark_password_reset_sent` after Resend accepts the email. A credentials user gets `{ ok: true }` only for `cooldown` (a row with `sent_at` inside 5 minutes) or for `issued` plus a successful mark. `busy` means an unsent row is younger than the 120-second lease: the route returns 500 and does not delete that row. A failed send deletes the new row and returns 500. If that delete fails, the next request is `busy` (500), not success, until the lease expires and a new link can be issued. Do not treat an unsent row as cooldown, do not set `sent_at` before the email is accepted, and do not return 200 when the mark matches zero rows. `forgot-password` and `resend-verification` return 500 when the lookup, save, or send fails. `register` returns `{ ok: true }` on a send failure and does not delete the user. Awaiting the reset email means a request for a real credentials account takes longer than a request for an unknown email; that timing difference is accepted so the user is not told to check an empty inbox. On an existing database, run the auth-token block in `supabase/schema.sql` before deploying the routes. That block deletes reset rows that were only marked used, then drops `used_at` and `email_sent`, drops the non-unique `users_email_idx`, enables row-level security on both token tables, ensures the verification `token_hash` index, and creates a unique index on `users.email`. It stops if two users share an email.
+
 ---
 
 ## Fonts

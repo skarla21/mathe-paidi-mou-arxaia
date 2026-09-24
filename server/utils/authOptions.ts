@@ -90,17 +90,34 @@ export function getAuthOptions(): AuthConfig {
             let dbUser = existing;
 
             if (!dbUser) {
-              const { data: inserted } = await supabase
+              const { data: inserted, error: insertError } = await supabase
                 .from("users")
                 .insert({ email, name, avatar_url, email_verified: true, provider: "google" })
                 .select('id, "isAdmin", name, avatar_url')
                 .single();
 
-              dbUser = inserted ?? null;
+              if (insertError?.code === "23505") {
+                const { data: raced, error: raceError } = await supabase
+                  .from("users")
+                  .select('id, "isAdmin", name, avatar_url')
+                  .eq("email", email)
+                  .maybeSingle();
+                if (raceError || !raced) {
+                  console.error("[auth] Google user insert raced but row was not found", raceError?.message);
+                  throw new Error("Unable to create Google user");
+                }
+                dbUser = raced;
+              } else if (insertError || !inserted) {
+                console.error("[auth] Google user insert failed", insertError?.message);
+                throw new Error("Unable to create Google user");
+              } else {
+                dbUser = inserted;
+              }
             } else {
+              // Leave provider unchanged. A credentials row is the only password-reset account for this email.
               await supabase
                 .from("users")
-                .update({ email_verified: true, provider: "google" })
+                .update({ email_verified: true })
                 .eq("id", dbUser.id);
             }
 

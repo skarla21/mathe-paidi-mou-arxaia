@@ -77,6 +77,15 @@ export function useI18n() {
     return out;
   }
 
+  function translateApiError(message: string | undefined, fallback: string): string {
+    const msg = message ?? ""
+    if (/^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z][A-Za-z0-9]*)+$/.test(msg)) {
+      const translated = t(msg)
+      if (translated !== msg) return translated
+    }
+    return msg || fallback
+  }
+
   function setLocale(locale: Locale) {
     currentLocale.value = locale;
     localeCookie.value = locale;
@@ -87,5 +96,5 @@ export function useI18n() {
     // Kept for API compatibility with existing callers.
   }
 
-  return { t, locale: readonly(currentLocale), setLocale, init };
+  return { t, translateApiError, locale: readonly(currentLocale), setLocale, init };
 }
