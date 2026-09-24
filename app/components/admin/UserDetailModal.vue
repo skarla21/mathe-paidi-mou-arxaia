@@ -105,13 +105,13 @@ async function confirmDelete() {
   <UiDialog :open="!!props.open" @update:open="(v: boolean) => !v && emit('close')">
     <UiDialogPortal>
       <UiDialogOverlay />
-      <UiDialogContent class="max-w-lg max-h-[80vh] overflow-y-auto">
-        <UiDialogHeader>
+      <UiDialogContent class="w-fit min-w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] max-h-[80vh] overflow-x-hidden overflow-y-auto">
+        <UiDialogHeader class="min-w-0">
           <UiDialogTitle>{{ t('admin.userDetails') }}</UiDialogTitle>
         </UiDialogHeader>
         <div v-if="loading" class="py-4 text-sm text-muted-foreground">{{ t('common.loading') }}</div>
-        <Tabs v-else default-value="downloads">
-          <TabsList class="w-full overflow-x-auto">
+        <Tabs v-else default-value="downloads" class="min-w-0 max-w-full">
+          <TabsList class="w-max max-w-full overflow-x-auto">
             <TabsTrigger value="downloads" class="flex-1 text-xs">
               {{ t('admin.field.downloads') }} ({{ downloads.length }})
             </TabsTrigger>
@@ -253,7 +253,7 @@ async function confirmDelete() {
             </ul>
           </TabsContent>
         </Tabs>
-        <UiDialogFooter class="mt-4">
+        <UiDialogFooter class="mt-4 min-w-0">
           <UiButton variant="outline" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
         </UiDialogFooter>
       </UiDialogContent>

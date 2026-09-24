@@ -81,7 +81,7 @@ function onNotificationsRefresh() {
       <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1 min-w-0">{{ t('admin.nav') }}</NuxtLink>
       <button
         type="button"
-        class="relative p-2 rounded-md hover:bg-muted shrink-0"
+        class="relative p-2 rounded-md hover:bg-muted shrink-0 cursor-pointer"
         :aria-label="t('admin.notifications.openAria')"
         @click="notificationsOpen = true"
       >
@@ -170,7 +170,7 @@ function onNotificationsRefresh() {
           </NuxtLink>
           <button
             type="button"
-            class="relative p-2 rounded-md hover:bg-muted shrink-0"
+            class="relative p-2 rounded-md hover:bg-muted shrink-0 cursor-pointer"
             :aria-label="t('admin.notifications.openAria')"
             @click="notificationsOpen = true"
           >

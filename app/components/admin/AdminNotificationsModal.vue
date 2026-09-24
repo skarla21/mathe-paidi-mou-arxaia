@@ -193,51 +193,51 @@ function togglePref(
             <template v-else>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.purchase') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_purchase"
-                  @update:checked="(v: boolean) => togglePref('notify_purchase', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_purchase"
+                  @update:model-value="(v: boolean) => togglePref('notify_purchase', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.download') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_download"
-                  @update:checked="(v: boolean) => togglePref('notify_download', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_download"
+                  @update:model-value="(v: boolean) => togglePref('notify_download', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.rating') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_rating"
-                  @update:checked="(v: boolean) => togglePref('notify_rating', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_rating"
+                  @update:model-value="(v: boolean) => togglePref('notify_rating', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.comment') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_comment"
-                  @update:checked="(v: boolean) => togglePref('notify_comment', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_comment"
+                  @update:model-value="(v: boolean) => togglePref('notify_comment', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.contact') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_contact"
-                  @update:checked="(v: boolean) => togglePref('notify_contact', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_contact"
+                  @update:model-value="(v: boolean) => togglePref('notify_contact', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleLike') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_article_like"
-                  @update:checked="(v: boolean) => togglePref('notify_article_like', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_article_like"
+                  @update:model-value="(v: boolean) => togglePref('notify_article_like', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleComment') }}</UiLabel>
-                <Switch
-                  :checked="prefs.notify_article_comment"
-                  @update:checked="(v: boolean) => togglePref('notify_article_comment', v)"
+                <Switch class="cursor-pointer"
+                  :model-value="prefs.notify_article_comment"
+                  @update:model-value="(v: boolean) => togglePref('notify_article_comment', v)"
                 />
               </div>
             </template>
