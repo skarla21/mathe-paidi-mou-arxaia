@@ -571,6 +571,7 @@
         "generic": "Unable to register",
         "emailTaken": "This email is already registered"
       },
+      "rateLimited": "Too many requests. Please try again later.",
       "hasAccount": "Already have an account?",
       "loginLink": "Login"
     },
@@ -583,7 +584,9 @@
       "backToLogin": "Back to login",
       "success": "Check your email for the reset link.",
       "link": "Forgot password?",
-      "rateLimited": "Too many requests. Please try again later."
+      "rateLimited": "Too many requests. Please try again later.",
+      "sendFailed": "We could not send the reset email. Please try again.",
+      "sentUnconfirmed": "The reset email was sent, but we could not confirm it. If it does not arrive, wait a few minutes and try again."
     },
     "resetPassword": {
       "title": "Set new password",
@@ -593,7 +596,9 @@
       "submit": "Reset password",
       "success": "Password has been reset.",
       "error": "Something went wrong",
-      "invalidLink": "This link is invalid or has expired."
+      "invalidLink": "This link is invalid or has expired.",
+      "missingFields": "Token and password (min 8 chars) are required.",
+      "rateLimited": "Too many requests. Please try again later."
     },
     "verification": {
       "verified": "Email verified",
@@ -602,6 +607,9 @@
       "resendSuccess": "Verification email sent",
       "resendError": "Failed to send verification email",
       "invalidLink": "This verification link is invalid or has expired.",
+      "unavailable": "We could not verify your email. Please try again.",
+      "userNotFound": "User not found",
+      "rateLimited": "Too many requests. Please try again later.",
       "resendCooldown": "Please wait before requesting another verification email"
     }
   }

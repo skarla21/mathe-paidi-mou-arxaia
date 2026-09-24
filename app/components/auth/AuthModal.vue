@@ -2,7 +2,7 @@
 import { toast } from 'vue-sonner'
 import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '~/lib/validation'
 
-const { t } = useI18n()
+const { t, translateApiError } = useI18n()
 const { isOpen, activeTab, loginSubView, pendingRedirect, close, openForgot, backToLogin } = useAuthModal()
 const { fetchSession } = useCurrentUser()
 const { signInWithGoogle } = useGoogleSignIn()
@@ -96,9 +96,10 @@ async function onForgotSubmit() {
     forgotEmail.value = ''
   } catch (e: unknown) {
     const error = e as { data?: { message?: string }; message?: string }
-    const msg = error?.data?.message ?? error?.message ?? 'common.error'
-    forgotError.value =
-      msg.includes('.') && !msg.includes(' ') ? t(msg) : msg
+    forgotError.value = translateApiError(
+      error?.data?.message ?? error?.message,
+      t('common.error'),
+    )
   } finally {
     forgotLoading.value = false
   }
@@ -137,7 +138,11 @@ async function onRegisterSubmit() {
   } catch (e: unknown) {
     const error = e as { data?: { message?: string }; message?: string }
     const msg = error?.data?.message ?? error?.message ?? ''
-    toast.error(msg === 'EMAIL_TAKEN' ? t('auth.register.error.emailTaken') : msg || t('auth.register.error.generic'))
+    toast.error(
+      msg === 'EMAIL_TAKEN'
+        ? t('auth.register.error.emailTaken')
+        : translateApiError(msg, t('auth.register.error.generic')),
+    )
   } finally {
     registerLoading.value = false
   }

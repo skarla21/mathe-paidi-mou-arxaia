@@ -38,9 +38,11 @@ export async function sendVerificationEmail(to: string, link: string): Promise<v
   if (!data?.id) throw new Error("Failed to send verification email");
 }
 
+const RESET_SEND_TIMEOUT_MS = 20_000
+
 export async function sendPasswordResetEmail(to: string, link: string): Promise<void> {
   const resend = getResend();
-  const { data, error } = await resend.emails.send({
+  const send = resend.emails.send({
     from: DEFAULT_FROM,
     to,
     subject: "Reset your password - Mathe Paidi Mou Arxaia",
@@ -50,6 +52,13 @@ export async function sendPasswordResetEmail(to: string, link: string): Promise<
       <p>This link expires in 1 hour.</p>
     `,
   });
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const { data, error } = await Promise.race([
+    send.finally(() => clearTimeout(timeoutId)),
+    new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Password reset email timed out")), RESET_SEND_TIMEOUT_MS)
+    }),
+  ])
   if (error) throw new Error(error.message);
   if (!data?.id) throw new Error("Failed to send password reset email");
 }

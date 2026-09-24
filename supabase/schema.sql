@@ -15,7 +15,6 @@ create table if not exists public.users (
   provider text not null default 'credentials',
   created_at timestamptz not null default now()
 );
-create index if not exists users_email_idx on public.users(email);
 
 -- Verification tokens (magic link for email verification)
 create table if not exists public.verification_tokens (
@@ -26,6 +25,7 @@ create table if not exists public.verification_tokens (
   created_at timestamptz not null default now()
 );
 create index if not exists verification_tokens_user_id_idx on public.verification_tokens(user_id);
+create index if not exists verification_tokens_token_hash_idx on public.verification_tokens(token_hash);
 create index if not exists verification_tokens_expires_at_idx on public.verification_tokens(expires_at);
 
 -- Password reset tokens
@@ -34,7 +34,7 @@ create table if not exists public.password_reset_tokens (
   user_id uuid not null references public.users(id) on delete cascade,
   token_hash text not null,
   expires_at timestamptz not null,
-  used_at timestamptz,
+  sent_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index if not exists password_reset_tokens_token_hash_idx on public.password_reset_tokens(token_hash);
@@ -245,6 +245,8 @@ create table if not exists public.admin_notification_preferences (
 -- ─── Row Level Security ─────────────────────────────────────────────────────
 
 alter table public.users enable row level security;
+alter table public.verification_tokens enable row level security;
+alter table public.password_reset_tokens enable row level security;
 alter table public.grades enable row level security;
 alter table public.subjects enable row level security;
 alter table public.categories enable row level security;
@@ -317,6 +319,337 @@ as $$
   order by count(*) desc
   limit lim;
 $$;
+
+-- ─── Functions (auth tokens) ─────────────────────────────────────────────────
+-- Called only from server routes with the service role. Each function is one
+-- transaction and only touches the user it is given. Run this whole block in
+-- the Supabase SQL editor on an existing database before deploying the routes.
+-- It deletes reset rows that were only marked used, then drops used_at and
+-- email_sent, adds sent_at, enables row-level security on both token tables, ensures the
+-- verification hash index, and creates a unique index on users.email. It stops
+-- if two users share an email. The non-unique users_email_idx is removed because
+-- users_email_unique replaces it.
+
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'password_reset_tokens'
+      and column_name = 'used_at'
+  ) then
+    delete from public.password_reset_tokens where used_at is not null;
+    alter table public.password_reset_tokens drop column used_at;
+  end if;
+end $$;
+
+alter table public.password_reset_tokens drop column if exists email_sent;
+alter table public.password_reset_tokens add column if not exists sent_at timestamptz;
+
+drop index if exists public.users_email_idx;
+
+alter table public.verification_tokens enable row level security;
+alter table public.password_reset_tokens enable row level security;
+
+create index if not exists verification_tokens_token_hash_idx on public.verification_tokens(token_hash);
+
+update public.users
+set email = lower(trim(email))
+where email is distinct from lower(trim(email));
+
+do $$
+declare
+  dup text;
+begin
+  select email into dup
+  from public.users
+  where email is not null
+  group by email
+  having count(*) > 1
+  limit 1;
+
+  if dup is not null then
+    raise exception 'duplicate users.email values must be resolved before users_email_unique: %', dup;
+  end if;
+end $$;
+
+create unique index if not exists users_email_unique on public.users (email);
+
+-- Reset issue is a three-way result. Do not collapse these:
+--   busy     = unsent row younger than the lease. Do not delete it. Route returns 500.
+--   cooldown = sent_at inside the cooldown. Route returns 200 and does not send.
+--   issued   = new unsent row. Route sends, then mark_password_reset_sent must return true
+--              before 200. A failed send deletes that hash and returns 500.
+-- 200 for a credentials user is only cooldown, or issued + accepted email + mark true.
+-- Do not treat an unsent row as cooldown. Do not set sent_at before the email is accepted.
+-- Do not delete an unsent row younger than the lease.
+
+drop function if exists public.issue_password_reset_token(uuid, text, timestamptz);
+drop function if exists public.issue_password_reset_token(uuid, text, timestamptz, int);
+
+create or replace function public.issue_password_reset_token(
+  p_user_id uuid,
+  p_token_hash text,
+  p_expires_at timestamptz,
+  p_cooldown_seconds int,
+  p_lease_seconds int
+)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform 1 from public.users where id = p_user_id for update;
+  if not found then
+    raise exception 'user missing for password reset';
+  end if;
+
+  if exists (
+    select 1 from public.password_reset_tokens
+    where user_id = p_user_id
+      and sent_at is null
+      and created_at > now() - (p_lease_seconds * interval '1 second')
+  ) then
+    return 'busy';
+  end if;
+
+  if exists (
+    select 1 from public.password_reset_tokens
+    where user_id = p_user_id
+      and sent_at is not null
+      and sent_at > now() - (p_cooldown_seconds * interval '1 second')
+  ) then
+    return 'cooldown';
+  end if;
+
+  insert into public.password_reset_tokens (user_id, token_hash, expires_at)
+  values (p_user_id, p_token_hash, p_expires_at);
+
+  delete from public.password_reset_tokens
+  where user_id = p_user_id
+    and token_hash <> p_token_hash;
+
+  return 'issued';
+end;
+$$;
+
+create or replace function public.mark_password_reset_sent(p_token_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.password_reset_tokens
+  set sent_at = now()
+  where token_hash = p_token_hash
+    and sent_at is null
+    and expires_at > now();
+
+  return found;
+end;
+$$;
+
+create or replace function public.consume_password_reset(
+  p_token_hash text,
+  p_password_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+begin
+  select user_id into v_user_id
+  from public.password_reset_tokens
+  where token_hash = p_token_hash
+    and expires_at > now()
+  limit 1;
+
+  if v_user_id is null then
+    return false;
+  end if;
+
+  perform 1 from public.users where id = v_user_id for update;
+
+  perform 1 from public.password_reset_tokens
+  where token_hash = p_token_hash
+    and user_id = v_user_id
+    and expires_at > now();
+
+  if not found then
+    return false;
+  end if;
+
+  update public.users
+  set password_hash = p_password_hash
+  where id = v_user_id;
+
+  if not found then
+    raise exception 'user missing for password reset';
+  end if;
+
+  delete from public.password_reset_tokens
+  where user_id = v_user_id;
+
+  return true;
+end;
+$$;
+
+create or replace function public.password_reset_token_active(p_token_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return exists (
+    select 1
+    from public.password_reset_tokens
+    where token_hash = p_token_hash
+      and expires_at > now()
+  );
+end;
+$$;
+
+drop function if exists public.issue_verification_token(uuid, text, timestamptz);
+
+create or replace function public.issue_verification_token(
+  p_user_id uuid,
+  p_token_hash text,
+  p_expires_at timestamptz,
+  p_cooldown_seconds int
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform 1 from public.users where id = p_user_id for update;
+  if not found then
+    raise exception 'user missing for verification';
+  end if;
+
+  if p_cooldown_seconds > 0 and exists (
+    select 1 from public.verification_tokens
+    where user_id = p_user_id
+      and created_at > now() - (p_cooldown_seconds * interval '1 second')
+  ) then
+    return false;
+  end if;
+
+  insert into public.verification_tokens (user_id, token_hash, expires_at)
+  values (p_user_id, p_token_hash, p_expires_at);
+
+  delete from public.verification_tokens
+  where user_id = p_user_id
+    and token_hash <> p_token_hash;
+
+  return true;
+end;
+$$;
+
+create or replace function public.register_credentials_user(
+  p_email text,
+  p_password_hash text,
+  p_name text,
+  p_token_hash text,
+  p_expires_at timestamptz
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+begin
+  p_email := lower(trim(p_email));
+
+  if exists (select 1 from public.users where email = p_email) then
+    return null;
+  end if;
+
+  begin
+    insert into public.users (email, password_hash, name, email_verified)
+    values (p_email, p_password_hash, p_name, false)
+    returning id into v_user_id;
+  exception
+    when unique_violation then
+      return null;
+  end;
+
+  perform public.issue_verification_token(v_user_id, p_token_hash, p_expires_at, 0);
+
+  return v_user_id;
+end;
+$$;
+
+create or replace function public.consume_verification_token(p_token_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+begin
+  select user_id into v_user_id
+  from public.verification_tokens
+  where token_hash = p_token_hash
+    and expires_at > now()
+  limit 1;
+
+  if v_user_id is null then
+    return false;
+  end if;
+
+  perform 1 from public.users where id = v_user_id for update;
+
+  perform 1 from public.verification_tokens
+  where token_hash = p_token_hash
+    and user_id = v_user_id
+    and expires_at > now();
+
+  if not found then
+    return false;
+  end if;
+
+  update public.users
+  set email_verified = true
+  where id = v_user_id;
+
+  if not found then
+    raise exception 'user missing for verification';
+  end if;
+
+  delete from public.verification_tokens
+  where user_id = v_user_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.issue_password_reset_token(uuid, text, timestamptz, int, int) from public, anon, authenticated;
+revoke all on function public.mark_password_reset_sent(text) from public, anon, authenticated;
+revoke all on function public.consume_password_reset(text, text) from public, anon, authenticated;
+revoke all on function public.password_reset_token_active(text) from public, anon, authenticated;
+revoke all on function public.issue_verification_token(uuid, text, timestamptz, int) from public, anon, authenticated;
+revoke all on function public.register_credentials_user(text, text, text, text, timestamptz) from public, anon, authenticated;
+revoke all on function public.consume_verification_token(text) from public, anon, authenticated;
+
+grant execute on function public.issue_password_reset_token(uuid, text, timestamptz, int, int) to service_role;
+grant execute on function public.mark_password_reset_sent(text) to service_role;
+grant execute on function public.consume_password_reset(text, text) to service_role;
+grant execute on function public.password_reset_token_active(text) to service_role;
+grant execute on function public.issue_verification_token(uuid, text, timestamptz, int) to service_role;
+grant execute on function public.register_credentials_user(text, text, text, text, timestamptz) to service_role;
+grant execute on function public.consume_verification_token(text) to service_role;
 
 -- ─── Triggers (auto-update updated_at) ──────────────────────────────────────
 
