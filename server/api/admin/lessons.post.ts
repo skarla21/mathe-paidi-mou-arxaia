@@ -1,12 +1,13 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
+import { placementRowsForCreate } from '../../utils/placementOrder'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const body = await readBody<{
     title: string; content?: string; is_free?: boolean; price?: number
     content_url?: string
-    placements?: Array<{ chapter_id?: string | null; category_id?: string | null }>
+    placements?: Array<{ subject_id?: string | null; chapter_id?: string | null; category_id?: string | null }>
   }>(event)
   if (!body.title?.trim()) throw createError({ statusCode: 400, message: 'Title is required' })
   if (!body.placements?.length) {
@@ -14,9 +15,9 @@ export default defineEventHandler(async (event) => {
   }
   // Validate each placement has exactly one parent
   for (const p of body.placements) {
-    const count = [p.chapter_id, p.category_id].filter(Boolean).length
+    const count = [p.subject_id, p.chapter_id, p.category_id].filter(Boolean).length
     if (count !== 1) {
-      throw createError({ statusCode: 400, message: 'Each placement must have exactly one of chapter_id or category_id' })
+      throw createError({ statusCode: 400, message: 'Each placement must have exactly one of subject_id, chapter_id, or category_id' })
     }
   }
   const supabase = serverSupabaseService()
@@ -34,20 +35,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Database operation failed' })
   }
 
-  // Insert placements
-  const placementRows = body.placements.map((p, i) => ({
-    lesson_id: data.id,
-    chapter_id: p.chapter_id ?? null,
-    category_id: p.category_id ?? null,
-    order: i,
-  }))
+  const placementRows = await placementRowsForCreate(supabase, data.id, body.placements)
   const { error: placementErr } = await supabase.from('lesson_placements').insert(placementRows)
   if (placementErr) {
     console.error('[admin/lessons.post] placements', placementErr.message)
     // Clean up the lesson if placements fail
     await supabase.from('lessons').delete().eq('id', data.id)
     if (placementErr.code === '23505') {
-      throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that chapter or category' })
+      throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that subject, chapter, or category' })
     }
     throw createError({ statusCode: 500, message: 'Failed to create placements' })
   }

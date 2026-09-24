@@ -66,11 +66,11 @@ const filteredLessons = computed(() => {
   if (chapterId.value && chapterId.value !== '__all__') {
     list = list.filter(l => l.placements?.some(p => p.chapter_id === chapterId.value))
   } else if (subjectId.value && subjectId.value !== '__all__') {
-    list = list.filter(l => l.placements?.some(p => p.chapters?.subject_id === subjectId.value))
+    list = list.filter(l => l.placements?.some(p => p.subject_id === subjectId.value || p.chapters?.subject_id === subjectId.value))
   } else if (categoryId.value && categoryId.value !== '__all__') {
     list = list.filter(l => l.placements?.some(p => p.category_id === categoryId.value))
   } else if (gradeId.value && gradeId.value !== '__all__') {
-    list = list.filter(l => l.placements?.some(p => p.chapters?.grade_id === gradeId.value))
+    list = list.filter(l => l.placements?.some(p => p.chapters?.grade_id === gradeId.value || p.subjects?.grade_id === gradeId.value))
   }
   return list
 })
@@ -144,6 +144,7 @@ function placementSummary(lesson: Lesson): string {
   if (!lesson.placements?.length) return ''
   return lesson.placements
     .map(p => {
+      if (p.subjects) return p.subjects.name
       if (p.chapters) return p.chapters.title
       if (p.categories) return p.categories.name
       return null

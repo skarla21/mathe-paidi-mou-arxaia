@@ -141,6 +141,7 @@ Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_`
 - **DO** call `requireAdmin(event)` at the TOP of every `/api/admin/*` handler (throws 403)
 - **DO** read user from `event.context.auth.userId` (set by `server/middleware/auth.context.ts`)
 - **DON'T** read cookies or re-validate sessions manually in route handlers
+- There is one owner admin. Do not build multi-admin features (shared inboxes, admin invites, or per-admin permission splits). Per-admin notification read state still works for that single owner.
 
 ### Database
 

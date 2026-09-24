@@ -87,7 +87,7 @@ create index if not exists chapters_subject_id_idx on public.chapters(subject_id
 create index if not exists chapters_title_idx on public.chapters(title);
 
 -- Lessons (universal content atom)
--- Lessons are placed into chapters and/or categories via lesson_placements (many-to-many).
+-- Lessons are placed into subjects, chapters, and/or categories via lesson_placements (many-to-many).
 create table if not exists public.lessons (
   id uuid primary key default gen_random_uuid(),
   title text not null,
@@ -99,22 +99,26 @@ create table if not exists public.lessons (
 );
 create index if not exists lessons_title_idx on public.lessons(title);
 
--- Lesson placements (many-to-many: a lesson can appear in multiple chapters and/or categories)
+-- Lesson placements (many-to-many: a lesson can appear under subjects, chapters, and/or categories)
 create table if not exists public.lesson_placements (
   id uuid primary key default gen_random_uuid(),
   lesson_id uuid not null references public.lessons(id) on delete cascade,
+  subject_id uuid references public.subjects(id) on delete cascade,
   chapter_id uuid references public.chapters(id) on delete cascade,
   category_id uuid references public.categories(id) on delete cascade,
   "order" int not null default 0,
   created_at timestamptz not null default now(),
   constraint lesson_placements_parent_check check (
-    (chapter_id is not null)::int + (category_id is not null)::int = 1
+    (subject_id is not null)::int + (chapter_id is not null)::int + (category_id is not null)::int = 1
   )
 );
 create index if not exists lesson_placements_lesson_id_idx on public.lesson_placements(lesson_id);
+create index if not exists lesson_placements_subject_id_idx on public.lesson_placements(subject_id);
 create index if not exists lesson_placements_chapter_id_idx on public.lesson_placements(chapter_id);
 create index if not exists lesson_placements_category_id_idx on public.lesson_placements(category_id);
 create index if not exists lesson_placements_order_idx on public.lesson_placements("order");
+create unique index if not exists lesson_placements_subject_unique
+  on public.lesson_placements(lesson_id, subject_id) where subject_id is not null;
 create unique index if not exists lesson_placements_chapter_unique
   on public.lesson_placements(lesson_id, chapter_id) where chapter_id is not null;
 create unique index if not exists lesson_placements_category_unique

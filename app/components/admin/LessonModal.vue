@@ -18,7 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~
 
 interface PlacementRow {
   key: number
-  type: 'chapter' | 'category'
+  type: 'subject' | 'chapter' | 'category'
   gradeId: string
   subjectId: string
   chapterId: string
@@ -36,8 +36,10 @@ const props = defineProps<{
     price: number
     placements?: Array<{
       id: string
+      subject_id: string | null
       chapter_id: string | null
       category_id: string | null
+      subjects?: { name: string; grade_id?: string } | null
       chapters?: { title: string; grade_id?: string; subject_id?: string } | null
       categories?: { name: string } | null
     }>
@@ -90,7 +92,7 @@ function removePlacement(key: number) {
   placements.value = placements.value.filter(p => p.key !== key)
 }
 
-function onPlacementTypeChange(row: PlacementRow, newType: 'chapter' | 'category') {
+function onPlacementTypeChange(row: PlacementRow, newType: 'subject' | 'chapter' | 'category') {
   row.type = newType
   row.gradeId = ''
   row.subjectId = ''
@@ -135,13 +137,19 @@ watch(() => props.open, async (val) => {
       placements.value = props.lesson.placements.map(p => {
         const row: PlacementRow = {
           key: placementKey++,
-          type: p.chapter_id ? 'chapter' : 'category',
+          type: p.chapter_id ? 'chapter' : p.subject_id ? 'subject' : 'category',
           gradeId: '',
           subjectId: '',
           chapterId: '',
           categoryId: '',
         }
-        if (p.chapter_id) {
+        if (p.subject_id) {
+          const subFound = subjects.value.find(s => s.id === p.subject_id)
+          if (subFound) {
+            row.gradeId = subFound.grade_id
+            row.subjectId = subFound.id
+          }
+        } else if (p.chapter_id) {
           const chFound = chapters.value.find(c => c.id === p.chapter_id)
           if (chFound) {
             row.gradeId = chFound.grade_id
@@ -232,10 +240,11 @@ function clearContent() {
 async function onSubmit() {
   const placementPayload = placements.value
     .map(p => ({
+      subject_id: p.type === 'subject' ? p.subjectId || null : null,
       chapter_id: p.type === 'chapter' ? p.chapterId || null : null,
       category_id: p.type === 'category' ? p.categoryId || null : null,
     }))
-    .filter(p => p.chapter_id || p.category_id)
+    .filter(p => p.subject_id || p.chapter_id || p.category_id)
 
   if (placementPayload.length === 0) {
     toast.error(t('admin.placementRequired'))
@@ -374,12 +383,13 @@ async function onSubmit() {
                   <UiLabel>{{ t('admin.placementType') }}</UiLabel>
                   <Select
                     :model-value="row.type"
-                    @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'chapter' | 'category')"
+                    @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'subject' | 'chapter' | 'category')"
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
                       <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
                       <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
                     </SelectContent>
@@ -398,8 +408,39 @@ async function onSubmit() {
                 </UiButton>
               </div>
 
+              <template v-if="row.type === 'subject'">
+                <div class="space-y-1.5">
+                  <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                  <Select
+                    :model-value="row.gradeId"
+                    @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
+                  >
+                    <SelectTrigger>
+                      <SelectValue :placeholder="t('admin.selectGrade')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div v-if="row.gradeId" class="space-y-1.5">
+                  <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                  <Select
+                    :model-value="row.subjectId"
+                    @update:model-value="(v) => (row.subjectId = String(v))"
+                  >
+                    <SelectTrigger>
+                      <SelectValue :placeholder="t('admin.selectSubject')" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </template>
+
               <!-- Chapter cascade -->
-              <template v-if="row.type === 'chapter'">
+              <template v-else-if="row.type === 'chapter'">
                 <div class="space-y-1.5">
                   <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
                   <Select

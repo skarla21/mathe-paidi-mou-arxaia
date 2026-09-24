@@ -16,7 +16,7 @@ export type AdminSortModalMode = 'subjects' | 'chapters' | 'lessons' | 'categori
 
 type SortRow = { id: string; label: string }
 
-type LessonSortKind = 'category' | 'chapter' | null
+type LessonSortKind = 'category' | 'chapter' | 'subject' | null
 
 const props = defineProps<{ open: boolean; mode: AdminSortModalMode }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
@@ -142,6 +142,18 @@ async function goLessonsList() {
       .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
       .map(l => ({ id: l.id, label: l.title }))
     step.value = 2
+    return
+  }
+  if (lessonKind.value === 'subject') {
+    if (!selSubject.value) return
+    const list = await adminFetch<{ id: string; title: string; order: number }[]>(
+      '/api/lessons',
+      { query: { subject_id: selSubject.value } },
+    )
+    orderedRows.value = [...list]
+      .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title))
+      .map(l => ({ id: l.id, label: l.title }))
+    step.value = 2
   }
 }
 
@@ -225,6 +237,11 @@ async function saveOrder() {
           method: 'PATCH',
           body: { chapter_id: selChapter.value, ids },
         })
+      } else if (lessonKind.value === 'subject') {
+        await adminFetch('/api/admin/lessons/reorder', {
+          method: 'PATCH',
+          body: { subject_id: selSubject.value, ids },
+        })
       }
     }
     toast.success(t('admin.saveOrderSuccess'))
@@ -252,6 +269,7 @@ function canProceedChaptersStep1() {
 function canProceedLessonsStep1() {
   if (lessonKind.value === 'category') return !!selCategory.value
   if (lessonKind.value === 'chapter') return !!selGrade.value && !!selSubject.value && !!selChapter.value
+  if (lessonKind.value === 'subject') return !!selGrade.value && !!selSubject.value
   return false
 }
 
@@ -408,6 +426,9 @@ watch(selSubject, () => {
                 <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('category')">
                   <span class="text-left">{{ t('admin.sortModal.scopeCategory') }}</span>
                 </UiButton>
+                <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('subject')">
+                  <span class="text-left">{{ t('admin.sortModal.scopeSubject') }}</span>
+                </UiButton>
                 <UiButton variant="outline" class="justify-start h-auto py-3 px-4" @click="pickLessonKind('chapter')">
                   <span class="text-left">{{ t('admin.sortModal.scopeChapter') }}</span>
                 </UiButton>
@@ -423,6 +444,27 @@ watch(selSubject, () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </template>
+
+              <template v-else-if="lessonKind === 'subject'">
+                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickGrade') }}</p>
+                <Select v-model="selGrade">
+                  <SelectTrigger>
+                    <SelectValue :placeholder="t('admin.selectGrade')" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.pickSubject') }}</p>
+                <Select v-model="selSubject">
+                  <SelectTrigger>
+                    <SelectValue :placeholder="t('admin.selectSubject')" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                   </SelectContent>
                 </Select>
               </template>

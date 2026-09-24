@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
   // Fetch all placements with chapter/category joins
   const { data: placements, error: placementsErr } = await supabase
     .from('lesson_placements')
-    .select('id, lesson_id, chapter_id, category_id, order, chapters(title, grade_id, subject_id), categories(name)')
+    .select('id, lesson_id, subject_id, chapter_id, category_id, order, subjects(name, grade_id), chapters(title, grade_id, subject_id), categories(name)')
     .order('order', { ascending: true })
   if (placementsErr) throw createError({ statusCode: 500, message: placementsErr.message })
 

@@ -38,6 +38,7 @@ export default defineEventHandler(async (event) => {
     recentPurchasesRes,
     recentUsersRes,
     lessonsByGradeRes,
+    subjectPlacementsByGradeRes,
     ratingsCountRes,
     commentsCountRes,
     allRatingsRes,
@@ -131,11 +132,15 @@ export default defineEventHandler(async (event) => {
       .order('created_at', { ascending: false })
       .limit(2),
 
-    // Lessons by grade via lesson_placements → chapters
+    // Lessons by grade via chapter placements and direct subject placements
     supabase
       .from('lesson_placements')
       .select('lesson_id, chapters(grade_id, grades(name))')
       .not('chapter_id', 'is', null),
+    supabase
+      .from('lesson_placements')
+      .select('lesson_id, subjects(grade_id, grades(name))')
+      .not('subject_id', 'is', null),
 
     // Rating & comment stats
     supabase.from('lesson_ratings').select('*', { count: 'exact', head: true }),
@@ -152,7 +157,7 @@ export default defineEventHandler(async (event) => {
     newUsersThisMonthRes, newUsersLastMonthRes, newUsersThisYearRes,
     downloadsThisMonthRes, downloadsLastMonthRes, downloadsThisYearRes,
     revenueThisMonthRes, revenueLastMonthRes, revenueThisYearRes,
-    recentPurchasesRes, recentUsersRes, lessonsByGradeRes,
+    recentPurchasesRes, recentUsersRes, lessonsByGradeRes, subjectPlacementsByGradeRes,
     ratingsCountRes, commentsCountRes, allRatingsRes, ratingsThisMonthRes, commentsThisMonthRes,
   ]
   for (const r of allResults) {
@@ -212,6 +217,23 @@ export default defineEventHandler(async (event) => {
     if (!chapter?.grade_id || !row.lesson_id) continue
     const gradeName = chapter.grades?.name ?? chapter.grade_id
     const gid = chapter.grade_id
+    if (!gradeCountMap[gid]) {
+      gradeCountMap[gid] = { name: gradeName, lessonIds: new Set() }
+    }
+    gradeCountMap[gid]!.lessonIds.add(row.lesson_id)
+  }
+  type SubjectPlacementByGradeRow = {
+    lesson_id?: string
+    subjects?: {
+      grade_id?: string | null
+      grades?: { name?: string | null } | null
+    } | null
+  }
+  for (const row of (subjectPlacementsByGradeRes.data ?? []) as SubjectPlacementByGradeRow[]) {
+    const subject = row.subjects
+    if (!subject?.grade_id || !row.lesson_id) continue
+    const gradeName = subject.grades?.name ?? subject.grade_id
+    const gid = subject.grade_id
     if (!gradeCountMap[gid]) {
       gradeCountMap[gid] = { name: gradeName, lessonIds: new Set() }
     }

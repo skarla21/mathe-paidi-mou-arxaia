@@ -41,10 +41,12 @@ export interface Chapter {
 export interface LessonPlacement {
   id: string
   lesson_id: string
+  subject_id: string | null
   chapter_id: string | null
   category_id: string | null
   order: number
   /** Joined relations — present when select includes these */
+  subjects?: { name: string; grade_id?: string; grades?: { name: string } } | null
   chapters?: { title: string; grade_id?: string; subject_id?: string; subjects?: { name: string; grades?: { name: string } } } | null
   categories?: { name: string } | null
 }

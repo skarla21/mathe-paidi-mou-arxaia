@@ -1,5 +1,6 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
+import { placementRowsForUpdate } from '../../../utils/placementOrder'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -9,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     title?: string; content?: string; is_free?: boolean; price?: number
     content_url?: string
-    placements?: Array<{ chapter_id?: string | null; category_id?: string | null }>
+    placements?: Array<{ subject_id?: string | null; chapter_id?: string | null; category_id?: string | null }>
   }>(event)
 
   // Build lesson field updates
@@ -37,28 +38,36 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 400, message: 'At least one placement is required' })
     }
     for (const p of body.placements) {
-      const count = [p.chapter_id, p.category_id].filter(Boolean).length
+      const count = [p.subject_id, p.chapter_id, p.category_id].filter(Boolean).length
       if (count !== 1) {
-        throw createError({ statusCode: 400, message: 'Each placement must have exactly one of chapter_id or category_id' })
+        throw createError({ statusCode: 400, message: 'Each placement must have exactly one of subject_id, chapter_id, or category_id' })
       }
     }
-    // Delete existing placements and insert new ones
+    const { data: previous, error: prevErr } = await supabase
+      .from('lesson_placements')
+      .select('lesson_id, subject_id, chapter_id, category_id, order')
+      .eq('lesson_id', id)
+    if (prevErr) {
+      console.error('[admin/lessons/[id].patch] load placements', prevErr.message)
+      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+    }
+
+    const placementRows = await placementRowsForUpdate(supabase, id, body.placements, previous ?? [])
+
     const { error: delErr } = await supabase.from('lesson_placements').delete().eq('lesson_id', id)
     if (delErr) {
       console.error('[admin/lessons/[id].patch] delete placements', delErr.message)
       throw createError({ statusCode: 500, message: 'Failed to update placements' })
     }
-    const placementRows = body.placements.map((p, i) => ({
-      lesson_id: id,
-      chapter_id: p.chapter_id ?? null,
-      category_id: p.category_id ?? null,
-      order: i,
-    }))
     const { error: insErr } = await supabase.from('lesson_placements').insert(placementRows)
     if (insErr) {
       console.error('[admin/lessons/[id].patch] insert placements', insErr.message)
+      if (previous?.length) {
+        const { error: restoreErr } = await supabase.from('lesson_placements').insert(previous)
+        if (restoreErr) console.error('[admin/lessons/[id].patch] restore placements', restoreErr.message)
+      }
       if (insErr.code === '23505') {
-        throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that chapter or category' })
+        throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that subject, chapter, or category' })
       }
       throw createError({ statusCode: 500, message: 'Failed to update placements' })
     }
