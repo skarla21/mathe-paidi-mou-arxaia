@@ -3,6 +3,15 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 import { chapterSlug, gradeSlug, RESERVED_GRADE_SLUGS, slugifyGreek, stableSlug, uniqueSlug } from '../shared/utils/slugify.mjs'
 
+function reservedGradeSlugs(sql) {
+  const start = sql.indexOf('function public.reject_reserved_grade_slug')
+  const fn = sql.slice(start)
+  const body = fn.slice(0, fn.indexOf('$$;'))
+  const array = body.match(/array\[([\s\S]*?)\]/)
+  if (!array) throw new Error('reserved slug array missing')
+  return [...array[1].matchAll(/'([^']+)'/g)].map((match) => match[1])
+}
+
 describe('slugifyGreek', () => {
   it('spells the steady grade names with ELOT 743', () => {
     assert.equal(slugifyGreek("Γ' Δημοτικού"), 'g-dimotikou')
@@ -55,7 +64,7 @@ describe('chapterSlug', () => {
 describe('gradeSlug', () => {
   it('never uses a reserved top-level route', () => {
     assert.equal(gradeSlug('login', []), 'login-2')
-    assert.equal(gradeSlug('grade', []), 'grade-2')
+    assert.equal(gradeSlug('grade', []), 'grade')
     assert.equal(gradeSlug('a-gymnasiou', []), 'a-gymnasiou')
   })
 
@@ -70,11 +79,9 @@ describe('gradeSlug', () => {
   })
 
   it('keeps the database rule aligned with the reserved list', () => {
-    const migration = readFileSync(new URL('../supabase/migrations/20261005180000_reserved_grade_slugs.sql', import.meta.url), 'utf8')
+    const migration = readFileSync(new URL('../supabase/migrations/20261005190000_shrink_reserved_grade_slugs.sql', import.meta.url), 'utf8')
     const schema = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8')
-    for (const slug of RESERVED_GRADE_SLUGS) {
-      assert.match(migration, new RegExp(`'${slug}'`))
-      assert.match(schema, new RegExp(`'${slug}'`))
-    }
+    assert.deepEqual(reservedGradeSlugs(migration), [...RESERVED_GRADE_SLUGS])
+    assert.deepEqual(reservedGradeSlugs(schema), [...RESERVED_GRADE_SLUGS])
   })
 })

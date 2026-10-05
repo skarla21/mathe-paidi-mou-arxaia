@@ -51,8 +51,8 @@ Skills provide **design principles, workflows, and quality standards**. Agents p
 ```
 app/
   pages/         # index, about, login, register, profile, profile/edit,
-                 # dashboard, grade/[grade], grade/[grade]/[subject],
-                 # course/[courseId], lesson/[lessonId], admin/*
+                 # dashboard, [grade], [grade]/[subject], category/[categoryId],
+                 # articles, notes, admin/*
   components/
     layout/      # AppHeader.vue, AppFooter.vue, NotesDropdown.vue
     search/      # GlobalSearch.vue
@@ -65,7 +65,7 @@ app/
   lib/           # utils.ts (cn = clsx + tailwind-merge)
   assets/css/    # main.css (Tailwind @theme vars + custom utilities)
 server/
-  api/           # auth/, courses/, lessons/, grades.get, subjects.get,
+  api/           # auth/, lessons/, grades.get, subjects.get, tree.get,
                  # search.get, signout.post, stripe/, admin/, user/
   middleware/    # auth.context.ts  ← sets event.context.auth every request
   utils/         # supabaseServer, authOptions, requireAuth, requireAdmin, access
@@ -143,7 +143,7 @@ Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_`
 
 - **DO** use `serverSupabaseService()` for admin/server ops that need to bypass RLS
 - **DO** use `serverSupabaseAnon()` for public/user-scoped reads (RLS enforced)
-- **DO** use `canAccessCourse(userId, courseId)` / `canAccessLesson(userId, lessonId)` from `server/utils/access.ts`
+- **DO** use `canAccessLesson(userId, lessonId)` from `server/utils/access.ts`
 - **DON'T** expose `supabaseServiceKey` in any `public:` runtimeConfig key
 
 ---

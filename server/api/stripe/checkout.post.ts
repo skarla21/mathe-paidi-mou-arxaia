@@ -1,6 +1,7 @@
 import Stripe from 'stripe'
 import { requireAuth } from '../../utils/requireAuth'
 import { canonicalLessonPaths } from '../../utils/contentPath'
+import { lessonCheckoutPath } from '../../utils/lessonCheckoutPath'
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event)
@@ -25,9 +26,12 @@ export default defineEventHandler(async (event) => {
   if (price <= 0) {
     throw createError({ statusCode: 400, message: 'Lesson has no price' })
   }
-  const origin = getRequestURL(event).origin
   const paths = await canonicalLessonPaths(supabase, [lessonId])
-  const lessonPath = paths.get(lessonId) ?? `/lesson/${lessonId}`
+  const lessonPath = lessonCheckoutPath(paths, lessonId)
+  if (!lessonPath) {
+    throw createError({ statusCode: 409, message: 'Το υλικό δεν έχει δημόσια διεύθυνση' })
+  }
+  const origin = getRequestURL(event).origin
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [{ price_data: { currency: 'eur', unit_amount: price, product_data: { name: lesson.title } }, quantity: 1 }],

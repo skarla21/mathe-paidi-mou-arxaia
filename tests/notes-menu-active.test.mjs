@@ -6,7 +6,6 @@ describe('notesMenuActive', () => {
   it('highlights notes and category pages without the catalog', () => {
     assert.equal(notesMenuActive({ path: '/notes', gradeSlugs: [], catalogFailed: false, gradeParam: '' }), true)
     assert.equal(notesMenuActive({ path: '/category/extra', gradeSlugs: [], catalogFailed: false, gradeParam: '' }), true)
-    assert.equal(notesMenuActive({ path: '/grade/a-lykeiou', gradeSlugs: [], catalogFailed: false, gradeParam: '' }), true)
   })
 
   it('highlights a loaded grade slug', () => {

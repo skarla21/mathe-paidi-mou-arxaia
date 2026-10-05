@@ -4,6 +4,7 @@ import UiCardHeader from '~/components/ui/CardHeader.vue'
 import UiCardTitle from '~/components/ui/CardTitle.vue'
 import UiCardContent from '~/components/ui/CardContent.vue'
 import UiSkeleton from '~/components/ui/Skeleton.vue'
+import { purchaseCardState } from '~/utils/purchaseCard'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -13,7 +14,12 @@ const { data: purchasesData, pending } = await useFetch<
   { id: string; title: string; is_free: boolean; price: number; url: string | null }[]
 >('/api/user/purchases')
 
-const lessons = computed(() => purchasesData.value ?? [])
+const lessons = computed(() =>
+  (purchasesData.value ?? []).map((lesson) => ({
+    ...lesson,
+    card: purchaseCardState(lesson.url),
+  })),
+)
 
 onMounted(() => {
   if (import.meta.client) {
@@ -58,13 +64,18 @@ onMounted(() => {
 
       <!-- Content grid -->
       <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <NuxtLink
+        <component
+          :is="c.card.to ? 'NuxtLink' : 'div'"
           v-for="c in lessons"
           :key="c.id"
-          :to="c.url || `/lesson/${c.id}`"
-          class="block group"
+          v-bind="c.card.to ? { to: c.card.to } : {}"
+          class="block"
+          :class="c.card.to ? 'group' : undefined"
         >
-          <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">
+          <UiCard
+            class="rounded-3xl border-border/80 shadow-sm"
+            :class="c.card.to ? 'bobble-card transition-shadow hover:shadow-md' : 'border-dashed shadow-none'"
+          >
             <UiCardHeader class="flex flex-row items-center gap-3 pb-2">
               <span
                 class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
@@ -78,9 +89,12 @@ onMounted(() => {
               <span class="text-xs text-muted-foreground">
                 {{ c.is_free ? 'Δωρεάν' : `€${(c.price / 100).toFixed(2)}` }}
               </span>
+              <p v-if="c.card.note" class="mt-2 text-xs text-muted-foreground">
+                {{ c.card.note }}
+              </p>
             </UiCardContent>
           </UiCard>
-        </NuxtLink>
+        </component>
       </div>
     </section>
   </div>

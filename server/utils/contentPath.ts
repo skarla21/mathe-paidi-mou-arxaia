@@ -105,3 +105,39 @@ export function chapterPublicPath(row: {
   if (!row.slug || !subject?.slug || !grade?.slug) return null
   return `/${grade.slug}/${subject.slug}/${row.slug}`
 }
+
+export const SEARCH_RESULT_LIMIT = 10
+export const SEARCH_CANDIDATE_LIMIT = 100
+
+type SearchResult = { type: 'chapter' | 'lesson'; id: string; title: string; url: string }
+type SearchChapter = {
+  id: string
+  title: string
+  slug: string | null
+  subjects: SubjectRel | SubjectRel[] | null
+}
+type SearchLesson = { id: string; title: string }
+
+export function publicSearchResults(input: {
+  chapters: readonly SearchChapter[] | null
+  lessons: readonly SearchLesson[] | null
+  lessonPaths: ReadonlyMap<string, string>
+  limit?: number
+}): SearchResult[] {
+  const limit = input.limit ?? SEARCH_RESULT_LIMIT
+  const chapters: SearchResult[] = []
+  for (const row of input.chapters ?? []) {
+    if (chapters.length >= limit) break
+    const url = chapterPublicPath(row)
+    if (!url) continue
+    chapters.push({ type: 'chapter', id: row.id, title: row.title, url })
+  }
+  const lessons: SearchResult[] = []
+  for (const row of input.lessons ?? []) {
+    if (lessons.length >= limit) break
+    const url = input.lessonPaths.get(row.id)
+    if (!url) continue
+    lessons.push({ type: 'lesson', id: row.id, title: row.title, url })
+  }
+  return [...chapters, ...lessons]
+}

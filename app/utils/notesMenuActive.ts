@@ -4,7 +4,7 @@ export function notesMenuActive(input: {
   catalogFailed: boolean
   gradeParam: unknown
 }): boolean {
-  if (input.path === '/notes' || input.path.startsWith('/category/') || input.path.startsWith('/grade/')) {
+  if (input.path === '/notes' || input.path.startsWith('/category/')) {
     return true
   }
   const segment = input.path.split('/').filter(Boolean)[0] ?? ''
