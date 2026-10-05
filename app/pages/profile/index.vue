@@ -5,8 +5,7 @@ useHead(() => ({ title: t('profile.title') }))
 </script>
 
 <template>
-  <div class="container py-12 px-4">
-    <h1 class="text-3xl font-bold">{{ t('profile.title') }}</h1>
-    <p class="mt-4 text-muted-foreground">{{ t('profile.body') }}</p>
+  <div class="mx-auto w-full max-w-3xl px-4 py-12">
+    <LayoutPageIntro :title="t('profile.title')" :lead="t('profile.body')" />
   </div>
 </template>

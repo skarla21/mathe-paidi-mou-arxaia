@@ -28,8 +28,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-8 px-4">
-    <h1 id="notes-title" class="font-heading text-3xl font-bold">{{ t('nav.notes') }}</h1>
+  <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
+    <div id="notes-title">
+      <LayoutPageIntro :eyebrow="t('nav.extras')" :title="t('nav.allExtras')" :lead="t('home.extras.lead')" />
+    </div>
 
     <div v-if="pending" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <UiSkeleton v-for="i in 6" :key="i" class="h-28 rounded-xl" />
@@ -49,7 +51,7 @@ onMounted(() => {
         :to="`/category/${cat.id}`"
         class="block group"
       >
-        <UiCard class="group relative rounded-xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:scale-[1.02] border-border/80 p-5">
+        <UiCard class="bobble-card rounded-3xl border-border/80 p-5 shadow-sm transition-shadow hover:shadow-md">
           <div class="flex items-start gap-3">
             <span
               class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"

@@ -20,9 +20,23 @@
     "commentSaved": "Comment saved"
   },
   "nav": {
-    "main": "Main",
+    "main": "Home",
     "notes": "Notes",
     "about": "About",
+    "extras": "More material",
+    "contact": "Contact",
+    "grades": "Grades",
+    "subjects": "Subjects",
+    "chapters": "Chapters",
+    "categories": "Categories",
+    "articles": "Articles",
+    "allExtras": "All categories",
+    "openGrade": "Open grade",
+    "openSubject": "Open subject",
+    "noGrades": "No grades yet.",
+    "noSubjects": "No subjects in this grade yet.",
+    "noChapters": "No chapters yet.",
+    "noCategories": "No categories yet.",
     "login": "Login",
     "profile": "Profile",
     "editProfile": "Edit profile",
@@ -48,51 +62,130 @@
       "more": "More",
       "communication": "Communication"
     },
-    "welcome": {
-      "badge": "Master Ancient Greek Exams",
-      "title": "Prepare for Ancient Greek exams with structured notes and lessons.",
-      "lead": "The ultimate platform for Greek high school students. Step-by-step guidance, curated notes, and interactive practice to help you ace your exams.",
-      "cta": "Explore Chapters",
-      "ctaSecondary": "View Free Notes"
+    "hero": {
+      "badge": "Digital school for middle and high school",
+      "titleBefore": "Learn, my child,",
+      "titleAccent": "Ancient Greek",
+      "titleAfter": "and the present",
+      "lead": "An organized place for notes, chapters, and extra material. Theory, texts, and articles stay tidy so every student can find what they need.",
+      "ctaExplore": "Explore the material",
+      "ctaLessons": "Private lessons",
+      "tutorEyebrow": "Your philologist",
+      "tutorTitle": "A clearer way through the syllabus",
+      "point1": "Theory and syntax notes, with free and paid lessons",
+      "point2": "Categories and articles beyond the school textbook",
+      "point3": "Material for middle school and high school",
+      "point4": "Private lessons through the contact form",
+      "tipLabel": "A note from the teacher",
+      "tip": "“For the second aorist, find the present stem first and then drop the ending.”"
     },
     "info": {
-      "title": "Information",
-      "body": "Here is what you need to know about the platform.",
-      "bullet1": "Structured notes for each grade, made for exam preparation.",
-      "bullet2": "Step-by-step lessons you can follow at your own pace.",
-      "bullet3": "Clear layout so you can find topics quickly.",
-      "extra": "All content is organized by grade and subject, so you can focus on what matters for your exams."
+      "eyebrow": "Our approach",
+      "title": "Why this school?",
+      "lead": "Clear structure, a safe space, and the teacher beside the student.",
+      "card1Title": "Knowledge, step by step",
+      "card1Body": "Grades, subjects, and chapters in order. Theory and notes sit where you expect them.",
+      "card1Link": "Read more",
+      "card2Title": "A safe digital school",
+      "card2Body": "No ads. Files open for a verified account, and paid lessons open only after purchase.",
+      "card2Link": "See the grades",
+      "card3Title": "Your teacher, nearby",
+      "card3Body": "The tutor uploads and organizes the material. For private lessons, use the contact form.",
+      "card3Link": "About the school"
     },
     "grades": {
-      "title": "Grades",
-      "cardHint": "Select a grade to view its lessons.",
+      "eyebrow": "Organized by grade",
+      "title": "Choose your grade",
+      "lead": "Notes and chapters for each level, as the teacher has arranged them.",
+      "level": "Grade",
+      "subjects": "Subjects",
+      "noSubjects": "They will appear once they are added",
+      "open": "Open material",
       "empty": "No grades available yet.",
-      "emptyHint": "Grades will appear here once they are added."
+      "emptyHint": "Grades will appear here once they are added.",
+      "error": "Grades could not be loaded. Try again in a moment."
     },
-    "instructions": {
-      "title": "Instructions of Use",
-      "body": "Getting started is easy.",
-      "step1": "Choose your grade from the list above.",
-      "step2": "Open a subject and its chapter or notes.",
-      "step3": "Read the content and follow the steps in each chapter."
+    "guide": {
+      "eyebrow": "How access works",
+      "title": "How the school works",
+      "lead": "What you can see without an account, what a free registration unlocks, and how to ask for private lessons.",
+      "hoverHint": "Hover to flip",
+      "recommended": "Suggested",
+      "guest": {
+        "badge": "No account",
+        "title": "Browse",
+        "lead": "You can see grades, chapters, categories, articles, and lesson titles.",
+        "b1": "Walk through the whole catalog",
+        "b2": "Read published articles",
+        "b3": "Lesson titles stay visible",
+        "backTitle": "Start with the grades",
+        "backLead": "PDFs open for a verified account, and only when the lesson is free or purchased.",
+        "cta": "See the grades",
+        "note": "No registration required to browse"
+      },
+      "account": {
+        "badge": "Free registration",
+        "title": "With an account",
+        "lead": "Verify your email, open free PDFs, and buy the lessons that have a price.",
+        "b1": "Open free files after verification",
+        "b2": "Buy a lesson with Stripe",
+        "b3": "Purchases live in My Content; comment on articles",
+        "backTitle": "Your own space",
+        "backLead": "The account is free. You pay only for lessons that have a price.",
+        "cta": "Create an account",
+        "note": "Email verification unlocks files"
+      },
+      "tutor": {
+        "badge": "Private lessons",
+        "title": "Private lessons",
+        "lead": "Ask for personal preparation. Private lessons are not purchased inside the app.",
+        "b1": "Say which grade and subject you need",
+        "b2": "The teacher replies to the message",
+        "b3": "Arrange online sessions together",
+        "backTitle": "Send a message",
+        "backLead": "The contact form is how you ask for private lessons or a question about the material.",
+        "cta": "Go to the form",
+        "note": "We reply as soon as we can"
+      }
     },
-    "more": {
-      "title": "More",
-      "body": "We keep improving the platform.",
-      "bullet1": "New material and topics are added over time.",
-      "bullet2": "Extra resources and explanations when they are ready."
+    "extras": {
+      "eyebrow": "Extra material",
+      "title": "Beyond the grade syllabus",
+      "lead": "Categories of extra lessons and articles, whatever the teacher has published.",
+      "openCategory": "Open category",
+      "readArticle": "Read article",
+      "empty": "No extra material yet.",
+      "error": "Extra material could not be loaded. Try again in a moment."
+    },
+    "contact": {
+      "eyebrow": "Contact and private lessons",
+      "title": "Questions, or private lessons?",
+      "lead": "Use the form to ask about the material or to talk about what the student needs.",
+      "emailCaption": "Contact",
+      "emailValue": "Through the form",
+      "sessionsCaption": "Online sessions",
+      "sessionsValue": "Weekdays and weekends",
+      "focusCaption": "Focus",
+      "focusValue": "Ancient Greek, essay writing, learning support",
+      "formTitle": "Send your message",
+      "formLead": "We reply to parents and students.",
+      "nameLabel": "Full name",
+      "namePlaceholder": "e.g. Maria Papadopoulou",
+      "gradeLabel": "Student grade",
+      "gradePlaceholder": "Optional",
+      "phoneLabel": "Phone (optional)",
+      "phonePlaceholder": "69XXXXXXXX",
+      "messagePlaceholder": "Tell us how we can help."
     },
     "communication": {
-      "title": "Communication",
-      "lead": "Send a message if you have questions or need help.",
       "emailLabel": "Email",
-      "messageLabel": "Message",
-      "submit": "Send",
-      "note": "We will get back to you as soon as we can.",
+      "emailPlaceholder": "name@example.com",
+      "messageLabel": "Your message",
+      "submit": "Send message",
       "sending": "Sending...",
       "successToast": "Message sent!",
       "errorToast": "Failed to send. Please try again.",
-      "successMessage": "Your message has been sent. We will get back to you as soon as we can."
+      "successMessage": "Your message was sent. We will reply as soon as we can."
     }
   },
   "common": {
@@ -503,20 +596,23 @@
       "chapter": "Chapter",
       "lesson": "Content"
     },
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "shortcut": "Ctrl K"
   },
   "notes": {
     "empty": "No categories available yet."
   },
   "footer": {
     "brand": "Mathe Paidi Mou Arxaia",
-    "tagline": "Structured notes and lessons for Ancient Greek exam preparation.",
+    "tagline": "Your digital school for classical learning and a modern pace. Lessons, notes, and organized material for middle and high school.",
+    "quote": "“The fine things are difficult — and they are won with joy and creativity.”",
     "nav": "Navigation",
     "resources": "Resources",
+    "material": "Material and lessons",
     "contact": "Contact",
-    "contactText": "Questions or feedback? We are here to help.",
+    "contactText": "Questions, or interested in private lessons? Send a message and we will reply.",
     "contactLink": "Send a message",
-    "copyright": "All rights reserved."
+    "copyright": "© {year} Mathe Paidi Mou Arxaia. All rights reserved."
   },
   "header": {
     "languageEl": "Switch to Greek",

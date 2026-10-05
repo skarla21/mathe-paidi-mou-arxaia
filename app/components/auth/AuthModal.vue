@@ -154,7 +154,7 @@ async function onRegisterSubmit() {
     <UiDialogPortal>
       <UiDialogOverlay class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" />
       <UiDialogContent
-        class="overflow-hidden max-w-sm p-0 border-0 rounded-2xl shadow-[0_0_30px_-8px_rgba(0,0,0,0.12)] bg-background dark:bg-card/80 dark:backdrop-blur-md dark:border dark:border-border"
+        class="overflow-hidden max-w-sm p-0 border-0 rounded-3xl shadow-[0_0_30px_-8px_rgba(0,0,0,0.12)] bg-background dark:bg-card/80 dark:backdrop-blur-md dark:border dark:border-border"
       >
         <!-- Accessibility: visually hidden title and description -->
         <UiDialogTitle class="sr-only">

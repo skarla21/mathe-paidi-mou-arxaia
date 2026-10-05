@@ -59,9 +59,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-8 px-4">
-    <h1 id="grade-title" class="font-heading text-3xl font-bold">{{ gradeFromList?.name ?? t('grade.title') }}</h1>
-    <p class="mt-2 text-muted-foreground">{{ t('grade.subjectsAndCourses') }}</p>
+  <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
+    <div id="grade-title">
+      <LayoutPageIntro
+        :eyebrow="t('nav.grades')"
+        :title="gradeFromList?.name ?? t('grade.title')"
+        :lead="t('grade.subjectsAndCourses')"
+      />
+    </div>
     <div id="grade-content" class="mt-8 space-y-8">
       <section v-for="subj in subjects" :key="subj.id">
         <h2 class="font-heading text-xl font-semibold mb-4">{{ subj.name }}</h2>
@@ -72,7 +77,7 @@ onMounted(() => {
             :to="`/chapter/${c.id}`"
             class="block"
           >
-            <UiCard class="group relative rounded-xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:scale-[1.02] border-border/80">
+            <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">
               <UiCardHeader class="flex flex-row items-center gap-3 pb-2">
                 <span class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
                   <VIcon name="bi-journal-bookmark" class="size-4" />

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, computed, onUnmounted } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { toast } from 'vue-sonner'
-import UiInput from '~/components/ui/Input.vue'
+import { registerSearchInput, topmostSearchInput, unregisterSearchInput } from '~/composables/useSearchHotkey'
 import UiPopover from '~/components/ui/popover/Popover.vue'
 import UiPopoverAnchor from '~/components/ui/popover/PopoverAnchor.vue'
 import UiPopoverContent from '~/components/ui/popover/PopoverContent.vue'
@@ -13,7 +13,15 @@ interface SearchResult {
   url: string
 }
 
-const props = defineProps<{ class?: string }>()
+const props = withDefaults(defineProps<{
+  class?: string
+  hotkey?: boolean
+  size?: 'md' | 'lg'
+}>(), {
+  size: 'md',
+  hotkey: false,
+})
+const rootRef = ref<HTMLElement | null>(null)
 const query = ref('')
 const results = ref<SearchResult[]>([])
 const loading = ref(false)
@@ -60,28 +68,58 @@ function onFocus() {
 
 const placeholder = computed(() => t('search.placeholder'))
 
+let registeredInput: HTMLInputElement | null = null
+
+function onHotkey(event: KeyboardEvent) {
+  if (event.repeat) return
+  if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 'k') return
+  const target = topmostSearchInput()
+  if (!target) return
+  event.preventDefault()
+  target.focus()
+  target.select()
+}
+
+onMounted(() => {
+  registeredInput = rootRef.value?.querySelector('input') ?? null
+  if (registeredInput) registerSearchInput(registeredInput)
+  if (!props.hotkey || !import.meta.client) return
+  window.addEventListener('keydown', onHotkey)
+})
+
 onUnmounted(() => {
   if (debounceTimer) clearTimeout(debounceTimer)
+  if (registeredInput) unregisterSearchInput(registeredInput)
+  if (props.hotkey && import.meta.client) window.removeEventListener('keydown', onHotkey)
 })
 </script>
 
 <template>
-  <UiPopover v-model:open="open" :class="props.class">
+  <UiPopover v-model:open="open">
     <UiPopoverAnchor as-child>
-      <div class="relative">
-        <UiInput
+      <div ref="rootRef" :class="props.class">
+      <div class="flex w-full items-center gap-2 rounded-full border border-border bg-secondary px-3.5 shadow-sm transition-all hover:bg-muted focus-within:bg-card focus-within:ring-2 focus-within:ring-primary/30">
+        <VIcon
+          name="bi-search"
+          aria-hidden="true"
+          class="size-4 shrink-0 text-muted-foreground pointer-events-none"
+        />
+        <input
           v-model="query"
           type="search"
           :placeholder="placeholder"
           :aria-label="t('search.placeholder')"
-          class="h-9 pl-8 w-full placeholder:font-heading"
+          class="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none border-none"
+          :class="props.size === 'lg' ? 'h-12 text-base' : 'h-9 text-[13.5px]'"
           @focus="onFocus"
-        />
-        <VIcon
-          name="bi-search"
-          aria-hidden="true"
-          class="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none w-4 h-4"
-        />
+        >
+        <kbd
+          v-if="props.hotkey"
+          class="hidden lg:inline-flex shrink-0 rounded-full border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground pointer-events-none"
+        >
+          {{ t('search.shortcut') }}
+        </kbd>
+      </div>
       </div>
     </UiPopoverAnchor>
     <UiPopoverContent

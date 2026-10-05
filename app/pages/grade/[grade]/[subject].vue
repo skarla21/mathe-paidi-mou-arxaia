@@ -36,7 +36,7 @@ useHead(() => ({
 </script>
 
 <template>
-  <div class="container py-8 px-4">
+  <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <NuxtLink
       :to="`/grade/${gradeId}`"
       class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
@@ -44,9 +44,7 @@ useHead(() => ({
       <VIcon name="bi-arrow-left" class="size-3.5" aria-hidden="true" />
       {{ grade?.name }}
     </NuxtLink>
-    <h1 class="text-3xl font-bold mt-2 font-heading">
-      {{ subject?.name ?? t('subject.title') }}
-    </h1>
+    <LayoutPageIntro class="mt-4" :title="subject?.name ?? t('subject.title')" />
 
     <div v-if="chapters.length > 0" class="mt-8">
       <h2 class="font-heading text-xl font-semibold mb-4">
@@ -59,9 +57,7 @@ useHead(() => ({
           :to="`/chapter/${chapter.id}`"
           class="block"
         >
-          <UiCard
-            class="p-4 transition-colors hover:border-primary/50 flex items-center justify-between"
-          >
+          <UiCard class="bobble-card flex items-center justify-between rounded-3xl p-4 shadow-sm transition-shadow hover:shadow-md">
             <UiCardContent class="p-0 flex items-center justify-between w-full gap-2">
               <span class="flex items-center gap-2 min-w-0">
                 <VIcon

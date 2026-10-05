@@ -16,6 +16,7 @@ interface Lesson {
 interface LessonResponse extends Lesson {
   can_access: boolean
   can_access_content: boolean
+  has_content?: boolean
 }
 
 const route = useRoute()
@@ -25,14 +26,16 @@ const { t } = useI18n()
 const lesson = ref<Lesson | null>(null)
 const canAccess = ref(false)
 const canAccessContent = ref(false)
+const hasContent = ref(false)
 const purchasing = ref(false)
 
 const { data } = await useFetch<LessonResponse>(`/api/lessons/${lessonId}`)
 if (data.value) {
-  const { can_access, can_access_content, ...rest } = data.value
+  const { can_access, can_access_content, has_content, ...rest } = data.value
   lesson.value = rest
   canAccess.value = can_access
   canAccessContent.value = can_access_content
+  hasContent.value = Boolean(has_content)
 }
 
 const safeContent = ref('')
@@ -83,7 +86,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-8 px-4">
+  <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <div v-if="!lesson" class="space-y-4">
       <UiSkeleton class="h-9 w-2/3 rounded-xl" />
       <UiSkeleton class="h-5 w-full rounded-lg" />
@@ -91,13 +94,13 @@ onMounted(() => {
       <UiSkeleton class="h-64 w-full rounded-xl mt-8" />
     </div>
     <template v-else>
-      <h1 id="lesson-title" class="font-heading text-3xl font-bold">
-        {{ lesson.title }}
-      </h1>
+      <div id="lesson-title">
+        <LayoutPageIntro :title="lesson.title" />
+      </div>
       <ClientOnly v-if="lesson.content">
         <div
           v-if="safeContent"
-          class="mt-4 prose dark:prose-invert max-w-none"
+          class="font-reading prose mt-4 max-w-none dark:prose-invert"
           v-html="safeContent"
         />
         <template #fallback>
@@ -108,8 +111,8 @@ onMounted(() => {
         <LessonContentViewer :src="lesson.content_url" :lesson-id="lessonId" />
       </div>
       <div
-        v-else-if="canAccess && !canAccessContent && lesson.content_url"
-        class="mt-8 flex flex-col items-center gap-4 rounded-xl bg-amber-500/10 border border-amber-500/30 p-8 text-center max-w-md"
+        v-else-if="canAccess && !canAccessContent && hasContent"
+        class="mt-8 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-amber/30 bg-amber/10 p-8 text-center"
       >
         <span
           class="flex size-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-500"
@@ -131,8 +134,8 @@ onMounted(() => {
         </NuxtLink>
       </div>
       <div
-        v-else-if="lesson.content_url && !canAccess"
-        class="mt-8 flex flex-col items-center gap-4 rounded-xl bg-accent/10 border border-accent/30 p-8 text-center max-w-md"
+        v-else-if="hasContent && !canAccess"
+        class="mt-8 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-primary/30 bg-flame-fixed/40 p-8 text-center"
       >
         <span
           class="flex size-14 items-center justify-center rounded-2xl bg-accent/20 text-accent"

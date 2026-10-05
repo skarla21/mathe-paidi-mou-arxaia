@@ -30,8 +30,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container max-w-3xl py-10 px-4">
-    <h1 class="text-3xl font-heading font-bold mb-8">{{ t('articlesPage.title') }}</h1>
+  <div class="mx-auto w-full max-w-3xl px-4 py-12">
+    <LayoutPageIntro :eyebrow="t('nav.extras')" :title="t('articlesPage.title')" />
 
     <div v-if="list === null" class="space-y-4">
       <UiCard v-for="i in 4" :key="i">
@@ -46,7 +46,7 @@ onMounted(async () => {
 
     <ul v-else class="space-y-4">
       <li v-for="a in list" :key="a.id">
-        <UiCard class="hover:border-primary/30 transition-colors">
+        <UiCard class="rounded-3xl shadow-sm transition-shadow hover:shadow-md">
           <UiCardContent class="p-6">
             <NuxtLink :to="`/articles/${a.id}`" class="block group">
               <h2 class="text-xl font-heading font-semibold group-hover:text-primary transition-colors">

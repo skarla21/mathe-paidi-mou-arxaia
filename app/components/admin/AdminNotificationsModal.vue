@@ -193,49 +193,56 @@ function togglePref(
             <template v-else>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.purchase') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_purchase"
                   @update:model-value="(v: boolean) => togglePref('notify_purchase', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.download') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_download"
                   @update:model-value="(v: boolean) => togglePref('notify_download', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.rating') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_rating"
                   @update:model-value="(v: boolean) => togglePref('notify_rating', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.comment') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_comment"
                   @update:model-value="(v: boolean) => togglePref('notify_comment', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.contact') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_contact"
                   @update:model-value="(v: boolean) => togglePref('notify_contact', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleLike') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_article_like"
                   @update:model-value="(v: boolean) => togglePref('notify_article_like', v)"
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
                 <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleComment') }}</UiLabel>
-                <Switch class="cursor-pointer"
+                <Switch
+                  class="cursor-pointer"
                   :model-value="prefs.notify_article_comment"
                   @update:model-value="(v: boolean) => togglePref('notify_article_comment', v)"
                 />
@@ -277,6 +284,12 @@ function togglePref(
                   <template v-if="item.kind === 'contact'">
                     <p class="mt-1 font-medium text-foreground break-all">
                       {{ String(item.payload.email ?? '') }}
+                    </p>
+                    <p v-if="item.payload.name" class="mt-1 text-foreground">
+                      {{ String(item.payload.name) }}
+                    </p>
+                    <p v-if="item.payload.phone || item.payload.gradeName" class="mt-1 text-muted-foreground">
+                      {{ [item.payload.phone, item.payload.gradeName].filter(Boolean).join(' · ') }}
                     </p>
                     <p class="mt-1 text-foreground wrap-break-word whitespace-pre-wrap">
                       {{ String(item.payload.message ?? '') }}

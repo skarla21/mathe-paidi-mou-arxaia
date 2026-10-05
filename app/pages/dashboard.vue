@@ -27,11 +27,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-12 px-4 max-w-5xl">
-    <!-- Page header -->
-    <div id="dashboard-title" class="mb-8">
-      <h1 class="font-heading text-3xl font-bold">{{ t('dashboard.title') }}</h1>
-      <p class="mt-2 text-muted-foreground font-heading">{{ t('dashboard.body') }}</p>
+  <div class="mx-auto w-full max-w-5xl px-4 py-12">
+    <div id="dashboard-title">
+      <LayoutPageIntro :title="t('dashboard.title')" :lead="t('dashboard.body')" />
     </div>
 
     <!-- My Courses section -->
@@ -46,14 +44,14 @@ onMounted(() => {
       <!-- Empty state -->
       <div
         v-else-if="lessons.length === 0"
-        class="rounded-xl border border-dashed border-border bg-muted/30 p-10 text-center max-w-md"
+        class="max-w-md rounded-3xl border border-dashed border-border bg-card p-10 text-center shadow-sm"
       >
         <VIcon name="bi-cart" class="size-10 mx-auto text-muted-foreground/70" aria-hidden="true" />
         <p class="mt-3 font-heading font-medium">{{ t('dashboard.empty') }}</p>
         <p class="mt-1 text-sm text-muted-foreground">{{ t('dashboard.emptyHint') }}</p>
         <NuxtLink
           to="/"
-          class="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+          class="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
         >
           {{ t('dashboard.emptyCta') }}
         </NuxtLink>
@@ -67,7 +65,7 @@ onMounted(() => {
           :to="`/lesson/${c.id}`"
           class="block group"
         >
-          <UiCard class="rounded-xl shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/30 hover:scale-[1.02] border-border/80">
+          <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">
             <UiCardHeader class="flex flex-row items-center gap-3 pb-2">
               <span
                 class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"

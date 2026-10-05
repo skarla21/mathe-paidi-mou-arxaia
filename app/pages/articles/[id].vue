@@ -166,7 +166,7 @@ async function copyLink() {
 </script>
 
 <template>
-  <div class="container max-w-3xl py-10 px-4">
+  <div class="mx-auto w-full max-w-3xl px-4 py-12">
     <NuxtLink to="/articles" class="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">
       {{ t('articlesPage.backToList') }}
     </NuxtLink>
@@ -197,7 +197,7 @@ async function copyLink() {
         </div>
       </header>
 
-      <div class="prose prose-neutral dark:prose-invert max-w-none mb-10 whitespace-pre-wrap">
+      <div class="font-reading prose prose-neutral mb-10 max-w-none whitespace-pre-wrap dark:prose-invert">
         {{ article.body }}
       </div>
 

@@ -37,6 +37,16 @@ export default defineNuxtConfig({
       },
     },
   },
+  hooks: {
+    // Barrel files such as ui/checkbox/index.ts resolve to the same
+    // auto-import name as Checkbox.vue. They stay importable.
+    "components:dirs"(dirs) {
+      for (const dir of dirs) {
+        if (typeof dir === "string") continue;
+        dir.ignore = [...(dir.ignore ?? []), "**/index.ts"];
+      }
+    },
+  },
   nitro: {
     experimental: {
       openAPI: false,

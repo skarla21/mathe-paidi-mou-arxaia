@@ -3,6 +3,7 @@ import {
   BiSunFill,
   BiMoonFill,
   BiChevronDown,
+  BiChevronRight,
   BiSearch,
   BiStars,
   BiInfoCircle,
@@ -61,12 +62,21 @@ import {
   BiHeartFill,
   BiLink45Deg,
   BiNewspaper,
+  BiCollection,
+  BiCompass,
+  BiLightbulb,
+  BiSend,
+  BiBook,
+  BiPerson,
+  BiLock,
+  BiUnlock,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
   BiSunFill,
   BiMoonFill,
   BiChevronDown,
+  BiChevronRight,
   BiSearch,
   BiStars,
   BiInfoCircle,
@@ -125,6 +135,14 @@ addIcons(
   BiHeartFill,
   BiLink45Deg,
   BiNewspaper,
+  BiCollection,
+  BiCompass,
+  BiLightbulb,
+  BiSend,
+  BiBook,
+  BiPerson,
+  BiLock,
+  BiUnlock,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

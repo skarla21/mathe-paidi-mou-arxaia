@@ -235,7 +235,7 @@ export async function notifyCommentCreated(supabase: SupabaseClient, commentId: 
 
 export async function notifyContactMessage(
   supabase: SupabaseClient,
-  params: { email: string; message: string },
+  params: { email: string; message: string; name?: string; phone?: string; gradeName?: string },
 ): Promise<void> {
   const email = params.email.replace(/[\r\n]/g, '').slice(0, 320)
   const message = params.message.slice(0, 4000)
@@ -244,6 +244,9 @@ export async function notifyContactMessage(
     payload: {
       email,
       message,
+      name: params.name?.slice(0, 120) || undefined,
+      phone: params.phone?.slice(0, 40) || undefined,
+      gradeName: params.gradeName?.slice(0, 120) || undefined,
     },
   })
 }

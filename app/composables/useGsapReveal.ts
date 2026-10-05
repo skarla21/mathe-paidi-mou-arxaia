@@ -1,4 +1,8 @@
 export function useGsapReveal() {
+  function prefersReducedMotion() {
+    return import.meta.client && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }
+
   async function getGsap() {
     const { default: gsap } = await import('gsap')
     const { ScrollTrigger } = await import('gsap/ScrollTrigger')
@@ -10,7 +14,7 @@ export function useGsapReveal() {
     el: HTMLElement | string,
     opts?: { y?: number; duration?: number; stagger?: number; ease?: string; scroller?: HTMLElement }
   ) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
@@ -44,7 +48,7 @@ export function useGsapReveal() {
     childSelector: string,
     opts?: { y?: number; duration?: number; stagger?: number; ease?: string; scroller?: HTMLElement }
   ) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const el: HTMLElement | null =
       typeof container === 'string' ? document.querySelector<HTMLElement>(container) : container
@@ -80,7 +84,7 @@ export function useGsapReveal() {
     lead: HTMLElement | string,
     cta?: HTMLElement | string
   ) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const t: HTMLElement | null =
       typeof title === 'string' ? document.querySelector<HTMLElement>(title) : title
@@ -99,7 +103,7 @@ export function useGsapReveal() {
   }
 
   async function iconWiggle(el: HTMLElement | string) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
@@ -108,7 +112,7 @@ export function useGsapReveal() {
   }
 
   async function animateBadge(el: HTMLElement | string) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
@@ -121,7 +125,7 @@ export function useGsapReveal() {
   }
 
   async function parallaxBlobs(container: HTMLElement | string, scroller?: HTMLElement) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const el: HTMLElement | null =
       typeof container === 'string' ? document.querySelector<HTMLElement>(container) : container
@@ -137,7 +141,7 @@ export function useGsapReveal() {
   }
 
   async function heroFadeOnScroll(heroEl: HTMLElement | string, scroller?: HTMLElement) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof heroEl === 'string' ? document.querySelector<HTMLElement>(heroEl) : heroEl
@@ -153,7 +157,7 @@ export function useGsapReveal() {
   }
 
   async function dropdownEnter(el: HTMLElement | string) {
-    if (!import.meta.client) return
+    if (!import.meta.client || prefersReducedMotion()) return
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
@@ -167,10 +171,17 @@ export function useGsapReveal() {
 
   async function dropdownExit(el: HTMLElement | string, onComplete?: () => void) {
     if (!import.meta.client) return
+    if (prefersReducedMotion()) {
+      onComplete?.()
+      return
+    }
     const { gsap } = await getGsap()
     const target: HTMLElement | null =
       typeof el === 'string' ? document.querySelector<HTMLElement>(el) : el
-    if (!target) return
+    if (!target) {
+      onComplete?.()
+      return
+    }
     gsap.to(target, {
       opacity: 0,
       y: 10,

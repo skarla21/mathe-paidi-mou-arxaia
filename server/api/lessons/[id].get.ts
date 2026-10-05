@@ -22,6 +22,7 @@ export default defineEventHandler(async (event) => {
   return {
     ...lesson,
     content_url: canAccessContent ? content_url : null,
+    has_content: Boolean(lesson.content_url),
     can_access: allowed,
     can_access_content: canAccessContent,
   }

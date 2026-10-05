@@ -180,8 +180,8 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="container max-w-2xl py-8 px-4">
-    <UiCard>
+  <div class="mx-auto w-full max-w-2xl px-4 py-12">
+    <UiCard class="rounded-3xl shadow-sm">
       <UiCardHeader>
         <h1 class="text-2xl font-bold font-heading">{{ t('profile.edit.title') }}</h1>
       </UiCardHeader>

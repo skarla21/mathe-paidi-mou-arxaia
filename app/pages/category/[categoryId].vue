@@ -41,7 +41,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container py-8 px-4">
+  <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <div v-if="!category" class="space-y-4">
       <UiSkeleton class="h-9 w-2/3 rounded-xl" />
       <UiSkeleton class="h-5 w-full rounded-lg" />
@@ -52,8 +52,9 @@ onMounted(() => {
       <UiSkeleton class="h-14 w-full rounded-xl" />
     </div>
     <template v-else>
-      <h1 id="category-title" class="font-heading text-3xl font-bold">{{ category.name }}</h1>
-      <p v-if="category.description" class="mt-2 text-muted-foreground">{{ category.description }}</p>
+      <div id="category-title">
+        <LayoutPageIntro :eyebrow="t('nav.categories')" :title="category.name" :lead="category.description ?? undefined" />
+      </div>
       <h2 id="category-lessons" class="font-heading text-xl font-semibold mt-8">{{ t('category.lessons') }}</h2>
       <div class="space-y-3 mt-4">
         <NuxtLink
@@ -61,7 +62,7 @@ onMounted(() => {
           :key="l.id"
           :to="`/lesson/${l.id}`"
         >
-          <UiCard class="p-4 flex items-center justify-between hover:bg-muted/50 transition-colors cursor-pointer">
+          <UiCard class="flex cursor-pointer items-center justify-between rounded-3xl p-4 shadow-sm transition-colors hover:bg-secondary">
             <span class="font-medium text-foreground">{{ l.title }}</span>
             <VIcon v-if="!l.is_free" name="bi-gem" class="size-4 text-muted-foreground" aria-hidden="true" />
           </UiCard>

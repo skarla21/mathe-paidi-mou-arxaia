@@ -78,14 +78,14 @@ async function onSubmit() {
 <template>
   <div class="min-h-full flex items-center justify-center p-4">
     <UiCard
-      class="relative flex flex-col justify-center w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl min-h-[32rem] overflow-hidden border-0 rounded-2xl shadow-[0_0_30px_-8px_rgba(0,0,0,0.12)] bg-transparent dark:bg-card/80 dark:backdrop-blur-md dark:border dark:border-border"
+      class="relative flex flex-col justify-center w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl min-h-[32rem] overflow-hidden border-0 rounded-3xl shadow-[0_0_30px_-8px_rgba(0,0,0,0.12)] bg-transparent dark:bg-card/80 dark:backdrop-blur-md dark:border dark:border-border"
     >
       <div
-        class="absolute inset-0 rounded-2xl bg-cover bg-center bg-no-repeat"
+        class="absolute inset-0 rounded-3xl bg-cover bg-center bg-no-repeat"
         :style="{ backgroundImage: `url('/imgs/login_bg.jpg')`, opacity: 0.2 }"
         aria-hidden="true"
       />
-      <div class="relative z-10 rounded-2xl max-w-sm mx-auto">
+      <div class="relative z-10 rounded-3xl max-w-sm mx-auto">
         <UiCardHeader class="space-y-1 pb-4">
           <h1 class="text-2xl font-bold font-heading">
             {{ t('auth.login.title') }}
