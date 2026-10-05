@@ -27,7 +27,7 @@ alwaysApply: true
 19. Always check purchase table before unlocking content.
 20. Follow clean folder structure.
 21. Dont use emojis, use oh-vue-icons and animations.
-22. Never write hardcoded texts, use the translations file instead.
+22. The interface is Greek only. Write user-visible copy directly in Greek. Do not add a locale system or English UI.
 
 Project philosophy:
 Minimal.

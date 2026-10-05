@@ -22,7 +22,6 @@ type LessonSortKind = 'category' | 'chapter' | 'subject'
 const props = defineProps<{ open: boolean; mode: AdminSortModalMode }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
 
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const loading = ref(false)
@@ -53,11 +52,11 @@ const filteredChapters = computed(() =>
 
 const modalTitle = computed(() => {
   switch (props.mode) {
-    case 'subjects': return t('admin.sortModal.titleSubjects')
-    case 'chapters': return t('admin.sortModal.titleChapters')
-    case 'lessons': return t('admin.sortModal.titleLessons')
-    case 'categories': return t('admin.sortModal.titleCategories')
-    default: return t('admin.sortModal.title')
+    case 'subjects': return 'Ταξινόμηση μαθημάτων'
+    case 'chapters': return 'Ταξινόμηση κεφαλαίων'
+    case 'lessons': return 'Ταξινόμηση υλικού'
+    case 'categories': return 'Ταξινόμηση κατηγοριών'
+    default: return 'Ταξινόμηση'
   }
 })
 
@@ -146,7 +145,7 @@ async function loadLessons() {
   } catch {
     if (gen !== lessonFetchGen) return
     orderedRows.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     if (gen === lessonFetchGen) listLoading.value = false
   }
@@ -177,7 +176,7 @@ watch(() => props.open, async (open) => {
         .map(c => ({ id: c.id, label: c.name }))
     }
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
     emit('close')
   } finally {
     loading.value = false
@@ -262,11 +261,11 @@ async function saveOrder() {
         })
       }
     }
-    toast.success(t('admin.saveOrderSuccess'))
+    toast.success('Η σειρά αποθηκεύτηκε')
     emit('saved')
     emit('close')
   } catch {
-    toast.error(t('admin.saveOrderError'))
+    toast.error('Αποτυχία αποθήκευσης σειράς')
   } finally {
     saveLoading.value = false
   }
@@ -283,19 +282,19 @@ async function saveOrder() {
       >
         <UiDialogHeader>
           <UiDialogTitle>{{ modalTitle }}</UiDialogTitle>
-          <UiDialogDescription class="sr-only">{{ t('admin.sortModal.description') }}</UiDialogDescription>
+          <UiDialogDescription class="sr-only">Αναδιάταξη στοιχείων και αποθήκευση.</UiDialogDescription>
         </UiDialogHeader>
 
         <div v-if="loading" class="py-12 text-center text-muted-foreground">
-          {{ t('common.loading') }}
+          Φόρτωση...
         </div>
 
         <template v-else>
           <div v-if="mode === 'subjects'" class="space-y-1.5 py-2">
-            <UiLabel>{{ t('admin.sortModal.pickGrade') }}</UiLabel>
+            <UiLabel>Επίλεξε τάξη.</UiLabel>
             <Select v-model="selGrade">
               <SelectTrigger>
-                <SelectValue :placeholder="t('admin.selectGrade')" />
+                <SelectValue placeholder="Επιλογή τάξης…" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
@@ -305,10 +304,10 @@ async function saveOrder() {
 
           <div v-else-if="mode === 'chapters'" class="flex flex-col gap-3 py-2 sm:flex-row sm:items-end">
             <div class="min-w-0 flex-1 space-y-1.5">
-              <UiLabel>{{ t('admin.sortModal.pickGrade') }}</UiLabel>
+              <UiLabel>Επίλεξε τάξη.</UiLabel>
               <Select v-model="selGrade">
                 <SelectTrigger>
-                  <SelectValue :placeholder="t('admin.selectGrade')" />
+                  <SelectValue placeholder="Επιλογή τάξης…" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
@@ -316,10 +315,10 @@ async function saveOrder() {
               </Select>
             </div>
             <div class="min-w-0 flex-1 space-y-1.5">
-              <UiLabel>{{ t('admin.sortModal.pickSubject') }}</UiLabel>
+              <UiLabel>Επίλεξε μάθημα.</UiLabel>
               <Select v-model="selSubject">
                 <SelectTrigger>
-                  <SelectValue :placeholder="t('admin.selectSubject')" />
+                  <SelectValue placeholder="Επιλογή μαθήματος…" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
@@ -330,7 +329,7 @@ async function saveOrder() {
 
           <div v-else-if="mode === 'lessons'" class="flex items-end gap-3 py-2">
             <div class="min-w-0 flex-1 space-y-1.5">
-              <UiLabel>{{ t('admin.placementType') }}</UiLabel>
+              <UiLabel>Τύπος</UiLabel>
               <Select
                 :model-value="lessonKind"
                 @update:model-value="(v) => onLessonTypeChange(String(v) as LessonSortKind)"
@@ -339,19 +338,19 @@ async function saveOrder() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
-                  <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
-                  <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
+                  <SelectItem value="subject">Μάθημα</SelectItem>
+                  <SelectItem value="chapter">Κεφάλαιο</SelectItem>
+                  <SelectItem value="category">Κατηγορία</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <template v-if="lessonKind === 'subject'">
               <div class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                <UiLabel>Τάξη</UiLabel>
                 <Select v-model="selGrade">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectGrade')" />
+                    <SelectValue placeholder="Επιλογή τάξης…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
@@ -359,10 +358,10 @@ async function saveOrder() {
                 </Select>
               </div>
               <div v-if="selGrade" class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                <UiLabel>Μάθημα</UiLabel>
                 <Select v-model="selSubject">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectSubject')" />
+                    <SelectValue placeholder="Επιλογή μαθήματος…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
@@ -373,10 +372,10 @@ async function saveOrder() {
 
             <template v-else-if="lessonKind === 'chapter'">
               <div class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                <UiLabel>Τάξη</UiLabel>
                 <Select v-model="selGrade">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectGrade')" />
+                    <SelectValue placeholder="Επιλογή τάξης…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
@@ -384,10 +383,10 @@ async function saveOrder() {
                 </Select>
               </div>
               <div v-if="selGrade" class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                <UiLabel>Μάθημα</UiLabel>
                 <Select v-model="selSubject">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectSubject')" />
+                    <SelectValue placeholder="Επιλογή μαθήματος…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
@@ -395,10 +394,10 @@ async function saveOrder() {
                 </Select>
               </div>
               <div v-if="selSubject" class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
+                <UiLabel>Κεφάλαιο</UiLabel>
                 <Select v-model="selChapter">
                   <SelectTrigger>
-                    <SelectValue :placeholder="t('admin.selectChapter')" />
+                    <SelectValue placeholder="Επιλογή κεφαλαίου…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="c in filteredChapters" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
@@ -408,10 +407,10 @@ async function saveOrder() {
             </template>
 
             <div v-else class="min-w-0 flex-1 space-y-1.5">
-              <UiLabel>{{ t('admin.field.category') }}</UiLabel>
+              <UiLabel>Κατηγορία</UiLabel>
               <Select v-model="selCategory">
                 <SelectTrigger>
-                  <SelectValue :placeholder="t('admin.selectCategory')" />
+                  <SelectValue placeholder="Επιλογή κατηγορίας…" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
@@ -422,10 +421,10 @@ async function saveOrder() {
 
           <div v-if="showList" class="space-y-3 py-2">
             <p v-if="listLoading" class="py-6 text-center text-sm text-muted-foreground">
-              {{ t('common.loading') }}
+              Φόρτωση...
             </p>
             <template v-else-if="orderedRows.length">
-              <p class="text-sm text-muted-foreground">{{ t('admin.sortModal.dragHint') }}</p>
+              <p class="text-sm text-muted-foreground">Σύρε τις γραμμές για νέα σειρά και αποθήκευσε.</p>
               <div
                 v-for="(row, index) in orderedRows"
                 :key="row.id"
@@ -443,19 +442,19 @@ async function saveOrder() {
               </div>
             </template>
             <div v-else class="py-6 text-center text-sm text-muted-foreground">
-              {{ t('admin.sortModal.emptyList') }}
+              Δεν υπάρχει κάτι για ταξινόμηση.
             </div>
           </div>
         </template>
 
         <UiDialogFooter class="gap-2 sm:gap-0">
-          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
           <UiButton
             v-if="!loading && !listLoading && orderedRows.length > 0"
             :disabled="saveLoading"
             @click="saveOrder"
           >
-            {{ saveLoading ? t('common.loading') : t('admin.saveOrder') }}
+            {{ saveLoading ? 'Φόρτωση...' : 'Αποθήκευση σειράς' }}
           </UiButton>
         </UiDialogFooter>
       </UiDialogContent>

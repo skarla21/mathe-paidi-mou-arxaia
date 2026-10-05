@@ -25,12 +25,11 @@ interface Grade {
 
 const route = useRoute()
 const gradeId = route.params.grade as string
-const { t } = useI18n()
 
 const subjects = ref<Subject[]>([])
 const chapters = ref<Chapter[]>([])
 
-const { data: gradeData } = await useFetch(`/api/grades`)
+const { data: gradeData } = await useFetch('/api/grades')
 const gradeFromList = computed(() => (gradeData.value as Grade[])?.find((g) => g.id === gradeId))
 
 const { data: subjectsData } = await useFetch('/api/subjects', { query: { grade_id: gradeId } })
@@ -44,7 +43,7 @@ function chaptersForSubject(subjectId: string) {
 }
 
 useHead(() => ({
-  title: gradeFromList.value ? `${gradeFromList.value.name} - ${t('grade.titleWithName')}` : t('grade.title'),
+  title: gradeFromList.value ? `${gradeFromList.value.name} - Τάξεις` : 'Τάξη',
 }))
 
 onMounted(() => {
@@ -62,9 +61,9 @@ onMounted(() => {
   <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <div id="grade-title">
       <LayoutPageIntro
-        :eyebrow="t('nav.grades')"
-        :title="gradeFromList?.name ?? t('grade.title')"
-        :lead="t('grade.subjectsAndCourses')"
+        eyebrow="Τάξεις"
+        :title="gradeFromList?.name ?? 'Τάξη'"
+        lead="Μαθήματα και κεφάλαια"
       />
     </div>
     <div id="grade-content" class="mt-8 space-y-8">
@@ -85,16 +84,16 @@ onMounted(() => {
                 <UiCardTitle class="font-heading text-base leading-snug">{{ c.title }}</UiCardTitle>
               </UiCardHeader>
               <UiCardContent class="pt-0 pb-4">
-                <span class="text-xs text-muted-foreground">{{ t('chapter.title') }}</span>
+                <span class="text-xs text-muted-foreground">Κεφάλαιο</span>
               </UiCardContent>
             </UiCard>
           </NuxtLink>
         </div>
         <p v-if="chaptersForSubject(subj.id).length === 0" class="text-muted-foreground text-sm mt-2">
-          {{ t('chapter.noLessonsYet') }}
+          Δεν υπάρχει ακόμη υλικό.
         </p>
       </section>
     </div>
-    <p v-if="subjects.length === 0" class="text-muted-foreground">{{ t('grade.noSubjectsYet') }}</p>
+    <p v-if="subjects.length === 0" class="text-muted-foreground">Δεν υπάρχουν ακόμη μαθήματα για αυτή την τάξη.</p>
   </div>
 </template>

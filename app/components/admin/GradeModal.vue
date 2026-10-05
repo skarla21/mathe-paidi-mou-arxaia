@@ -17,7 +17,6 @@ const props = defineProps<{
   grade: { id: string; name: string; order: number } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
-const { t } = useI18n()
 
 const name = ref('')
 const loading = ref(false)
@@ -47,7 +46,7 @@ async function onSubmit() {
     emit('close')
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -60,18 +59,18 @@ async function onSubmit() {
       <UiDialogOverlay />
       <UiDialogContent>
         <UiDialogHeader>
-          <UiDialogTitle>{{ props.grade ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.grades') }}</UiDialogTitle>
-          <UiDialogDescription class="sr-only">{{ t('admin.modal.gradeDescription') }}</UiDialogDescription>
+          <UiDialogTitle>{{ props.grade ? 'Επεξεργασία' : 'Δημιουργία' }} — Τάξεις</UiDialogTitle>
+          <UiDialogDescription class="sr-only">Δημιουργία ή επεξεργασία τάξης.</UiDialogDescription>
         </UiDialogHeader>
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
-            <UiLabel for="grade-name">{{ t('admin.field.name') }}</UiLabel>
+            <UiLabel for="grade-name">Όνομα</UiLabel>
             <UiInput id="grade-name" v-model="name" :aria-invalid="nameMissing || undefined" :class="nameMissing ? 'border-destructive' : ''" />
-            <p v-if="nameMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.name') }) }}</p>
+            <p v-if="nameMissing" class="text-xs text-destructive">Το πεδίο «Όνομα» είναι υποχρεωτικό</p>
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
-            <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
+            <UiButton type="submit" :disabled="loading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
           </UiDialogFooter>
         </form>
       </UiDialogContent>

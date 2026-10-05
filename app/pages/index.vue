@@ -1,24 +1,15 @@
 <script setup lang="ts">
-const { t } = useI18n()
 const route = useRoute()
-useHead(() => ({ title: t('home.pageTitle') }))
+useHead({ title: 'Μάθε Παιδί Μου Αρχαία — Προετοιμασία για Πανελλήνιες' })
 
-const sectionConfig = [
-  { id: 'welcome', labelKey: 'home.section.welcome', icon: 'bi-stars' },
-  { id: 'information', labelKey: 'home.section.information', icon: 'bi-mortarboard' },
-  { id: 'grades', labelKey: 'home.section.grades', icon: 'bi-journal-bookmark' },
-  { id: 'instructions', labelKey: 'home.section.instructions', icon: 'bi-compass' },
-  { id: 'more', labelKey: 'home.section.more', icon: 'bi-book' },
-  { id: 'communication', labelKey: 'home.section.communication', icon: 'bi-chat-dots' },
+const sections = [
+  { id: 'welcome', label: 'Καλώς ήρθατε', icon: 'bi-stars' },
+  { id: 'information', label: 'Πληροφορίες', icon: 'bi-mortarboard' },
+  { id: 'grades', label: 'Τάξεις', icon: 'bi-journal-bookmark' },
+  { id: 'instructions', label: 'Οδηγίες χρήσης', icon: 'bi-compass' },
+  { id: 'more', label: 'Περισσότερα', icon: 'bi-book' },
+  { id: 'communication', label: 'Επικοινωνία', icon: 'bi-chat-dots' },
 ]
-
-const sections = computed(() =>
-  sectionConfig.map((section) => ({
-    id: section.id,
-    label: t(section.labelKey),
-    icon: section.icon,
-  })),
-)
 
 const activeSection = ref('welcome')
 const visibleHeight = new Map<string, number>()
@@ -34,7 +25,7 @@ onMounted(() => {
   nextTick(() => {
     void animateBadge('#hero-badge')
     void animateHero('#hero-title', '#hero-lead', '#hero-cta')
-    for (const section of sections.value) {
+    for (const section of sections) {
       if (section.id === 'welcome') continue
       void revealSection(`#${section.id}`)
     }
@@ -50,7 +41,7 @@ onMounted(() => {
     }
     let bestId = ''
     let best = 0
-    for (const section of sections.value) {
+    for (const section of sections) {
       const height = visibleHeight.get(section.id) ?? 0
       if (height > best) {
         best = height
@@ -63,7 +54,7 @@ onMounted(() => {
     rootMargin: '-88px 0px -10% 0px',
   })
 
-  for (const section of sections.value) {
+  for (const section of sections) {
     const el = document.getElementById(section.id)
     if (el) observer.observe(el)
   }

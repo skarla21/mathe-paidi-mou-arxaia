@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 
-const { t } = useI18n();
 const { grades, ensure } = useCatalogNav();
 
 const name = ref("");
 const email = ref("");
 const phone = ref("");
 const gradeId = ref("");
+const gradeChoice = computed({
+  get: () => gradeId.value || "__none__",
+  set: (value: string) => {
+    gradeId.value = value === "__none__" ? "" : value;
+  },
+});
 const message = ref("");
 const honey = ref("");
 const submitting = ref(false);
@@ -33,10 +39,10 @@ async function submitContact() {
         honey: honey.value,
       },
     });
-    toast.success(t("home.communication.successToast"));
+    toast.success('Το μήνυμα στάλθηκε!');
     submitted.value = true;
   } catch {
-    toast.error(t("home.communication.errorToast"));
+    toast.error('Αποτυχία αποστολής. Παρακαλώ προσπαθήστε ξανά.');
   } finally {
     submitting.value = false;
   }
@@ -51,14 +57,14 @@ async function submitContact() {
           class="inline-flex items-center gap-2 rounded-full bg-flame-fixed px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-wider text-flame-fixed-foreground"
         >
           <VIcon name="bi-chat-dots" class="size-4" aria-hidden="true" />
-          {{ t("home.contact.eyebrow") }}
+          Επικοινωνία και ιδιαίτερα
         </div>
         <h2
           class="font-heading text-3xl font-extrabold text-foreground sm:text-4xl"
         >
-          {{ t("home.contact.title") }}
+          Έχεις απορίες ή θέλεις ιδιαίτερα;
         </h2>
-        <p class="text-muted-foreground">{{ t("home.contact.lead") }}</p>
+        <p class="text-muted-foreground">Συμπλήρωσε τη φόρμα για το υλικό ή για να συζητήσουμε τις ανάγκες του μαθητή.</p>
         <div class="space-y-4">
           <div
             class="flex items-center gap-3.5 rounded-2xl bg-card p-4 shadow-sm"
@@ -71,11 +77,9 @@ async function submitContact() {
             <div>
               <span
                 class="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
-                >{{ t("home.contact.emailCaption") }}</span
+                >Επικοινωνία</span
               >
-              <span class="font-semibold">{{
-                t("home.contact.emailValue")
-              }}</span>
+              <span class="font-semibold">Μέσω της φόρμας</span>
             </div>
           </div>
           <div
@@ -93,11 +97,9 @@ async function submitContact() {
             <div>
               <span
                 class="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
-                >{{ t("home.contact.sessionsCaption") }}</span
+                >Διαδικτυακές συνεδρίες</span
               >
-              <span class="font-semibold">{{
-                t("home.contact.sessionsValue")
-              }}</span>
+              <span class="font-semibold">Καθημερινές και Σαββατοκύριακο</span>
             </div>
           </div>
           <div
@@ -111,11 +113,9 @@ async function submitContact() {
             <div>
               <span
                 class="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground"
-                >{{ t("home.contact.focusCaption") }}</span
+                >Εξειδίκευση</span
               >
-              <span class="font-semibold">{{
-                t("home.contact.focusValue")
-              }}</span>
+              <span class="font-semibold">Αρχαία, έκθεση, παράλληλη στήριξη</span>
             </div>
           </div>
         </div>
@@ -125,16 +125,16 @@ async function submitContact() {
         class="rounded-3xl border border-border bg-card p-8 shadow-[0_16px_36px_rgba(0,0,0,0.06)] lg:col-span-7"
       >
         <h3 class="font-heading text-xl font-bold">
-          {{ t("home.contact.formTitle") }}
+          Στείλε το μήνυμά σου
         </h3>
         <p class="mb-6 text-sm text-muted-foreground">
-          {{ t("home.contact.formLead") }}
+          Απαντάμε σε γονείς και μαθητές.
         </p>
         <p
           v-if="submitted"
           class="rounded-2xl bg-laurel-fixed/60 p-4 text-sm font-medium text-laurel-fixed-foreground"
         >
-          {{ t("home.communication.successMessage") }}
+          Το μήνυμά σου στάλθηκε. Θα σου απαντήσουμε το συντομότερο.
         </p>
         <form v-else class="space-y-4" @submit.prevent="submitContact">
           <input
@@ -147,65 +147,72 @@ async function submitContact() {
           >
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="space-y-1.5 text-sm font-semibold">
-              {{ t("home.contact.nameLabel") }}
+              Ονοματεπώνυμο
               <input
                 v-model="name"
                 type="text"
                 maxlength="120"
                 class="h-12 w-full rounded-xl border-none bg-secondary px-4 font-normal focus:bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-                :placeholder="t('home.contact.namePlaceholder')"
+                placeholder="π.χ. Μαρία Παπαδοπούλου"
               >
             </label>
             <label class="space-y-1.5 text-sm font-semibold">
-              {{ t("home.communication.emailLabel") }}
+              Email επικοινωνίας
               <input
                 v-model="email"
                 type="email"
                 required
                 class="h-12 w-full rounded-xl border-none bg-secondary px-4 font-normal focus:bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-                :placeholder="t('home.communication.emailPlaceholder')"
+                placeholder="name@example.com"
               >
             </label>
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <label class="space-y-1.5 text-sm font-semibold">
-              {{ t("home.contact.gradeLabel") }}
-              <select
-                v-model="gradeId"
-                class="h-12 w-full rounded-xl border-none bg-secondary px-4 font-normal focus:bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">
-                  {{ t("home.contact.gradePlaceholder") }}
-                </option>
-                <option
-                  v-for="grade in grades"
-                  :key="grade.id"
-                  :value="grade.id"
+              Τάξη μαθητή
+              <Select v-model="gradeChoice">
+                <SelectTrigger
+                  class="h-12 w-full cursor-pointer rounded-xl border-none bg-secondary px-4 font-normal shadow-none data-[size=default]:h-12 focus-visible:bg-card focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  {{ grade.name }}
-                </option>
-              </select>
+                  <SelectValue placeholder="Προαιρετικά" />
+                </SelectTrigger>
+                <SelectContent
+                  position="popper"
+                  class="w-[var(--reka-select-trigger-width)] max-w-[var(--reka-select-trigger-width)]"
+                >
+                  <SelectItem value="__none__">
+                    Προαιρετικά
+                  </SelectItem>
+                  <SelectItem
+                    v-for="grade in grades"
+                    :key="grade.id"
+                    :value="grade.id"
+                  >
+                    {{ grade.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </label>
             <label class="space-y-1.5 text-sm font-semibold">
-              {{ t("home.contact.phoneLabel") }}
+              Τηλέφωνο (προαιρετικό)
               <input
                 v-model="phone"
                 type="tel"
                 maxlength="40"
                 class="h-12 w-full rounded-xl border-none bg-secondary px-4 font-normal focus:bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-                :placeholder="t('home.contact.phonePlaceholder')"
+                placeholder="69XXXXXXXX"
               >
             </label>
           </div>
           <label class="block space-y-1.5 text-sm font-semibold">
-            {{ t("home.communication.messageLabel") }}
+            Το μήνυμά σου
             <textarea
               v-model="message"
               required
               maxlength="4000"
               rows="4"
               class="w-full rounded-xl border-none bg-secondary p-4 font-normal focus:bg-card focus:outline-none focus:ring-2 focus:ring-primary"
-              :placeholder="t('home.contact.messagePlaceholder')"
+              placeholder="Πες μας πώς μπορούμε να βοηθήσουμε."
             />
           </label>
           <button
@@ -216,8 +223,8 @@ async function submitContact() {
             <VIcon name="bi-send" class="size-4" aria-hidden="true" />
             {{
               submitting
-                ? t("home.communication.sending")
-                : t("home.communication.submit")
+                ? 'Αποστολή...'
+                : 'Αποστολή μηνύματος'
             }}
           </button>
         </form>

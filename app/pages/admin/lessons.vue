@@ -26,8 +26,7 @@ type Subject = { id: string; name: string; grade_id: string }
 type Category = { id: string; name: string }
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
-useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.lessonsTitle')}` }))
+useHead(() => ({ title: 'Διαχείριση - Υλικό' }))
 
 const adminFetch = useAdminFetch()
 const lessons = ref<Lesson[]>([])
@@ -112,7 +111,7 @@ async function fetchAll() {
     categories.value = cat
   } catch {
     lessons.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -134,7 +133,7 @@ async function confirmDelete() {
     deleteDialogOpen.value = false
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     deleteLoading.value = false
   }
@@ -157,15 +156,15 @@ function placementSummary(lesson: Lesson): string {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold font-heading">{{ t('admin.lessonsTitle') }}</h1>
+      <h1 class="text-2xl font-bold font-heading">Υλικό</h1>
       <div class="flex items-center gap-2">
         <UiButton variant="outline" @click="sortModalOpen = true">
           <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
-          {{ t('admin.sortMaterial') }}
+          Ταξινόμηση υλικού
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
-          {{ t('admin.modal.create') }}
+          Δημιουργία
         </UiButton>
       </div>
     </div>
@@ -174,43 +173,43 @@ function placementSummary(lesson: Lesson): string {
     <div class="flex flex-wrap items-center gap-4 mb-6">
       <Select v-model="gradeId">
         <SelectTrigger class="w-[160px]">
-          <SelectValue :placeholder="t('admin.selectGrade')" />
+          <SelectValue placeholder="Επιλογή τάξης…" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">{{ t('admin.selectGrade') }}</SelectItem>
+          <SelectItem value="__all__">Επιλογή τάξης…</SelectItem>
           <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
         </SelectContent>
       </Select>
       <Select v-model="subjectId">
         <SelectTrigger class="w-[160px]">
-          <SelectValue :placeholder="t('admin.selectSubject')" />
+          <SelectValue placeholder="Επιλογή μαθήματος…" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">{{ t('admin.selectSubject') }}</SelectItem>
+          <SelectItem value="__all__">Επιλογή μαθήματος…</SelectItem>
           <SelectItem v-for="s in filteredSubjects" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
         </SelectContent>
       </Select>
       <Select v-model="chapterId">
         <SelectTrigger class="w-[180px]">
-          <SelectValue :placeholder="t('admin.selectChapter')" />
+          <SelectValue placeholder="Επιλογή κεφαλαίου…" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">{{ t('admin.selectChapter') }}</SelectItem>
+          <SelectItem value="__all__">Επιλογή κεφαλαίου…</SelectItem>
           <SelectItem v-for="c in filteredChapters" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
         </SelectContent>
       </Select>
       <Select v-model="categoryId">
         <SelectTrigger class="w-[160px]">
-          <SelectValue :placeholder="t('admin.selectCategory')" />
+          <SelectValue placeholder="Επιλογή κατηγορίας…" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">{{ t('admin.selectCategory') }}</SelectItem>
+          <SelectItem value="__all__">Επιλογή κατηγορίας…</SelectItem>
           <SelectItem v-for="c in categories" :key="c.id" :value="c.id">{{ c.name }}</SelectItem>
         </SelectContent>
       </Select>
       <div class="relative flex-1 min-w-[200px]">
         <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+        <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
       </div>
     </div>
 
@@ -230,7 +229,7 @@ function placementSummary(lesson: Lesson): string {
     <template v-else>
       <div v-if="!filteredLessons.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
-        <p>{{ t('admin.lessonsEmpty') }}</p>
+        <p>Δεν υπάρχει υλικό ακόμα.</p>
       </div>
       <div v-else class="space-y-3">
         <UiCard v-for="l in filteredLessons" :key="l.id">
@@ -241,8 +240,8 @@ function placementSummary(lesson: Lesson): string {
             <div class="min-w-0 flex-1">
               <p class="font-medium">{{ l.title }}</p>
               <div class="flex items-center gap-2 mt-1 flex-wrap">
-                <span class="text-xs text-muted-foreground">{{ l.is_free ? t('admin.field.isFree') : t('admin.paid') }}</span>
-                <span v-if="l.content_url" class="text-xs text-muted-foreground">| {{ t('admin.field.file') }}</span>
+                <span class="text-xs text-muted-foreground">{{ l.is_free ? 'Δωρεάν' : 'Πληρωμένο' }}</span>
+                <span v-if="l.content_url" class="text-xs text-muted-foreground">| Αρχείο</span>
                 <span v-if="placementSummary(l)" class="text-xs text-muted-foreground">| {{ placementSummary(l) }}</span>
                 <span v-if="l.ratingCount" class="text-xs text-muted-foreground flex items-center gap-0.5">| <VIcon name="bi-star-fill" class="size-3 text-yellow-400" /> {{ l.avgRating?.toFixed(1) }} ({{ l.ratingCount }})</span>
                 <span v-if="l.commentCount" class="text-xs text-muted-foreground flex items-center gap-0.5">| <VIcon name="bi-chat-text" class="size-3" /> {{ l.commentCount }}</span>
@@ -250,10 +249,10 @@ function placementSummary(lesson: Lesson): string {
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <UiButton size="sm" variant="outline" @click.stop="openDetail(l.id)">
-                <VIcon name="bi-eye" class="mr-1 size-3.5" />{{ t('admin.viewDetails') }}
+                <VIcon name="bi-eye" class="mr-1 size-3.5" />Λεπτομέρειες
               </UiButton>
-              <UiButton size="sm" variant="outline" @click.stop="openEdit(l)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click.stop="openDelete(l.id)">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(l)">Επεξεργασία</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(l.id)">Διαγραφή</UiButton>
             </div>
           </UiCardContent>
         </UiCard>
@@ -275,13 +274,13 @@ function placementSummary(lesson: Lesson): string {
         <UiAlertDialogOverlay />
         <UiAlertDialogContent>
           <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.modal.deleteTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.modal.confirmDelete') }}</UiAlertDialogDescription>
+            <UiAlertDialogTitle>Επιβεβαίωση διαγραφής</UiAlertDialogTitle>
+            <UiAlertDialogDescription>Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.</UiAlertDialogDescription>
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
-            <UiAlertDialogCancel><UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton></UiAlertDialogCancel>
+            <UiAlertDialogCancel><UiButton variant="cancel">Ακύρωση</UiButton></UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
-              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">Διαγραφή</UiButton>
             </UiAlertDialogAction>
           </UiAlertDialogFooter>
         </UiAlertDialogContent>

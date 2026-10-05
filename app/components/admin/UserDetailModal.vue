@@ -24,7 +24,6 @@ import type { Purchase, Download, LessonRating, LessonComment, ArticleLike, Arti
 
 const props = defineProps<{ open: boolean; userId: string | null }>()
 const emit = defineEmits<{ close: [] }>()
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const purchases = ref<Purchase[]>([])
@@ -62,7 +61,7 @@ watch(() => props.open, async (val) => {
     comments.value = c
     articleLikes.value = al
     articleComments.value = ac
-  } catch { toast.error(t('common.error')) }
+  } catch { toast.error('Κάτι πήγε στραβά') }
   finally { loading.value = false }
 })
 
@@ -79,24 +78,24 @@ async function confirmDelete() {
     if (kind === 'rating') {
       await adminFetch(`/api/admin/ratings/${id}`, { method: 'DELETE' })
       ratings.value = ratings.value.filter(r => r.id !== id)
-      toast.success(t('admin.ratingDeleted'))
+      toast.success('Η βαθμολογία διαγράφηκε')
     } else if (kind === 'comment') {
       await adminFetch(`/api/admin/comments/${id}`, { method: 'DELETE' })
       comments.value = comments.value.filter(c => c.id !== id)
-      toast.success(t('admin.commentDeleted'))
+      toast.success('Το σχόλιο διαγράφηκε')
     } else if (kind === 'article_like') {
       await adminFetch(`/api/admin/article-likes/${id}`, { method: 'DELETE' })
       articleLikes.value = articleLikes.value.filter(x => x.id !== id)
-      toast.success(t('admin.articleLikeRemoved'))
+      toast.success('Η προτίμηση αφαιρέθηκε')
     } else {
       await adminFetch(`/api/admin/article-comments/${id}`, { method: 'DELETE' })
       articleComments.value = articleComments.value.filter(x => x.id !== id)
-      toast.success(t('admin.commentDeleted'))
+      toast.success('Το σχόλιο διαγράφηκε')
     }
     deleteDialogOpen.value = false
     pendingDelete.value = null
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally { deleteLoading.value = false }
 }
 </script>
@@ -107,33 +106,33 @@ async function confirmDelete() {
       <UiDialogOverlay />
       <UiDialogContent class="w-fit min-w-[min(32rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] max-h-[80vh] overflow-x-hidden overflow-y-auto">
         <UiDialogHeader class="min-w-0">
-          <UiDialogTitle>{{ t('admin.userDetails') }}</UiDialogTitle>
+          <UiDialogTitle>Λεπτομέρειες χρήστη</UiDialogTitle>
         </UiDialogHeader>
-        <div v-if="loading" class="py-4 text-sm text-muted-foreground">{{ t('common.loading') }}</div>
+        <div v-if="loading" class="py-4 text-sm text-muted-foreground">Φόρτωση...</div>
         <Tabs v-else default-value="downloads" class="min-w-0 max-w-full">
           <TabsList class="w-max max-w-full overflow-x-auto">
             <TabsTrigger value="downloads" class="flex-1 text-xs">
-              {{ t('admin.field.downloads') }} ({{ downloads.length }})
+              Λήψεις ({{ downloads.length }})
             </TabsTrigger>
             <TabsTrigger value="purchases" class="flex-1 text-xs">
-              {{ t('admin.field.purchases') }} ({{ purchases.length }})
+              Αγορές ({{ purchases.length }})
             </TabsTrigger>
             <TabsTrigger value="ratings" class="flex-1 text-xs">
-              {{ t('admin.field.ratings') }} ({{ ratings.length }})
+              Βαθμολογίες ({{ ratings.length }})
             </TabsTrigger>
             <TabsTrigger value="comments" class="flex-1 text-xs">
-              {{ t('admin.field.comments') }} ({{ comments.length }})
+              Σχόλια ({{ comments.length }})
             </TabsTrigger>
             <TabsTrigger value="articleLikes" class="flex-1 text-xs">
-              {{ t('admin.field.articleLikes') }} ({{ articleLikes.length }})
+              Προτιμήσεις άρθρων ({{ articleLikes.length }})
             </TabsTrigger>
             <TabsTrigger value="articleComments" class="flex-1 text-xs">
-              {{ t('admin.field.articleComments') }} ({{ articleComments.length }})
+              Σχόλια άρθρων ({{ articleComments.length }})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="downloads" class="mt-4">
-            <p v-if="!downloads.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
+            <p v-if="!downloads.length" class="text-xs text-muted-foreground">—</p>
             <ul v-else class="text-xs space-y-1">
               <li v-for="d in downloads" :key="d.id" class="flex justify-between gap-2">
                 <span>{{ d.lessons?.title }}</span>
@@ -143,7 +142,7 @@ async function confirmDelete() {
           </TabsContent>
 
           <TabsContent value="purchases" class="mt-4">
-            <p v-if="!purchases.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
+            <p v-if="!purchases.length" class="text-xs text-muted-foreground">—</p>
             <ul v-else class="text-xs space-y-1">
               <li v-for="p in purchases" :key="p.id" class="flex justify-between gap-2">
                 <span>{{ p.lessons?.title }}</span>
@@ -153,7 +152,7 @@ async function confirmDelete() {
           </TabsContent>
 
           <TabsContent value="ratings" class="mt-4">
-            <p v-if="!ratings.length" class="text-xs text-muted-foreground">{{ t('admin.ratingsEmpty') }}</p>
+            <p v-if="!ratings.length" class="text-xs text-muted-foreground">Δεν υπάρχουν βαθμολογίες ακόμα.</p>
             <ul v-else class="text-xs space-y-2">
               <li v-for="r in ratings" :key="r.id" class="flex items-center justify-between gap-2">
                 <div class="flex flex-col gap-0.5 min-w-0">
@@ -174,7 +173,7 @@ async function confirmDelete() {
                     variant="ghost"
                     size="icon"
                     class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                    :aria-label="t('admin.deleteRating')"
+                    aria-label="Διαγραφή βαθμολογίας"
                     @click="requestDelete('rating', r.id)"
                   >
                     <VIcon name="bi-trash" class="w-3 h-3" />
@@ -185,7 +184,7 @@ async function confirmDelete() {
           </TabsContent>
 
           <TabsContent value="comments" class="mt-4">
-            <p v-if="!comments.length" class="text-xs text-muted-foreground">{{ t('admin.commentsEmpty') }}</p>
+            <p v-if="!comments.length" class="text-xs text-muted-foreground">Δεν υπάρχουν σχόλια ακόμα.</p>
             <ul v-else class="text-xs space-y-2">
               <li v-for="c in comments" :key="c.id" class="flex items-start justify-between gap-2">
                 <div class="flex flex-col gap-0.5 min-w-0">
@@ -198,7 +197,7 @@ async function confirmDelete() {
                     variant="ghost"
                     size="icon"
                     class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                    :aria-label="t('admin.deleteComment')"
+                    aria-label="Διαγραφή σχολίου"
                     @click="requestDelete('comment', c.id)"
                   >
                     <VIcon name="bi-trash" class="w-3 h-3" />
@@ -209,7 +208,7 @@ async function confirmDelete() {
           </TabsContent>
 
           <TabsContent value="articleLikes" class="mt-4">
-            <p v-if="!articleLikes.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
+            <p v-if="!articleLikes.length" class="text-xs text-muted-foreground">—</p>
             <ul v-else class="text-xs space-y-2">
               <li v-for="x in articleLikes" :key="x.id" class="flex items-start justify-between gap-2">
                 <div class="flex flex-col gap-0.5 min-w-0">
@@ -220,7 +219,7 @@ async function confirmDelete() {
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                  :aria-label="t('admin.deleteArticleLike')"
+                  aria-label="Αφαίρεση προτίμησης"
                   @click="requestDelete('article_like', x.id)"
                 >
                   <VIcon name="bi-trash" class="w-3 h-3" />
@@ -230,7 +229,7 @@ async function confirmDelete() {
           </TabsContent>
 
           <TabsContent value="articleComments" class="mt-4">
-            <p v-if="!articleComments.length" class="text-xs text-muted-foreground">{{ t('admin.commentsEmpty') }}</p>
+            <p v-if="!articleComments.length" class="text-xs text-muted-foreground">Δεν υπάρχουν σχόλια ακόμα.</p>
             <ul v-else class="text-xs space-y-2">
               <li v-for="x in articleComments" :key="x.id" class="flex items-start justify-between gap-2">
                 <div class="flex flex-col gap-0.5 min-w-0">
@@ -243,7 +242,7 @@ async function confirmDelete() {
                     variant="ghost"
                     size="icon"
                     class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                    :aria-label="t('admin.deleteComment')"
+                    aria-label="Διαγραφή σχολίου"
                     @click="requestDelete('article_comment', x.id)"
                   >
                     <VIcon name="bi-trash" class="w-3 h-3" />
@@ -254,7 +253,7 @@ async function confirmDelete() {
           </TabsContent>
         </Tabs>
         <UiDialogFooter class="mt-4 min-w-0">
-          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>
@@ -268,29 +267,29 @@ async function confirmDelete() {
           <UiAlertDialogTitle>
             {{
               pendingDelete?.kind === 'rating'
-                ? t('admin.confirmDeleteRatingTitle')
+                ? 'Διαγραφή βαθμολογίας'
                 : pendingDelete?.kind === 'comment'
-                  ? t('admin.confirmDeleteCommentTitle')
-                  : t('admin.confirmDeleteArticleEngagementTitle')
+                  ? 'Διαγραφή σχολίου'
+                  : 'Αφαίρεση καταχώρισης;'
             }}
           </UiAlertDialogTitle>
           <UiAlertDialogDescription>
             {{
               pendingDelete?.kind === 'rating'
-                ? t('admin.confirmDeleteRating')
+                ? 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτήν τη βαθμολογία;'
                 : pendingDelete?.kind === 'comment'
-                  ? t('admin.confirmDeleteComment')
-                  : t('admin.confirmDeleteArticleEngagement')
+                  ? 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το σχόλιο;'
+                  : 'Θα αφαιρεθεί η προτίμηση ή το σχόλιο από το άρθρο.'
             }}
           </UiAlertDialogDescription>
         </UiAlertDialogHeader>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel>
-            <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton variant="cancel">Ακύρωση</UiButton>
           </UiAlertDialogCancel>
           <UiAlertDialogAction as-child>
             <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">
-              {{ t('admin.modal.delete') }}
+              Διαγραφή
             </UiButton>
           </UiAlertDialogAction>
         </UiAlertDialogFooter>

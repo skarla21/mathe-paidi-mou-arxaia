@@ -23,7 +23,6 @@ const emit = defineEmits<{
 }>()
 
 const showPassword = ref(false)
-const { t } = useI18n()
 </script>
 
 <template>
@@ -41,7 +40,7 @@ const { t } = useI18n()
       v-if="modelValue"
       type="button"
       class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer p-0.5 rounded"
-      :aria-label="showPassword ? t('common.passwordHide') : t('common.passwordShow')"
+      :aria-label="showPassword ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'"
       tabindex="-1"
       @click="showPassword = !showPassword"
     >

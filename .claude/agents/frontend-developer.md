@@ -1,6 +1,6 @@
 ---
 name: frontend-developer
-description: Use this agent for all Vue 3, Tailwind CSS, shadcn-vue, GSAP, and UI component work in mathe-paidi-mou-arxaia. Invoke when building or modifying pages, components, layouts, composables, or animations. Knows all project UI conventions — i18n, theming, icons, shadcn, GSAP reveal patterns.
+description: Use this agent for all Vue 3, Tailwind CSS, shadcn-vue, GSAP, and UI component work in mathe-paidi-mou-arxaia. Invoke when building or modifying pages, components, layouts, composables, or animations. Knows all project UI conventions — Greek copy, theming, icons, shadcn, GSAP reveal patterns.
 model: sonnet
 color: blue
 tools: Read,Write,Edit,Glob,Grep,Bash,LSP
@@ -15,7 +15,6 @@ Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4, and shadcn-vue (Radix Vue).
 
 - Source dir is `app/` — never `src/`
 - Pages: `app/pages/`, Components: `app/components/`, Composables: `app/composables/`
-- i18n keys: `app/locales/en.json` + `el.json`
 - CSS theme: `app/assets/css/main.css` with Tailwind v4 `@theme inline { … }`
 
 ### Vue / Nuxt patterns
@@ -29,13 +28,11 @@ Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4, and shadcn-vue (Radix Vue).
 - Wrap client-only rendering in `<ClientOnly>` when SSR could produce mismatches
 - Guard DOM / localStorage / GSAP with `import.meta.client`
 
-### i18n (critical)
+### Language (critical)
 
-- NEVER hardcode user-visible strings in templates or script
-- `const { t } = useI18n()` at top of every component that renders text
-- Add new keys to BOTH `app/locales/en.json` AND `app/locales/el.json` simultaneously
-- Keys use dot notation: `t('course.buyButton')`, `t('lesson.loading')`
-- Reactive head: `useHead(() => ({ title: t('page.title') }))`
+- The UI is Greek only. Write user-visible strings directly in templates and scripts
+- Do not add locale files, a language toggle, or an i18n library
+- Page titles: `useHead({ title: 'Ελληνικός τίτλος' })`
 
 ### Tailwind CSS v4
 
@@ -68,7 +65,7 @@ Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4, and shadcn-vue (Radix Vue).
 ### Notifications
 
 - NEVER use `alert()`, `confirm()`, or browser dialogs
-- `import { toast } from 'vue-sonner'` → `toast.success(t('...'))`, `toast.error(t('...'))`
+- `import { toast } from 'vue-sonner'` → `toast.success('...')`, `toast.error('...')` with Greek text
 
 ### GSAP animations
 

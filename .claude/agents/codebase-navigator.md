@@ -24,13 +24,11 @@ app/
     ui/          shadcn components
   composables/
     useCurrentUser.ts   session state, isAdmin, isStudent, fetchSession
-    useI18n.ts          t(), setLocale(), init() — custom, NOT nuxt-i18n
     useTheme.ts         colorMode, toggle(), apply(), init()
     useGsapReveal.ts    revealSection, revealStagger, animateHero, iconWiggle, …
   layouts/       default.vue (header+footer), admin.vue (admin sidebar)
   middleware/    auth.ts, admin.ts, guest-only.ts
   plugins/       oh-vue-icons.ts (registers Bootstrap icons + <VIcon>)
-  locales/       en.json, el.json
   lib/utils.ts   cn() = clsx + tailwind-merge
   assets/css/    main.css (Tailwind v4 @theme + custom utilities)
 
@@ -68,7 +66,6 @@ types/
   nitro.d.ts     augments H3EventContext with auth: { userId, isAdmin }
 
 supabase/schema.sql   DDL for users, grades, subjects, courses, lessons, purchases
-public/locales/       en.json, el.json (server-side translation copies)
 ```
 
 ## Navigation Quick-Reference
@@ -80,8 +77,7 @@ public/locales/       en.json, el.json (server-side translation copies)
 | Auth.js providers + callbacks | `server/utils/authOptions.ts`                      |
 | Protect a server route        | `server/utils/requireAuth.ts` or `requireAdmin.ts` |
 | Protect a page                | `app/middleware/auth.ts` or `admin.ts`             |
-| i18n composable               | `app/composables/useI18n.ts`                       |
-| Translation keys              | `app/locales/en.json` + `el.json`                  |
+| Language                      | Greek copy in components and server routes         |
 | GSAP animation methods        | `app/composables/useGsapReveal.ts`                 |
 | Paid content access control   | `server/utils/access.ts`                           |
 | Tailwind design tokens        | `app/assets/css/main.css` — `@theme inline` block  |

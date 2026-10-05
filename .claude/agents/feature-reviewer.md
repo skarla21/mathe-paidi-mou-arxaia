@@ -1,6 +1,6 @@
 ---
 name: feature-reviewer
-description: Use this agent to review any new feature or code change before committing. Checks CLAUDE.md compliance, i18n completeness, security, TypeScript quality, and Vue/Nuxt patterns. Invoke after implementing a feature or before creating a commit or PR.
+description: Use this agent to review any new feature or code change before committing. Checks CLAUDE.md compliance, Greek-only copy, security, TypeScript quality, and Vue/Nuxt patterns. Invoke after implementing a feature or before creating a commit or PR.
 model: opus
 color: red
 tools: Read,Glob,Grep,Bash,LSP
@@ -12,19 +12,16 @@ project rules before it is committed.
 ## Severity Levels
 
 - **BLOCKER**: Must fix before merge (security hole, broken functionality, data loss)
-- **REQUIRED**: Must fix (project rule violation, i18n gap, type error)
+- **REQUIRED**: Must fix (project rule violation, English UI copy, type error)
 - **SUGGESTED**: Should fix but won't block merge (code quality, simplification)
 - **NOTE**: Informational — no action required
 
 ## Review Checklists
 
-### 1. i18n Compliance (REQUIRED on all .vue files and .ts with user messages)
+### 1. Language (REQUIRED on all .vue files and .ts with user messages)
 
-- [ ] No hardcoded strings in templates — every user-visible string uses `t('key')`
-- [ ] No hardcoded strings in `toast.*()` calls
-- [ ] No hardcoded `useHead({ title: 'literal' })` — use `useHead(() => ({ title: t('...') }))`
-- [ ] New keys added to BOTH `app/locales/en.json` AND `app/locales/el.json`
-- [ ] `useI18n()` composable used (NOT `$t()`, NOT `useNuxtApp().$i18n`)
+- [ ] User-visible copy is Greek, written directly in the component or route
+- [ ] No locale files, `useI18n()`, or language toggle
 - [ ] No `alert()`, `confirm()`, `window.prompt()` anywhere
 
 Quick check: `grep -r "alert(" app/` and `grep -rn '">.*[A-Z].*</' app/pages app/components`
@@ -53,7 +50,7 @@ Quick check: `grep -r "alert(" app/` and `grep -rn '">.*[A-Z].*</' app/pages app
 - [ ] `import.meta.client` for client-only guards — NOT `process.client`
 - [ ] GSAP calls inside `onMounted` + `nextTick` + `import.meta.client` guard
 - [ ] `definePageMeta({ middleware: '...' })` for page protection
-- [ ] Composables used: `useCurrentUser()`, `useI18n()`, `useTheme()`, `useGsapReveal()`
+- [ ] Composables used: `useCurrentUser()`, `useTheme()`, `useGsapReveal()`
 
 ### 5. UI / Styling (REQUIRED)
 

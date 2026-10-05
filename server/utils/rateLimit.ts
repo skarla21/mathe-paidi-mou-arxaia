@@ -10,7 +10,7 @@ interface RateLimitOptions {
   maxRequests: number
   /** Window duration in milliseconds */
   windowMs: number
-  /** Response message. Defaults to the English rate-limit sentence. */
+  /** Response message shown when the limit is exceeded. */
   message?: string
 }
 
@@ -37,7 +37,7 @@ function getClientIp(event: H3Event): string {
  */
 export function checkRateLimit(event: H3Event, options: RateLimitOptions): void {
   const { name, maxRequests, windowMs } = options
-  const message = options.message ?? 'Too many requests. Please try again later.'
+  const message = options.message ?? 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.'
 
   if (!rateLimitMaps.has(name)) {
     rateLimitMaps.set(name, new Map())

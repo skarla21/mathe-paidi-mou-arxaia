@@ -23,7 +23,6 @@ import type { ArticleLike, ArticleComment } from '~/types/database'
 
 const props = defineProps<{ open: boolean; articleId: string | null }>()
 const emit = defineEmits<{ close: [] }>()
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const likes = ref<ArticleLike[]>([])
@@ -50,7 +49,7 @@ watch(
       likes.value = l
       comments.value = c
     } catch {
-      toast.error(t('common.error'))
+      toast.error('Κάτι πήγε στραβά')
     } finally {
       loading.value = false
     }
@@ -75,16 +74,16 @@ async function confirmDelete() {
     if (kind === 'like') {
       await adminFetch(`/api/admin/article-likes/${id}`, { method: 'DELETE' })
       likes.value = likes.value.filter(x => x.id !== id)
-      toast.success(t('admin.articleLikeRemoved'))
+      toast.success('Η προτίμηση αφαιρέθηκε')
     } else {
       await adminFetch(`/api/admin/article-comments/${id}`, { method: 'DELETE' })
       comments.value = comments.value.filter(x => x.id !== id)
-      toast.success(t('admin.commentDeleted'))
+      toast.success('Το σχόλιο διαγράφηκε')
     }
     deleteDialogOpen.value = false
     pendingDelete.value = null
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     deleteLoading.value = false
   }
@@ -101,25 +100,25 @@ function formatDate(iso: string) {
       <UiDialogOverlay />
       <UiDialogContent class="max-w-lg max-h-[80vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ t('admin.articleDetail') }}</UiDialogTitle>
+          <UiDialogTitle>Συμμετοχή σε άρθρο</UiDialogTitle>
         </UiDialogHeader>
 
         <div v-if="loading" class="py-4 text-sm text-muted-foreground">
-          {{ t('common.loading') }}
+          Φόρτωση...
         </div>
 
         <Tabs v-else default-value="likes">
           <TabsList class="w-full">
             <TabsTrigger value="likes" class="flex-1">
-              {{ t('admin.articleLikesTab') }} ({{ likes.length }})
+              Προτιμήσεις ({{ likes.length }})
             </TabsTrigger>
             <TabsTrigger value="comments" class="flex-1">
-              {{ t('admin.articleCommentsTab') }} ({{ comments.length }})
+              Σχόλια ({{ comments.length }})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="likes" class="mt-4 space-y-2">
-            <p v-if="!likes.length" class="text-xs text-muted-foreground">{{ t('common.empty') }}</p>
+            <p v-if="!likes.length" class="text-xs text-muted-foreground">—</p>
             <ul v-else class="space-y-2">
               <li
                 v-for="like in likes"
@@ -137,7 +136,7 @@ function formatDate(iso: string) {
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                  :aria-label="t('admin.deleteArticleLike')"
+                  aria-label="Αφαίρεση προτίμησης"
                   @click="requestDeleteLike(like.id)"
                 >
                   <VIcon name="bi-trash" class="w-3.5 h-3.5" />
@@ -147,7 +146,7 @@ function formatDate(iso: string) {
           </TabsContent>
 
           <TabsContent value="comments" class="mt-4 space-y-2">
-            <p v-if="!comments.length" class="text-xs text-muted-foreground">{{ t('admin.commentsEmpty') }}</p>
+            <p v-if="!comments.length" class="text-xs text-muted-foreground">Δεν υπάρχουν σχόλια ακόμα.</p>
             <ul v-else class="space-y-2">
               <li
                 v-for="comment in comments"
@@ -165,7 +164,7 @@ function formatDate(iso: string) {
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                  :aria-label="t('admin.deleteComment')"
+                  aria-label="Διαγραφή σχολίου"
                   @click="requestDeleteComment(comment.id)"
                 >
                   <VIcon name="bi-trash" class="w-3.5 h-3.5" />
@@ -176,7 +175,7 @@ function formatDate(iso: string) {
         </Tabs>
 
         <UiDialogFooter class="mt-4">
-          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>
@@ -187,16 +186,16 @@ function formatDate(iso: string) {
       <UiAlertDialogOverlay />
       <UiAlertDialogContent>
         <UiAlertDialogHeader>
-          <UiAlertDialogTitle>{{ t('admin.confirmDeleteArticleEngagementTitle') }}</UiAlertDialogTitle>
-          <UiAlertDialogDescription>{{ t('admin.confirmDeleteArticleEngagement') }}</UiAlertDialogDescription>
+          <UiAlertDialogTitle>Αφαίρεση καταχώρισης;</UiAlertDialogTitle>
+          <UiAlertDialogDescription>Θα αφαιρεθεί η προτίμηση ή το σχόλιο από το άρθρο.</UiAlertDialogDescription>
         </UiAlertDialogHeader>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel>
-            <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton variant="cancel">Ακύρωση</UiButton>
           </UiAlertDialogCancel>
           <UiAlertDialogAction as-child>
             <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">
-              {{ t('admin.modal.delete') }}
+              Διαγραφή
             </UiButton>
           </UiAlertDialogAction>
         </UiAlertDialogFooter>

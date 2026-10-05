@@ -26,9 +26,8 @@ interface PurchaseWithUser extends Purchase {
 }
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
-useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.purchasesTitle')}` }))
+useHead(() => ({ title: 'Διαχείριση - Αγορές' }))
 
 const purchases = ref<PurchaseWithUser[]>([])
 const loading = ref(true)
@@ -73,11 +72,11 @@ async function confirmGrantAccess() {
   grantingId.value = `${grant.userId}-${grant.lessonId}`
   try {
     await adminFetch('/api/admin/purchases/grant', { method: 'POST', body: { userId: grant.userId, lessonId: grant.lessonId } })
-    toast.success(t('admin.grantSuccess'))
+    toast.success('Η πρόσβαση χορηγήθηκε')
     grantDialogOpen.value = false
     await fetchPurchases()
   } catch {
-    toast.error(t('admin.grantError'))
+    toast.error('Αποτυχία χορήγησης')
   } finally {
     grantingId.value = null
     pendingGrant.value = null
@@ -87,20 +86,20 @@ async function confirmGrantAccess() {
 function copyStripeId(value: string | null | undefined) {
   if (!value || !import.meta.client) return
   navigator.clipboard.writeText(value)
-  toast.success(t('admin.copiedToClipboard'))
+  toast.success('Αντιγράφηκε στο πρόχειρο')
 }
 </script>
 
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold font-heading">{{ t('admin.purchasesTitle') }}</h1>
+      <h1 class="text-2xl font-bold font-heading">Αγορές</h1>
     </div>
 
     <!-- Search -->
     <div class="relative mb-4">
       <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+      <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
     </div>
 
     <!-- Skeleton loading -->
@@ -127,10 +126,10 @@ function copyStripeId(value: string | null | undefined) {
         <Table class="text-base">
           <TableHeader>
             <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/60">
-              <TableHead class="border-r border-border/60">{{ t('admin.field.name') }}</TableHead>
-              <TableHead class="border-r border-border/60">{{ t('admin.field.lesson') }}</TableHead>
-              <TableHead class="border-r border-border/60">{{ t('admin.field.joinedAt') }}</TableHead>
-              <TableHead class="border-r border-border/60">{{ t('admin.field.stripeId') }}</TableHead>
+              <TableHead class="border-r border-border/60">Όνομα</TableHead>
+              <TableHead class="border-r border-border/60">Υλικό</TableHead>
+              <TableHead class="border-r border-border/60">Εγγραφή</TableHead>
+              <TableHead class="border-r border-border/60">Stripe ID</TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
@@ -140,14 +139,14 @@ function copyStripeId(value: string | null | undefined) {
               <TableCell :colspan="5" class="h-32 text-center border-r border-border/60">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
-                  <p>{{ t('admin.purchasesEmpty') }}</p>
+                  <p>Δεν υπάρχουν αγορές ακόμη.</p>
                 </div>
               </TableCell>
             </TableRow>
             <!-- Rows -->
             <TableRow v-for="p in filteredPurchases" v-else :key="p.id">
               <TableCell class="border-r border-border/60">
-                <div class="font-medium">{{ p.users?.name ?? t('common.empty') }}</div>
+                <div class="font-medium">{{ p.users?.name ?? '—' }}</div>
                 <div class="text-muted-foreground">{{ p.users?.email }}</div>
               </TableCell>
               <TableCell class="border-r border-border/60">{{ p.lessons?.title ?? p.lesson_id }}</TableCell>
@@ -171,7 +170,7 @@ function copyStripeId(value: string | null | undefined) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <span v-else class="text-muted-foreground">{{ t('common.empty') }}</span>
+                <span v-else class="text-muted-foreground">—</span>
               </TableCell>
               <TableCell class="text-right">
                 <UiButton
@@ -180,7 +179,7 @@ function copyStripeId(value: string | null | undefined) {
                   :disabled="grantingId === `${p.user_id}-${p.lesson_id}`"
                   @click="requestGrantAccess(p.user_id, p.lesson_id)"
                 >
-                  {{ t('admin.grantAccess') }}
+                  Χορήγηση πρόσβασης
                 </UiButton>
               </TableCell>
             </TableRow>
@@ -195,16 +194,16 @@ function copyStripeId(value: string | null | undefined) {
         <UiAlertDialogOverlay />
         <UiAlertDialogContent>
           <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.confirmGrantTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.confirmGrant') }}</UiAlertDialogDescription>
+            <UiAlertDialogTitle>Χορήγηση πρόσβασης</UiAlertDialogTitle>
+            <UiAlertDialogDescription>Είστε σίγουροι ότι θέλετε να χορηγήσετε πρόσβαση σε αυτό το υλικό;</UiAlertDialogDescription>
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
             <UiAlertDialogCancel>
-              <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
+              <UiButton variant="cancel">Ακύρωση</UiButton>
             </UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
               <UiButton :disabled="!!grantingId" @click="confirmGrantAccess">
-                {{ t('admin.grantAccess') }}
+                Χορήγηση πρόσβασης
               </UiButton>
             </UiAlertDialogAction>
           </UiAlertDialogFooter>

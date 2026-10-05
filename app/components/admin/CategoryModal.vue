@@ -19,7 +19,6 @@ const props = defineProps<{
   category: { id: string; name: string; description?: string | null; image_url?: string | null; order: number } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
-const { t } = useI18n()
 
 const name = ref('')
 const description = ref('')
@@ -49,11 +48,11 @@ watch(() => props.open, (val) => {
 async function uploadImage(file: File) {
   if (uploading.value) return
   if (!ALLOWED_IMAGE_MIMES.includes(file.type as (typeof ALLOWED_IMAGE_MIMES)[number])) {
-    toast.error(t('admin.uploads.fileTypeError'))
+    toast.error('Επιτρέπονται μόνο εικόνες JPEG και PNG')
     return
   }
   if (file.size > MAX_IMAGE_BYTES) {
-    toast.error(t('admin.uploads.tooLarge'))
+    toast.error('Η εικόνα πρέπει να είναι μικρότερη από 20MB')
     return
   }
   uploading.value = true
@@ -69,9 +68,9 @@ async function uploadImage(file: File) {
     const res = await adminFetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
     imageUrl.value = res.url
     uploadProgress.value = 100
-    toast.success(t('admin.uploads.uploadSuccess'))
+    toast.success('Το αρχείο μεταφορτώθηκε επιτυχώς')
   } catch {
-    toast.error(t('admin.uploads.uploadError'))
+    toast.error('Η μεταφόρτωση απέτυχε')
   } finally {
     clearInterval(interval)
     uploading.value = false
@@ -115,7 +114,7 @@ async function onSubmit() {
     emit('close')
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -128,21 +127,21 @@ async function onSubmit() {
       <UiDialogOverlay />
       <UiDialogContent class="max-w-lg">
         <UiDialogHeader>
-          <UiDialogTitle>{{ props.category ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.categories') }}</UiDialogTitle>
-          <UiDialogDescription class="sr-only">{{ t('admin.modal.categoryDescription') }}</UiDialogDescription>
+          <UiDialogTitle>{{ props.category ? 'Επεξεργασία' : 'Δημιουργία' }} — Κατηγορίες</UiDialogTitle>
+          <UiDialogDescription class="sr-only">Δημιουργία ή επεξεργασία κατηγορίας υλικού.</UiDialogDescription>
         </UiDialogHeader>
         <form class="space-y-4" @submit.prevent="onSubmit">
           <div class="space-y-1.5">
-            <UiLabel for="category-name">{{ t('admin.field.name') }}</UiLabel>
+            <UiLabel for="category-name">Όνομα</UiLabel>
             <UiInput id="category-name" v-model="name" :aria-invalid="nameMissing || undefined" :class="nameMissing ? 'border-destructive' : ''" />
-            <p v-if="nameMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.name') }) }}</p>
+            <p v-if="nameMissing" class="text-xs text-destructive">Το πεδίο «Όνομα» είναι υποχρεωτικό</p>
           </div>
           <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.description') }}</UiLabel>
+            <UiLabel>Περιγραφή</UiLabel>
             <UiTextarea v-model="description" :rows="3" />
           </div>
           <div class="space-y-1.5">
-            <UiLabel>{{ t('admin.field.imageUrl') }}</UiLabel>
+            <UiLabel>URL εικόνας</UiLabel>
             <div
               class="rounded-lg border-2 border-dashed p-4 text-center transition-colors"
               :class="dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
@@ -152,10 +151,10 @@ async function onSubmit() {
             >
               <div class="flex flex-col items-center gap-2">
                 <VIcon name="bi-cloud-arrow-up" class="size-8 text-muted-foreground" />
-                <p class="text-sm font-medium">{{ t('admin.uploads.dragDropImage') }}</p>
-                <p class="text-xs text-muted-foreground">{{ t('admin.uploads.maxSizeImage') }}</p>
+                <p class="text-sm font-medium">Σύρε και άφησε εικόνα εδώ, ή κάνε κλικ για επιλογή</p>
+                <p class="text-xs text-muted-foreground">Εικόνες μέγ. 20MB</p>
                 <UiButton type="button" variant="outline" size="sm" :disabled="uploading" @click="fileInput?.click()">
-                  {{ t('admin.uploads.selectFile') }}
+                  Επιλογή αρχείου
                 </UiButton>
                 <input ref="fileInput" type="file" accept="image/jpeg,image/png" class="hidden" @change="onFileSelect">
               </div>
@@ -163,16 +162,16 @@ async function onSubmit() {
               <div v-else-if="imageUrl" class="mt-3 flex items-center justify-center gap-2">
                 <img :src="imageUrl" alt="" class="h-16 w-16 rounded-md object-cover border border-border">
                 <UiButton type="button" variant="ghost" size="sm" @click="imageUrl = ''">
-                  {{ t('admin.lessonModal.removeFile') }}
+                  Αφαίρεση αρχείου
                 </UiButton>
               </div>
             </div>
-            <p class="text-xs text-muted-foreground">{{ t('admin.lessonModal.orPasteUrl') }}</p>
-            <UiInput v-model="imageUrl" :placeholder="t('admin.placeholder.url')" />
+            <p class="text-xs text-muted-foreground">Ή επικόλληση URL</p>
+            <UiInput v-model="imageUrl" placeholder="https://..." />
           </div>
           <UiDialogFooter>
-            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
-            <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
+            <UiButton type="submit" :disabled="loading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
           </UiDialogFooter>
         </form>
       </UiDialogContent>

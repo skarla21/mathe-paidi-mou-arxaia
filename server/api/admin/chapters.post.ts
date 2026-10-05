@@ -7,10 +7,10 @@ export default defineEventHandler(async (event) => {
     title: string; description?: string; subject_id: string
     image_url?: string; order?: number
   }>(event)
-  if (!body.title?.trim() || !body.subject_id) throw createError({ statusCode: 400, message: 'title and subject_id required' })
+  if (!body.title?.trim() || !body.subject_id) throw createError({ statusCode: 400, message: 'Απαιτούνται τίτλος και μάθημα' })
   const supabase = serverSupabaseService()
   const { data: subject } = await supabase.from('subjects').select('grade_id').eq('id', body.subject_id).single()
-  if (!subject) throw createError({ statusCode: 400, message: 'Subject not found' })
+  if (!subject) throw createError({ statusCode: 400, message: 'Το μάθημα δεν βρέθηκε' })
   const { data, error } = await supabase.from('chapters').insert({
     title: body.title.trim(),
     description: body.description ?? null,
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   }).select().single()
   if (error) {
     console.error('[admin/chapters.post]', error.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
   return data
 })

@@ -6,8 +6,7 @@ import UiSkeleton from '~/components/ui/Skeleton.vue'
 import { NuxtLink } from '#components'
 
 definePageMeta({ layout: 'default' })
-const { t } = useI18n()
-useHead(() => ({ title: t('articlesPage.title') }))
+useHead(() => ({ title: 'Άρθρα' }))
 
 type Row = {
   id: string
@@ -24,14 +23,14 @@ onMounted(async () => {
     list.value = await $fetch<Row[]>('/api/articles', { credentials: 'include' })
   } catch {
     list.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   }
 })
 </script>
 
 <template>
   <div class="mx-auto w-full max-w-3xl px-4 py-12">
-    <LayoutPageIntro :eyebrow="t('nav.extras')" :title="t('articlesPage.title')" />
+    <LayoutPageIntro eyebrow="Άλλο υλικό" title="Άρθρα" />
 
     <div v-if="list === null" class="space-y-4">
       <UiCard v-for="i in 4" :key="i">
@@ -42,7 +41,7 @@ onMounted(async () => {
       </UiCard>
     </div>
 
-    <p v-else-if="!list.length" class="text-muted-foreground">{{ t('articlesPage.empty') }}</p>
+    <p v-else-if="!list.length" class="text-muted-foreground">Δεν υπάρχουν άρθρα ακόμα.</p>
 
     <ul v-else class="space-y-4">
       <li v-for="a in list" :key="a.id">
@@ -53,7 +52,7 @@ onMounted(async () => {
                 {{ a.title }}
               </h2>
               <p class="text-sm text-muted-foreground mt-2">
-                {{ t('articlesPage.readTime', { n: a.reading_time_minutes }) }}
+                {{ `${a.reading_time_minutes} λεπτά ανάγνωσης` }}
               </p>
               <div v-if="a.tags?.length" class="flex flex-wrap gap-2 mt-3">
                 <span

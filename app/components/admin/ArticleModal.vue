@@ -21,7 +21,6 @@ const MAX_TAG_LEN = 64
 
 const props = defineProps<{ open: boolean; article: Article | null; articles: Article[] }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const title = ref('')
@@ -131,11 +130,11 @@ async function save() {
         body: { title: tVal, body: bVal, tags: tags.value, published: published.value },
       })
     }
-    toast.success(t('admin.articleSaved'))
+    toast.success('Το άρθρο αποθηκεύτηκε')
     emit('saved')
     emit('close')
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     saving.value = false
   }
@@ -148,17 +147,17 @@ async function save() {
       <UiDialogOverlay />
       <UiDialogContent class="max-w-lg max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ props.article ? t('admin.modal.edit') : t('admin.modal.create') }}</UiDialogTitle>
-          <UiDialogDescription>{{ t('admin.articleModalDescription') }}</UiDialogDescription>
+          <UiDialogTitle>{{ props.article ? 'Επεξεργασία' : 'Δημιουργία' }}</UiDialogTitle>
+          <UiDialogDescription>Δημιουργία ή επεξεργασία άρθρου.</UiDialogDescription>
         </UiDialogHeader>
         <div class="space-y-4 py-2">
           <div>
-            <UiLabel class="mb-1.5 block">{{ t('admin.field.title') }}</UiLabel>
+            <UiLabel class="mb-1.5 block">Τίτλος</UiLabel>
             <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
-            <p v-if="titleMissing" class="mt-1.5 text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.title') }) }}</p>
+            <p v-if="titleMissing" class="mt-1.5 text-xs text-destructive">Το πεδίο «Τίτλος» είναι υποχρεωτικό</p>
           </div>
           <div>
-            <UiLabel class="mb-1.5 block">{{ t('admin.field.tags') }}</UiLabel>
+            <UiLabel class="mb-1.5 block">Ετικέτες</UiLabel>
             <div class="rounded-md border border-input bg-background px-2 py-1.5 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ring-offset-background">
               <div class="flex flex-wrap items-center gap-1.5">
                 <UiBadge
@@ -171,7 +170,7 @@ async function save() {
                   <button
                     type="button"
                     class="rounded-sm hover:text-foreground"
-                    :aria-label="t('admin.field.removeTag')"
+                    aria-label="Αφαίρεση ετικέτας"
                     @mousedown.prevent
                     @click="tags = tags.filter((_, i) => i !== index)"
                   >
@@ -182,7 +181,7 @@ async function save() {
                   v-model="tagDraft"
                   type="text"
                   class="min-w-32 flex-1 bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground"
-                  :placeholder="tags.length ? '' : t('admin.field.tagsPlaceholder')"
+                  :placeholder="tags.length ? '' : 'Βάλε τις ετικέτες του άρθρου χωρισμένες με κόμμα'"
                   @focus="tagFieldFocused = true"
                   @keydown="onTagKeydown"
                   @paste="onTagPaste"
@@ -206,18 +205,18 @@ async function save() {
             </ul>
           </div>
           <div>
-            <UiLabel class="mb-1.5 block">{{ t('admin.field.content') }}</UiLabel>
+            <UiLabel class="mb-1.5 block">Περιεχόμενο</UiLabel>
             <UiTextarea v-model="body" class="min-h-[200px] font-mono text-sm" :class="bodyMissing ? 'border-destructive' : ''" :aria-invalid="bodyMissing || undefined" />
-            <p v-if="bodyMissing" class="mt-1.5 text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.content') }) }}</p>
+            <p v-if="bodyMissing" class="mt-1.5 text-xs text-destructive">Το πεδίο «Περιεχόμενο» είναι υποχρεωτικό</p>
           </div>
           <div class="flex items-center justify-between gap-3">
-            <UiLabel>{{ t('admin.field.published') }}</UiLabel>
+            <UiLabel>Δημοσιευμένο</UiLabel>
             <Switch :checked="published" @update:checked="(v: boolean) => (published = v)" />
           </div>
         </div>
         <UiDialogFooter class="gap-2">
-          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
-          <UiButton :disabled="saving" @click="save">{{ t('admin.modal.save') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
+          <UiButton :disabled="saving" @click="save">Αποθήκευση</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>

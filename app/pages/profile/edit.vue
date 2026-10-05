@@ -11,22 +11,21 @@ import UiLabel from '~/components/ui/Label.vue'
 definePageMeta({ middleware: 'auth' })
 
 const { session, fetchSession, updateUser } = useCurrentUser()
-const { t, translateApiError } = useI18n()
 const route = useRoute()
 
-useHead(() => ({ title: t('profile.edit.title') }))
+useHead(() => ({ title: 'Επεξεργασία προφίλ' }))
 
 onMounted(async () => {
   const q = route.query
   if (q.verified === '1') {
     await fetchSession()
-    toast.success(t('auth.verification.verified'))
+    toast.success('Email επαληθεύτηκε')
     navigateTo('/profile/edit', { replace: true })
   } else if (q.error === 'expired_token' || q.error === 'invalid_token') {
-    toast.error(t('auth.verification.invalidLink'))
+    toast.error('Αυτός ο σύνδεσμος επαλήθευσης δεν είναι έγκυρος ή έχει λήξει.')
     navigateTo('/profile/edit', { replace: true })
   } else if (q.error === 'unavailable') {
-    toast.error(t('auth.verification.unavailable'))
+    toast.error('Δεν ήταν δυνατή η επαλήθευση του email. Παρακαλώ δοκίμασε ξανά.')
     navigateTo('/profile/edit', { replace: true })
   }
 })
@@ -53,15 +52,12 @@ async function resendVerification() {
   try {
     await $fetch('/api/user/resend-verification', { method: 'POST', credentials: 'include' })
     await fetchSession()
-    toast.success(t('auth.verification.resendSuccess'))
+    toast.success('Το email επαλήθευσης στάλθηκε')
   } catch (e: unknown) {
     const err = e as { data?: { message?: string; statusCode?: number }; statusCode?: number } | null
     const status = err?.statusCode ?? err?.data?.statusCode
     const msg = err?.data?.message ?? ''
-    toast.error(translateApiError(
-      msg,
-      status === 429 ? t('auth.verification.resendCooldown') : t('auth.verification.resendError'),
-    ))
+    toast.error(((msg) || (status === 429 ? 'Παρακαλώ περίμενε πριν ζητήσεις ξανά email επαλήθευσης' : 'Αποτυχία αποστολής email επαλήθευσης')))
   } finally {
     resendVerificationLoading.value = false
   }
@@ -93,12 +89,12 @@ async function onAvatarChange(e: Event) {
   const file = input.files?.[0]
   if (!file) return
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    toast.error(t('profile.edit.avatarTypeError'))
+    toast.error('Επιτρέπονται μόνο εικόνες JPEG, PNG και WebP')
     input.value = ''
     return
   }
   if (file.size > AVATAR_MAX_SIZE) {
-    toast.error(t('profile.edit.avatarSizeError'))
+    toast.error('Η εικόνα πρέπει να είναι μικρότερη από 2 MB')
     input.value = ''
     return
   }
@@ -117,13 +113,8 @@ async function onAvatarChange(e: Event) {
     updateUser({ avatar_url: result.avatar_url })
     avatarPreview.value = result.avatar_url
   } catch (err: unknown) {
-    const error = err as { data?: { statusCode?: number; message?: string } }
-    const msg = error?.data?.message ?? ''
-    if (error?.data?.statusCode === 400 && (msg.includes('large') || msg.includes('2MB'))) {
-      toast.error(t('profile.edit.avatarSizeError'))
-    } else {
-      toast.error(t('common.error'))
-    }
+    const error = err as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Κάτι πήγε στραβά')
   } finally {
     avatarUploading.value = false
     input.value = ''
@@ -133,11 +124,11 @@ async function onAvatarChange(e: Event) {
 async function onSubmit() {
   if (isCredentials.value && newPassword.value) {
     if (newPassword.value.length < PASSWORD_MIN_LENGTH) {
-      toast.error(t('profile.edit.passwordMin'))
+      toast.error('Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες')
       return
     }
     if (newPassword.value !== confirmPassword.value) {
-      toast.error(t('profile.edit.passwordMismatch'))
+      toast.error('Οι κωδικοί δεν ταιριάζουν')
       return
     }
   }
@@ -158,21 +149,13 @@ async function onSubmit() {
       updateUser({ name: profileResult.name, avatar_url: profileResult.avatar_url })
     }
     await fetchSession()
-    toast.success(t('profile.edit.success'))
+    toast.success('Το προφίλ ενημερώθηκε')
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
   } catch (e: unknown) {
-    const error = e as { data?: { statusCode?: number; message?: string } }
-    const status = error?.data?.statusCode
-    const msg = error?.data?.message ?? ''
-    if (status === 400 && msg.toLowerCase().includes('password')) {
-      toast.error(t('profile.edit.passwordWrong'))
-    } else if (status === 400 && (msg.includes('large') || msg.includes('2MB'))) {
-      toast.error(t('profile.edit.avatarSizeError'))
-    } else {
-      toast.error(t('common.error'))
-    }
+    const error = e as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -183,7 +166,7 @@ async function onSubmit() {
   <div class="mx-auto w-full max-w-2xl px-4 py-12">
     <UiCard class="rounded-3xl shadow-sm">
       <UiCardHeader>
-        <h1 class="text-2xl font-bold font-heading">{{ t('profile.edit.title') }}</h1>
+        <h1 class="text-2xl font-bold font-heading">Επεξεργασία προφίλ</h1>
       </UiCardHeader>
       <UiCardContent>
         <form class="flex flex-col sm:flex-row gap-6" @submit.prevent="onSubmit">
@@ -196,7 +179,7 @@ async function onSubmit() {
               <button
                 type="button"
                 class="relative flex size-20 items-center justify-center overflow-hidden rounded-full bg-muted hover:ring-2 hover:ring-primary/50 transition disabled:pointer-events-none disabled:opacity-70"
-                :aria-label="t('profile.edit.avatar')"
+                aria-label="Φωτογραφία προφίλ"
                 :disabled="avatarUploading"
                 @click="onAvatarClick"
               >
@@ -206,7 +189,7 @@ async function onSubmit() {
                   v-if="!avatarUploading"
                   class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium"
                 >
-                  {{ t('profile.edit.avatar') }}
+                  Φωτογραφία προφίλ
                 </span>
                 <span
                   v-else
@@ -216,13 +199,13 @@ async function onSubmit() {
                 </span>
               </button>
               <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >
-              <p class="text-center text-xs text-muted-foreground">{{ t('profile.edit.avatarHint') }}</p>
+              <p class="text-center text-xs text-muted-foreground">JPEG, PNG ή WebP, μέγιστο 2MB</p>
             </div>
 
             <!-- Account info (read-only) -->
             <div class="rounded-lg border bg-muted/40 p-4 space-y-2.5 text-sm">
               <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                {{ t('profile.edit.provider') }}
+                Τρόπος σύνδεσης
               </p>
               <div class="flex items-start gap-2 text-foreground">
                 <VIcon name="bi-envelope" class="size-4 shrink-0 mt-0.5 text-muted-foreground" />
@@ -230,21 +213,21 @@ async function onSubmit() {
               </div>
               <div class="flex items-center gap-2 text-foreground">
                 <VIcon name="bi-gear" class="size-4 shrink-0 text-muted-foreground" />
-                <span class="text-xs">{{ isCredentials ? t('profile.edit.providerCredentials') : t('profile.edit.providerGoogle') }}</span>
+                <span class="text-xs">{{ isCredentials ? 'Email & κωδικός' : 'Λογαριασμός Google' }}</span>
               </div>
               <div v-if="joinedAt" class="flex items-center gap-2 text-foreground">
                 <VIcon name="bi-journal-bookmark" class="size-4 shrink-0 text-muted-foreground" />
-                <span class="text-xs">{{ t('profile.edit.joinedAt') }}: {{ joinedAt }}</span>
+                <span class="text-xs">Μέλος από: {{ joinedAt }}</span>
               </div>
               <div v-if="isCredentials" class="flex flex-col gap-1.5">
                 <div v-if="emailVerified" class="flex items-center gap-2 text-foreground">
                   <VIcon name="bi-check-circle-fill" class="size-4 shrink-0 text-green-600 dark:text-green-500" />
-                  <span class="text-xs">{{ t('auth.verification.verified') }}</span>
+                  <span class="text-xs">Email επαληθεύτηκε</span>
                 </div>
                 <template v-else>
                   <div class="flex items-center gap-2 text-foreground">
                     <VIcon name="bi-exclamation-circle" class="size-4 shrink-0 text-amber-600 dark:text-amber-500" />
-                    <span class="text-xs">{{ t('auth.verification.notVerified') }}</span>
+                    <span class="text-xs">Email μη επαληθευμένο</span>
                   </div>
                   <UiButton
                     type="button"
@@ -254,7 +237,7 @@ async function onSubmit() {
                     :disabled="resendVerificationLoading"
                     @click="resendVerification"
                   >
-                    {{ resendVerificationLoading ? t('common.loading') : t('auth.verification.resendVerification') }}
+                    {{ resendVerificationLoading ? 'Φόρτωση...' : 'Επαναποστολή email επαλήθευσης' }}
                   </UiButton>
                 </template>
               </div>
@@ -264,30 +247,30 @@ async function onSubmit() {
           <!-- RIGHT: editable fields -->
           <div class="flex-1 space-y-6">
             <div class="space-y-2">
-              <UiLabel for="name">{{ t('profile.edit.name') }}</UiLabel>
+              <UiLabel for="name">Όνομα</UiLabel>
               <UiInput id="name" v-model="name" type="text" />
             </div>
 
             <template v-if="isCredentials">
               <div class="border-t pt-6 space-y-4">
-                <p class="text-sm font-semibold">{{ t('profile.edit.passwordSection') }}</p>
+                <p class="text-sm font-semibold">Αλλαγή κωδικού</p>
                 <div class="space-y-2">
-                  <UiLabel for="current-password">{{ t('profile.edit.currentPassword') }}</UiLabel>
+                  <UiLabel for="current-password">Τρέχων κωδικός</UiLabel>
                   <UiInput id="current-password" v-model="currentPassword" type="password" autocomplete="current-password" />
                 </div>
                 <div class="space-y-2">
-                  <UiLabel for="new-password">{{ t('profile.edit.newPassword') }}</UiLabel>
+                  <UiLabel for="new-password">Νέος κωδικός</UiLabel>
                   <UiInput id="new-password" v-model="newPassword" type="password" autocomplete="new-password" />
                 </div>
                 <div class="space-y-2">
-                  <UiLabel for="confirm-password">{{ t('profile.edit.confirmPassword') }}</UiLabel>
+                  <UiLabel for="confirm-password">Επιβεβαίωση νέου κωδικού</UiLabel>
                   <UiInput id="confirm-password" v-model="confirmPassword" type="password" autocomplete="new-password" />
                 </div>
               </div>
             </template>
 
             <UiButton type="submit" class="w-full" :disabled="loading">
-              {{ loading ? t('common.loading') : t('profile.edit.save') }}
+              {{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}
             </UiButton>
           </div>
 

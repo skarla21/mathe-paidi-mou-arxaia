@@ -5,7 +5,6 @@ import { NuxtLink } from '#components'
 import AdminNotificationsModal from '~/components/admin/AdminNotificationsModal.vue'
 import UiBadge from '~/components/ui/Badge.vue'
 
-const { t } = useI18n()
 const route = useRoute()
 const adminFetch = useAdminFetch()
 
@@ -38,20 +37,20 @@ watch(notificationsOpen, (open) => {
 })
 
 const contentLinks = computed(() => [
-  { to: '/admin/grades', label: t('admin.grades'), icon: 'bi-mortarboard' },
-  { to: '/admin/subjects', label: t('admin.subjects'), icon: 'bi-journal-text' },
-  { to: '/admin/chapters', label: t('admin.chapters'), icon: 'bi-journal-bookmark' },
-  { to: '/admin/categories', label: t('admin.categories'), icon: 'bi-folder' },
-  { to: '/admin/lessons', label: t('admin.lessons'), icon: 'bi-list-check' },
+  { to: '/admin/grades', label: 'Τάξεις', icon: 'bi-mortarboard' },
+  { to: '/admin/subjects', label: 'Μαθήματα', icon: 'bi-journal-text' },
+  { to: '/admin/chapters', label: 'Κεφάλαια', icon: 'bi-journal-bookmark' },
+  { to: '/admin/categories', label: 'Κατηγορίες', icon: 'bi-folder' },
+  { to: '/admin/lessons', label: 'Υλικό', icon: 'bi-list-check' },
 ])
 
 const peopleLinks = computed(() => [
-  { to: '/admin/users', label: t('admin.users'), icon: 'bi-people' },
-  { to: '/admin/purchases', label: t('admin.purchases'), icon: 'bi-cart' },
+  { to: '/admin/users', label: 'Χρήστες', icon: 'bi-people' },
+  { to: '/admin/purchases', label: 'Αγορές', icon: 'bi-cart' },
 ])
 
 const publishingLinks = computed(() => [
-  { to: '/admin/articles', label: t('admin.articles'), icon: 'bi-newspaper' },
+  { to: '/admin/articles', label: 'Άρθρα', icon: 'bi-newspaper' },
 ])
 
 const mobileMenuOpen = ref(false)
@@ -78,11 +77,11 @@ function onNotificationsRefresh() {
 
     <!-- Mobile top bar -->
     <header class="md:hidden flex items-center gap-2 px-4 py-3 bg-card border-b">
-      <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1 min-w-0">{{ t('admin.nav') }}</NuxtLink>
+      <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1 min-w-0">Διαχείριση</NuxtLink>
       <button
         type="button"
         class="relative p-2 rounded-md hover:bg-muted shrink-0 cursor-pointer"
-        :aria-label="t('admin.notifications.openAria')"
+        aria-label="Άνοιγμα ειδοποιήσεων"
         @click="notificationsOpen = true"
       >
         <VIcon name="bi-bell" class="size-5 text-foreground" />
@@ -96,7 +95,7 @@ function onNotificationsRefresh() {
       </button>
       <button
         class="p-1 rounded-md hover:bg-muted shrink-0"
-        :aria-label="mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
+        :aria-label="mobileMenuOpen ? 'Κλείσιμο μενού πλοήγησης' : 'Άνοιγμα μενού πλοήγησης'"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
         <VIcon :name="mobileMenuOpen ? 'bi-x' : 'bi-list'" class="size-5" />
@@ -112,9 +111,9 @@ function onNotificationsRefresh() {
         @click="mobileMenuOpen = false"
       >
         <VIcon name="bi-bar-chart-line" class="size-4" />
-        {{ t('admin.overview') }}
+        Επισκόπηση
       </NuxtLink>
-      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionContent') }}</p>
+      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Περιεχόμενο</p>
       <NuxtLink
         v-for="link in contentLinks"
         :key="link.to"
@@ -126,7 +125,7 @@ function onNotificationsRefresh() {
         <VIcon :name="link.icon" class="size-4" />
         {{ link.label }}
       </NuxtLink>
-      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionPeople') }}</p>
+      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Χρήστες</p>
       <NuxtLink
         v-for="link in peopleLinks"
         :key="link.to"
@@ -138,7 +137,7 @@ function onNotificationsRefresh() {
         <VIcon :name="link.icon" class="size-4" />
         {{ link.label }}
       </NuxtLink>
-      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionArticles') }}</p>
+      <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Δημοσιεύσεις</p>
       <NuxtLink
         v-for="link in publishingLinks"
         :key="link.to"
@@ -156,7 +155,7 @@ function onNotificationsRefresh() {
         @click="mobileMenuOpen = false"
       >
         <VIcon name="bi-arrow-left" class="size-4" />
-        {{ t('admin.backToSite') }}
+        Πίσω στην εφαρμογή
       </NuxtLink>
     </div>
 
@@ -166,12 +165,12 @@ function onNotificationsRefresh() {
         <div class="p-4 border-b flex items-center justify-between gap-2">
           <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex items-center gap-2 min-w-0">
             <VIcon name="bi-shield-check" class="size-5 text-primary shrink-0" />
-            <span class="truncate">{{ t('admin.nav') }}</span>
+            <span class="truncate">Διαχείριση</span>
           </NuxtLink>
           <button
             type="button"
             class="relative p-2 rounded-md hover:bg-muted shrink-0 cursor-pointer"
-            :aria-label="t('admin.notifications.openAria')"
+            aria-label="Άνοιγμα ειδοποιήσεων"
             @click="notificationsOpen = true"
           >
             <VIcon name="bi-bell" class="size-5 text-foreground" />
@@ -184,7 +183,7 @@ function onNotificationsRefresh() {
             </UiBadge>
           </button>
         </div>
-        <nav :aria-label="t('admin.navAria')" class="p-2 flex-1 space-y-4 overflow-y-auto">
+        <nav aria-label="Πλοήγηση διαχείρισης" class="p-2 flex-1 space-y-4 overflow-y-auto">
           <div>
             <NuxtLink
               to="/admin"
@@ -192,11 +191,11 @@ function onNotificationsRefresh() {
               :class="isActive('/admin') ? 'bg-primary/10 text-primary font-medium' : ''"
             >
               <VIcon name="bi-bar-chart-line" class="size-4" />
-              {{ t('admin.overview') }}
+              Επισκόπηση
             </NuxtLink>
           </div>
           <div>
-            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionContent') }}</p>
+            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Περιεχόμενο</p>
             <NuxtLink
               v-for="link in contentLinks"
               :key="link.to"
@@ -209,7 +208,7 @@ function onNotificationsRefresh() {
             </NuxtLink>
           </div>
           <div>
-            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionPeople') }}</p>
+            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Χρήστες</p>
             <NuxtLink
               v-for="link in peopleLinks"
               :key="link.to"
@@ -222,7 +221,7 @@ function onNotificationsRefresh() {
             </NuxtLink>
           </div>
           <div>
-            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">{{ t('admin.sectionArticles') }}</p>
+            <p class="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">Δημοσιεύσεις</p>
             <NuxtLink
               v-for="link in publishingLinks"
               :key="link.to"
@@ -238,7 +237,7 @@ function onNotificationsRefresh() {
         <div class="p-2 border-t">
           <NuxtLink to="/" class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors">
             <VIcon name="bi-arrow-left" class="size-4" />
-            {{ t('admin.backToSite') }}
+            Πίσω στην εφαρμογή
           </NuxtLink>
         </div>
       </aside>

@@ -4,7 +4,7 @@ import { requireAdmin } from '../../utils/requireAdmin'
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const body = await readBody<{ name: string; grade_id: string; image_url?: string }>(event)
-  if (!body.name?.trim() || !body.grade_id) throw createError({ statusCode: 400, message: 'name and grade_id required' })
+  if (!body.name?.trim() || !body.grade_id) throw createError({ statusCode: 400, message: 'Απαιτούνται όνομα και τάξη' })
   const supabase = serverSupabaseService()
   const { data, error } = await supabase.from('subjects').insert({
     name: body.name.trim(),
@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
   }).select().single()
   if (error) {
     console.error('[admin/subjects.post]', error.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
   return data
 })

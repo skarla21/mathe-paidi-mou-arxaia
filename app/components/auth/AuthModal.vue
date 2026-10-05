@@ -2,7 +2,6 @@
 import { toast } from 'vue-sonner'
 import { EMAIL_REGEX, PASSWORD_MIN_LENGTH } from '~/lib/validation'
 
-const { t, translateApiError } = useI18n()
 const { isOpen, activeTab, loginSubView, pendingRedirect, close, openForgot, backToLogin } = useAuthModal()
 const { fetchSession } = useCurrentUser()
 const { signInWithGoogle } = useGoogleSignIn()
@@ -42,8 +41,8 @@ async function onGoogleLogin() {
 
 async function onLoginSubmit() {
   loginErrors.value = {}
-  if (!EMAIL_REGEX.test(loginEmail.value)) loginErrors.value.email = t('auth.validation.emailInvalid')
-  if (loginPassword.value.length < PASSWORD_MIN_LENGTH) loginErrors.value.password = t('auth.validation.passwordMin')
+  if (!EMAIL_REGEX.test(loginEmail.value)) loginErrors.value.email = 'Παρακαλώ εισάγετε έγκυρο email'
+  if (loginPassword.value.length < PASSWORD_MIN_LENGTH) loginErrors.value.password = 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες'
   if (Object.keys(loginErrors.value).length > 0) return
 
   loginLoading.value = true
@@ -60,20 +59,20 @@ async function onLoginSubmit() {
       const urlParams = new URLSearchParams(redirectUrl.split('?')[1] ?? '')
       const errorCode = urlParams.get('error') ?? ''
       const errorMap: Record<string, string> = {
-        CredentialsSignin: t('auth.login.error.invalidCredentials'),
-        OAuthAccountNotLinked: t('auth.login.error.oauthNotLinked'),
+        CredentialsSignin: 'Λάθος email ή κωδικός',
+        OAuthAccountNotLinked: 'Αυτό το email χρησιμοποιείται με διαφορετικό τρόπο σύνδεσης',
       }
-      toast.error(errorMap[errorCode] ?? t('auth.login.error.generic'))
+      toast.error(errorMap[errorCode] ?? 'Η σύνδεση δεν ήταν δυνατή')
       return
     }
     await fetchSession()
     const redirect = pendingRedirect.value
     close()
-    toast.success(t('auth.login.successToast'))
+    toast.success('Καλώς ήρθατε!')
     if (redirect) await navigateTo(redirect)
   } catch (e: unknown) {
-    const error = e as { data?: { message?: string }; message?: string }
-    toast.error(error?.data?.message ?? error?.message ?? t('auth.login.error.generic'))
+    const error = e as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Η σύνδεση δεν ήταν δυνατή')
   } finally {
     loginLoading.value = false
   }
@@ -82,7 +81,7 @@ async function onLoginSubmit() {
 async function onForgotSubmit() {
   forgotError.value = ''
   if (!EMAIL_REGEX.test(forgotEmail.value)) {
-    forgotError.value = t('auth.validation.emailInvalid')
+    forgotError.value = 'Παρακαλώ εισάγετε έγκυρο email'
     return
   }
   forgotLoading.value = true
@@ -91,15 +90,12 @@ async function onForgotSubmit() {
       method: 'POST',
       body: { email: forgotEmail.value },
     })
-    toast.success(t('auth.forgotPassword.success'))
+    toast.success('Έλεγξε το email σου για τον σύνδεσμο επαναφοράς.')
     backToLogin()
     forgotEmail.value = ''
   } catch (e: unknown) {
-    const error = e as { data?: { message?: string }; message?: string }
-    forgotError.value = translateApiError(
-      error?.data?.message ?? error?.message,
-      t('common.error'),
-    )
+    const error = e as { data?: { message?: string } }
+    forgotError.value = error.data?.message || 'Κάτι πήγε στραβά'
   } finally {
     forgotLoading.value = false
   }
@@ -107,9 +103,9 @@ async function onForgotSubmit() {
 
 async function onRegisterSubmit() {
   registerErrors.value = {}
-  if (registerName.value.trim().length < 2) registerErrors.value.name = t('auth.validation.nameMin')
-  if (!EMAIL_REGEX.test(registerEmail.value)) registerErrors.value.email = t('auth.validation.emailInvalid')
-  if (registerPassword.value.length < PASSWORD_MIN_LENGTH) registerErrors.value.password = t('auth.validation.passwordMin')
+  if (registerName.value.trim().length < 2) registerErrors.value.name = 'Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες'
+  if (!EMAIL_REGEX.test(registerEmail.value)) registerErrors.value.email = 'Παρακαλώ εισάγετε έγκυρο email'
+  if (registerPassword.value.length < PASSWORD_MIN_LENGTH) registerErrors.value.password = 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες'
   if (Object.keys(registerErrors.value).length > 0) return
 
   registerLoading.value = true
@@ -127,22 +123,17 @@ async function onRegisterSubmit() {
     })
     const redirectUrl = signInResult?.url ?? ''
     if (redirectUrl.includes('/error') || redirectUrl.includes('error=')) {
-      toast.error(t('auth.register.error.generic'))
+      toast.error('Η εγγραφή δεν ήταν δυνατή')
       return
     }
     await fetchSession()
     const redirect = pendingRedirect.value
     close()
-    toast.success(t('auth.register.success'))
+    toast.success('Καλώς ήρθες! Ο λογαριασμός σου δημιουργήθηκε.')
     if (redirect) await navigateTo(redirect)
   } catch (e: unknown) {
-    const error = e as { data?: { message?: string }; message?: string }
-    const msg = error?.data?.message ?? error?.message ?? ''
-    toast.error(
-      msg === 'EMAIL_TAKEN'
-        ? t('auth.register.error.emailTaken')
-        : translateApiError(msg, t('auth.register.error.generic')),
-    )
+    const error = e as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Η εγγραφή δεν ήταν δυνατή')
   } finally {
     registerLoading.value = false
   }
@@ -158,10 +149,10 @@ async function onRegisterSubmit() {
       >
         <!-- Accessibility: visually hidden title and description -->
         <UiDialogTitle class="sr-only">
-          {{ activeTab === 'login' ? t('auth.modal.loginTab') : t('auth.modal.registerTab') }}
+          {{ activeTab === 'login' ? 'Σύνδεση' : 'Εγγραφή' }}
         </UiDialogTitle>
         <UiDialogDescription class="sr-only">
-          {{ activeTab === 'login' ? t('auth.login.subtitle') : t('auth.register.subtitle') }}
+          {{ activeTab === 'login' ? 'Συνδέσου για να συνεχίσεις στα μαθήματά σου.' : 'Δημιούργησε λογαριασμό μαθητή για να ξεκινήσεις.' }}
         </UiDialogDescription>
 
         <!-- Background image overlay -->
@@ -181,7 +172,7 @@ async function onRegisterSubmit() {
               :class="activeTab === 'login' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
               @click="activeTab = 'login'"
             >
-              {{ t('auth.modal.loginTab') }}
+              Σύνδεση
             </button>
             <button
               type="button"
@@ -189,7 +180,7 @@ async function onRegisterSubmit() {
               :class="activeTab === 'register' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'"
               @click="activeTab = 'register'"
             >
-              {{ t('auth.modal.registerTab') }}
+              Εγγραφή
             </button>
           </div>
 
@@ -199,31 +190,31 @@ async function onRegisterSubmit() {
               <!-- Forgot password sub-view -->
               <template v-if="loginSubView === 'forgot'">
                 <div class="mb-5">
-                  <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.forgotPassword.title') }}</h2>
-                  <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.forgotPassword.subtitle') }}</p>
+                  <h2 class="text-lg font-heading font-semibold text-foreground">Επαναφορά κωδικού</h2>
+                  <p class="text-sm text-muted-foreground mt-0.5">Εισήγαγε το email σου και θα σου στείλουμε σύνδεσμο για επαναφορά του κωδικού.</p>
                 </div>
                 <form class="space-y-4" @submit.prevent="onForgotSubmit">
                   <div>
-                    <UiLabel for="forgot-email" class="sr-only">{{ t('auth.forgotPassword.email') }}</UiLabel>
+                    <UiLabel for="forgot-email" class="sr-only">Email</UiLabel>
                     <UiInput
                       id="forgot-email"
                       v-model="forgotEmail"
                       type="text"
                       inputmode="email"
-                      :placeholder="t('auth.forgotPassword.email')"
+                      placeholder="Email"
                       autocomplete="email"
                     />
                     <p v-if="forgotError" class="text-xs text-destructive mt-1">{{ forgotError }}</p>
                   </div>
                   <UiButton type="submit" class="w-full" :disabled="forgotLoading">
-                    {{ forgotLoading ? t('auth.forgotPassword.submitting') : t('auth.forgotPassword.submit') }}
+                    {{ forgotLoading ? 'Αποστολή...' : 'Αποστολή συνδέσμου' }}
                   </UiButton>
                   <button
                     type="button"
                     class="text-sm text-primary font-medium hover:underline cursor-pointer"
                     @click="backToLogin"
                   >
-                    {{ t('auth.forgotPassword.backToLogin') }}
+                    Πίσω στη σύνδεση
                   </button>
                 </form>
               </template>
@@ -231,20 +222,20 @@ async function onRegisterSubmit() {
               <!-- Login form -->
               <template v-else>
                 <div class="mb-5">
-                  <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.login.title') }}</h2>
-                  <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.login.subtitle') }}</p>
+                  <h2 class="text-lg font-heading font-semibold text-foreground">Σύνδεση</h2>
+                  <p class="text-sm text-muted-foreground mt-0.5">Συνδέσου για να συνεχίσεις στα μαθήματά σου.</p>
                 </div>
 
                 <form class="space-y-4" @submit.prevent="onLoginSubmit">
                   <!-- Email -->
                   <div>
-                    <UiLabel for="login-email" class="sr-only">{{ t('auth.login.email') }}</UiLabel>
+                    <UiLabel for="login-email" class="sr-only">Email</UiLabel>
                     <UiInput
                       id="login-email"
                       v-model="loginEmail"
                       type="text"
                       inputmode="email"
-                      :placeholder="t('auth.login.email')"
+                      placeholder="Email"
                       autocomplete="email"
                     />
                     <p v-if="loginErrors.email" class="text-xs text-destructive mt-1">{{ loginErrors.email }}</p>
@@ -252,11 +243,11 @@ async function onRegisterSubmit() {
 
                   <!-- Password -->
                   <div>
-                    <UiLabel for="login-password" class="sr-only">{{ t('auth.login.password') }}</UiLabel>
+                    <UiLabel for="login-password" class="sr-only">Κωδικός πρόσβασης</UiLabel>
                     <UiPasswordInput
                       id="login-password"
                       v-model="loginPassword"
-                      :placeholder="t('auth.login.password')"
+                      placeholder="Κωδικός πρόσβασης"
                       autocomplete="current-password"
                     />
                     <p v-if="loginErrors.password" class="text-xs text-destructive mt-1">{{ loginErrors.password }}</p>
@@ -265,13 +256,13 @@ async function onRegisterSubmit() {
                       class="text-xs text-primary font-medium hover:underline mt-1 cursor-pointer"
                       @click="openForgot"
                     >
-                      {{ t('auth.forgotPassword.link') }}
+                      Ξέχασες τον κωδικό;
                     </button>
                   </div>
 
                   <!-- Submit -->
                   <UiButton type="submit" class="w-full" :disabled="loginLoading">
-                    {{ loginLoading ? t('auth.login.submitting') : t('auth.login.submit') }}
+                    {{ loginLoading ? 'Γίνεται σύνδεση...' : 'Σύνδεση' }}
                   </UiButton>
                 </form>
 
@@ -283,18 +274,18 @@ async function onRegisterSubmit() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                {{ t('auth.login.google') }}
+                Σύνδεση με Google
               </UiButton>
 
                 <!-- Switch to register -->
                 <p class="text-center text-sm text-muted-foreground mt-4">
-                  {{ t('auth.login.noAccount') }}
+                  Δεν έχεις λογαριασμό;
                   <button
                     type="button"
                     class="text-primary font-medium hover:underline cursor-pointer"
                     @click="activeTab = 'register'"
                   >
-                    {{ t('auth.login.registerLink') }}
+                    Εγγραφή
                   </button>
                 </p>
               </template>
@@ -303,19 +294,19 @@ async function onRegisterSubmit() {
             <!-- Register panel -->
             <div v-else>
               <div class="mb-5">
-                <h2 class="text-lg font-heading font-semibold text-foreground">{{ t('auth.register.title') }}</h2>
-                <p class="text-sm text-muted-foreground mt-0.5">{{ t('auth.register.subtitle') }}</p>
+                <h2 class="text-lg font-heading font-semibold text-foreground">Εγγραφή</h2>
+                <p class="text-sm text-muted-foreground mt-0.5">Δημιούργησε λογαριασμό μαθητή για να ξεκινήσεις.</p>
               </div>
 
               <form class="space-y-4" @submit.prevent="onRegisterSubmit">
                 <!-- Name -->
                 <div>
-                  <UiLabel for="register-name" class="sr-only">{{ t('auth.name') }}</UiLabel>
+                  <UiLabel for="register-name" class="sr-only">Ονοματεπώνυμο</UiLabel>
                   <UiInput
                     id="register-name"
                     v-model="registerName"
                     type="text"
-                    :placeholder="t('auth.name')"
+                    placeholder="Ονοματεπώνυμο"
                     autocomplete="name"
                   />
                   <p v-if="registerErrors.name" class="text-xs text-destructive mt-1">{{ registerErrors.name }}</p>
@@ -323,13 +314,13 @@ async function onRegisterSubmit() {
 
                 <!-- Email -->
                 <div>
-                  <UiLabel for="register-email" class="sr-only">{{ t('auth.register.email') }}</UiLabel>
+                  <UiLabel for="register-email" class="sr-only">Email</UiLabel>
                   <UiInput
                     id="register-email"
                     v-model="registerEmail"
                     type="text"
                     inputmode="email"
-                    :placeholder="t('auth.register.email')"
+                    placeholder="Email"
                     autocomplete="email"
                   />
                   <p v-if="registerErrors.email" class="text-xs text-destructive mt-1">{{ registerErrors.email }}</p>
@@ -337,11 +328,11 @@ async function onRegisterSubmit() {
 
                 <!-- Password -->
                 <div>
-                  <UiLabel for="register-password" class="sr-only">{{ t('auth.register.password') }}</UiLabel>
+                  <UiLabel for="register-password" class="sr-only">Κωδικός πρόσβασης</UiLabel>
                   <UiPasswordInput
                     id="register-password"
                     v-model="registerPassword"
-                    :placeholder="t('auth.register.password')"
+                    placeholder="Κωδικός πρόσβασης"
                     autocomplete="new-password"
                   />
                   <p v-if="registerErrors.password" class="text-xs text-destructive mt-1">{{ registerErrors.password }}</p>
@@ -349,7 +340,7 @@ async function onRegisterSubmit() {
 
                 <!-- Submit -->
                 <UiButton type="submit" class="w-full" :disabled="registerLoading">
-                  {{ registerLoading ? t('auth.register.submitting') : t('auth.register.submit') }}
+                  {{ registerLoading ? 'Γίνεται εγγραφή...' : 'Εγγραφή' }}
                 </UiButton>
               </form>
 
@@ -361,18 +352,18 @@ async function onRegisterSubmit() {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                {{ t('auth.register.google') }}
+                Εγγραφή με Google
               </UiButton>
 
               <!-- Switch to login -->
               <p class="text-center text-sm text-muted-foreground mt-4">
-                {{ t('auth.register.hasAccount') }}
+                Έχεις ήδη λογαριασμό;
                 <button
                   type="button"
                   class="text-primary font-medium hover:underline cursor-pointer"
                   @click="activeTab = 'login'"
                 >
-                  {{ t('auth.register.loginLink') }}
+                  Σύνδεση
                 </button>
               </p>
             </div>

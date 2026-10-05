@@ -27,11 +27,11 @@ export async function sendVerificationEmail(to: string, link: string): Promise<v
   const { data, error } = await resend.emails.send({
     from: DEFAULT_FROM,
     to,
-    subject: "Verify your email - Mathe Paidi Mou Arxaia",
+    subject: "Επιβεβαίωση email — Μάθε Παιδί Μου Αρχαία",
     html: `
-      <p>Click the link below to verify your email:</p>
+      <p>Πάτησε τον σύνδεσμο για να επιβεβαιώσεις το email σου:</p>
       <p><a href="${link}">${link}</a></p>
-      <p>This link expires in 24 hours.</p>
+      <p>Ο σύνδεσμος λήγει σε 24 ώρες.</p>
     `,
   });
   if (error) throw new Error(error.message);
@@ -45,11 +45,11 @@ export async function sendPasswordResetEmail(to: string, link: string): Promise<
   const send = resend.emails.send({
     from: DEFAULT_FROM,
     to,
-    subject: "Reset your password - Mathe Paidi Mou Arxaia",
+    subject: "Επαναφορά κωδικού — Μάθε Παιδί Μου Αρχαία",
     html: `
-      <p>Click the link below to reset your password:</p>
+      <p>Πάτησε τον σύνδεσμο για να ορίσεις νέο κωδικό:</p>
       <p><a href="${link}">${link}</a></p>
-      <p>This link expires in 1 hour.</p>
+      <p>Ο σύνδεσμος λήγει σε 1 ώρα.</p>
     `,
   });
   let timeoutId: ReturnType<typeof setTimeout> | undefined

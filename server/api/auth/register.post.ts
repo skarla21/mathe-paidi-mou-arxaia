@@ -12,22 +12,22 @@ export default defineEventHandler(async (event) => {
     name: 'register',
     maxRequests: 5,
     windowMs: 60 * 1000,
-    message: 'auth.register.rateLimited',
+    message: 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.',
   })
 
   const body = await readBody<{ email?: string; password?: string; name?: string }>(event)
 
   const name = body.name?.trim() ?? ''
   if (!body.email || !EMAIL_REGEX.test(body.email)) {
-    throw createError({ statusCode: 400, message: 'auth.validation.emailInvalid' })
+    throw createError({ statusCode: 400, message: 'Παρακαλώ εισάγετε έγκυρο email' })
   }
 
   if (!body.password || body.password.length < PASSWORD_MIN_LENGTH) {
-    throw createError({ statusCode: 400, message: 'auth.validation.passwordMin' })
+    throw createError({ statusCode: 400, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες' })
   }
 
   if (name.length < 2) {
-    throw createError({ statusCode: 400, message: 'auth.validation.nameMin' })
+    throw createError({ statusCode: 400, message: 'Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες' })
   }
 
   const email = body.email.toLowerCase().trim()
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
   const { data: existing, error: existingError } = await supabase.from('users').select('id').eq('email', email).maybeSingle()
   if (existingError) {
     console.error('[register]', existingError.message)
-    throw createError({ statusCode: 500, message: 'auth.register.error.generic' })
+    throw createError({ statusCode: 500, message: 'Η εγγραφή δεν ήταν δυνατή' })
   }
   if (existing) {
     // Return generic success to prevent user enumeration — do NOT reveal email is taken
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
 
   if (registerError) {
     console.error('[register]', registerError.message)
-    throw createError({ statusCode: 500, message: 'auth.register.error.generic' })
+    throw createError({ statusCode: 500, message: 'Η εγγραφή δεν ήταν δυνατή' })
   }
 
   if (!userId) {

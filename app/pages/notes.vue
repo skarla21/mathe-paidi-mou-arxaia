@@ -9,12 +9,11 @@ interface Category {
   order: number
 }
 
-const { t } = useI18n()
 
 const { data: categoriesData, pending } = await useFetch<Category[]>('/api/categories')
 const categories = computed(() => categoriesData.value ?? [])
 
-useHead(() => ({ title: t('nav.notes') }))
+useHead(() => ({ title: 'Σημειώσεις' }))
 
 onMounted(() => {
   if (import.meta.client) {
@@ -30,7 +29,7 @@ onMounted(() => {
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <div id="notes-title">
-      <LayoutPageIntro :eyebrow="t('nav.extras')" :title="t('nav.allExtras')" :lead="t('home.extras.lead')" />
+      <LayoutPageIntro eyebrow="Άλλο υλικό" title="Όλες οι κατηγορίες" lead="Κατηγορίες με επιπλέον μαθήματα και άρθρα, ό,τι έχει δημοσιεύσει η διδάσκουσα." />
     </div>
 
     <div v-if="pending" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -41,7 +40,7 @@ onMounted(() => {
       v-else-if="categories.length === 0"
       class="mt-8 text-muted-foreground"
     >
-      {{ t('notes.empty') }}
+      Δεν υπάρχουν ακόμη διαθέσιμες κατηγορίες.
     </p>
 
     <div v-else id="notes-grid" class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

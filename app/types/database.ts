@@ -12,7 +12,7 @@ export interface Subject {
   grade_id: string
   image_url?: string | null
   order: number
-  /** Joined relation — only present when select includes `grades(…)` */
+  /** Joined relation — only present when select includes 'grades(…)' */
   grades?: { name: string } | null
 }
 
@@ -34,7 +34,7 @@ export interface Chapter {
   image_url: string | null
   order: number
   created_at: string
-  /** Joined relation — only present when select includes `subjects(…)` */
+  /** Joined relation — only present when select includes 'subjects(…)' */
   subjects?: { name: string; grades?: { name: string } | null } | null
 }
 

@@ -3,7 +3,6 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { toast } from 'vue-sonner'
 import UiButton from '~/components/ui/Button.vue'
 
-const { t } = useI18n()
 const props = defineProps<{ src: string }>()
 
 const container = ref<HTMLElement | null>(null)
@@ -28,7 +27,7 @@ async function loadPdf() {
     await renderPage()
   } catch (e) {
     console.error('PDF load error', e)
-    toast.error(t('pdf.loadError'))
+    toast.error('Αποτυχία φόρτωσης PDF')
   } finally {
     loading.value = false
   }
@@ -67,13 +66,13 @@ onUnmounted(() => { pdfDoc = null })
 <template>
   <div class="border rounded-lg overflow-hidden bg-muted/30">
     <div class="flex items-center gap-2 p-2 border-b bg-card">
-      <UiButton variant="outline" size="sm" :disabled="pageNum <= 1" @click="prev">{{ t('pdf.prev') }}</UiButton>
+      <UiButton variant="outline" size="sm" :disabled="pageNum <= 1" @click="prev">Προηγ</UiButton>
       <span class="text-sm text-muted-foreground">{{ pageNum }} / {{ totalPages }}</span>
-      <UiButton variant="outline" size="sm" :disabled="pageNum >= totalPages" @click="next">{{ t('pdf.next') }}</UiButton>
+      <UiButton variant="outline" size="sm" :disabled="pageNum >= totalPages" @click="next">Επόμ</UiButton>
       <UiButton variant="ghost" size="sm" @click="scale = Math.max(0.5, scale - 0.2)">−</UiButton>
       <UiButton variant="ghost" size="sm" @click="scale = Math.min(2, scale + 0.2)">+</UiButton>
     </div>
-    <div v-if="loading" class="p-8 text-center text-muted-foreground">{{ t('pdf.loading') }}</div>
+    <div v-if="loading" class="p-8 text-center text-muted-foreground">Φόρτωση PDF…</div>
     <div ref="container" class="flex justify-center p-4 min-h-[400px]" />
   </div>
 </template>

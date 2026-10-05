@@ -21,7 +21,6 @@ interface LessonResponse extends Lesson {
 
 const route = useRoute()
 const lessonId = route.params.lessonId as string
-const { t } = useI18n()
 
 const lesson = ref<Lesson | null>(null)
 const canAccess = ref(false)
@@ -65,14 +64,14 @@ async function buyLesson() {
     if (url) window.location.href = url
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('lesson.checkoutError'))
+    toast.error(err?.data?.message ?? 'Η αγορά απέτυχε')
   } finally {
     purchasing.value = false
   }
 }
 
 useHead(() => ({
-  title: lesson.value ? lesson.value.title : t('lesson.title'),
+  title: lesson.value ? lesson.value.title : 'Υλικό',
 }))
 
 onMounted(() => {
@@ -95,7 +94,7 @@ onMounted(() => {
     </div>
     <template v-else>
       <div id="lesson-title">
-        <LayoutPageIntro :title="lesson.title" />
+        <LayoutPageIntro title="Υλικό" />
       </div>
       <ClientOnly v-if="lesson.content">
         <div
@@ -121,15 +120,15 @@ onMounted(() => {
         </span>
         <div>
           <h3 class="font-heading text-xl font-bold text-foreground">
-            {{ t('lesson.verifyToAccessContent') }}
+            Επαλήθευσε το email σου για πρόσβαση στο υλικό
           </h3>
           <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {{ t('lesson.verifyToAccessContentDescription') }}
+            Χρειάζεται να επαληθεύσεις το email σου πριν μπορέσεις να δεις ή να κατεβάσεις υλικό.
           </p>
         </div>
         <NuxtLink to="/profile/edit">
           <UiButton variant="outline">
-            {{ t('nav.editProfile') }}
+            Επεξεργασία προφίλ
           </UiButton>
         </NuxtLink>
       </div>
@@ -144,14 +143,14 @@ onMounted(() => {
         </span>
         <div>
           <h3 class="font-heading text-xl font-bold text-foreground">
-            {{ t('lesson.paywall.title') }}
+            Ξεκλείδωσε αυτό το υλικό
           </h3>
           <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
-            {{ t('lesson.paywall.description') }}
+            Αγόρασε αυτό το υλικό για πρόσβαση στο PDF.
           </p>
         </div>
         <UiButton :disabled="purchasing" @click="buyLesson">
-          {{ purchasing ? t('lesson.redirecting') : t('lesson.paywall.cta') }}
+          {{ purchasing ? 'Ανακατεύθυνση...' : 'Αγόρασε αυτό το υλικό' }}
         </UiButton>
       </div>
     </template>

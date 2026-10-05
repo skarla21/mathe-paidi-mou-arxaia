@@ -10,9 +10,8 @@ import { Separator } from '~/components/ui/separator'
 import type { AdminStats } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
-useHead(() => ({ title: t('admin.statsTitle') }))
+useHead(() => ({ title: 'Επισκόπηση' }))
 
 const stats = ref<AdminStats | null>(null)
 const loading = ref(true)
@@ -21,7 +20,7 @@ onMounted(async () => {
   try { stats.value = await adminFetch<AdminStats>('/api/admin/stats') }
   catch {
     stats.value = null
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   }
   finally { loading.value = false }
 })
@@ -29,10 +28,10 @@ onMounted(async () => {
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 60) return t('common.timeAgo.mins', { n: mins })
+  if (mins < 60) return `${mins} λεπτά πριν`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return t('common.timeAgo.hours', { n: hrs })
-  return t('common.timeAgo.days', { n: Math.floor(hrs / 24) })
+  if (hrs < 24) return `${hrs} ώρες πριν`
+  return `${Math.floor(hrs / 24)} ημέρες πριν`
 }
 
 function formatRevenue(amount: number) {
@@ -48,49 +47,49 @@ const kpiCards = computed(() => {
   const s = stats.value as AdminStats & { newLessonsThisMonth?: number }
   return [
     {
-      iconLabel: t('admin.stats.cardUsers'),
+      iconLabel: 'Χρήστες',
       icon: 'bi-people',
       total: s.totalUsers,
       monthlyDelta: s.newUsersThisMonth ?? 0,
       monthlyAsCurrency: false,
-      sub1: `${s.newUsersThisMonth ?? 0} ${t('admin.stats.newThisMonth')}`,
-      sub2: `${s.newUsersThisYear ?? 0} ${t('admin.stats.newThisYear')}`,
+      sub1: `${s.newUsersThisMonth ?? 0} νέοι αυτό το μήνα`,
+      sub2: `${s.newUsersThisYear ?? 0} νέοι φέτος`,
     },
     {
-      iconLabel: t('admin.stats.cardContent'),
+      iconLabel: 'Υλικό',
       icon: 'bi-journal-text',
       total: s.totalLessons,
       monthlyDelta: s.newLessonsThisMonth ?? 0,
       monthlyAsCurrency: false,
-      sub1: `${s.freeVsPaid?.free ?? 0} ${t('admin.stats.free')} / ${s.freeVsPaid?.paid ?? 0} ${t('admin.stats.paid')}`,
+      sub1: `${s.freeVsPaid?.free ?? 0} Δωρεάν / ${s.freeVsPaid?.paid ?? 0} Πληρωτό`,
       sub2: null,
     },
     {
-      iconLabel: t('admin.stats.cardDownloads'),
+      iconLabel: 'Λήψεις',
       icon: 'bi-download',
       total: s.downloads,
       monthlyDelta: s.downloadsThisMonth ?? 0,
       monthlyAsCurrency: false,
-      sub1: `${s.downloadsThisMonth ?? 0} ${t('admin.stats.thisMonth')}`,
-      sub2: `${s.downloadsThisYear ?? 0} ${t('admin.stats.thisYear')}`,
+      sub1: `${s.downloadsThisMonth ?? 0} αυτό το μήνα`,
+      sub2: `${s.downloadsThisYear ?? 0} φέτος`,
     },
     {
-      iconLabel: t('admin.stats.cardRevenue'),
+      iconLabel: 'Έσοδα',
       icon: 'bi-currency-euro',
       total: formatRevenue(s.revenue),
       monthlyDelta: s.revenueThisMonth ?? 0,
       monthlyAsCurrency: true,
-      sub1: `${formatRevenue(s.revenueThisMonth ?? 0)} ${t('admin.stats.thisMonth')}`,
-      sub2: `${formatRevenue(s.revenueThisYear ?? 0)} ${t('admin.stats.thisYear')}`,
+      sub1: `${formatRevenue(s.revenueThisMonth ?? 0)} αυτό το μήνα`,
+      sub2: `${formatRevenue(s.revenueThisYear ?? 0)} φέτος`,
     },
     {
-      iconLabel: t('admin.stats.cardRatings'),
+      iconLabel: 'Βαθμολογίες',
       icon: 'bi-star-fill',
       total: s.totalRatings ?? 0,
       monthlyDelta: s.ratingsThisMonth ?? 0,
       monthlyAsCurrency: false,
-      sub1: `${t('admin.stats.avgRating')}: ${s.averageRating?.toFixed(1) ?? '0'}`,
-      sub2: `${s.totalComments ?? 0} ${t('admin.stats.cardComments').toLowerCase()}`,
+      sub1: `Μέση βαθμολογία: ${s.averageRating?.toFixed(1) ?? '0'}`,
+      sub2: `${s.totalComments ?? 0} σχόλια`,
     },
   ]
 })
@@ -99,11 +98,11 @@ const contentCounts = computed(() => {
   if (!stats.value) return []
   const s = stats.value as AdminStats
   return [
-    { label: t('admin.stats.totalGrades'), value: s.totalGrades ?? 0, icon: 'bi-mortarboard' },
-    { label: t('admin.stats.totalSubjects'), value: s.totalSubjects ?? 0, icon: 'bi-journal-text' },
-    { label: t('admin.stats.totalChapters'), value: s.totalChapters ?? 0, icon: 'bi-journal-bookmark' },
-    { label: t('admin.stats.totalCategories'), value: s.totalCategories ?? 0, icon: 'bi-folder' },
-    { label: t('admin.stats.totalPurchases'), value: s.totalPurchases ?? 0, icon: 'bi-cart' },
+    { label: 'Τάξεις', value: s.totalGrades ?? 0, icon: 'bi-mortarboard' },
+    { label: 'Μαθήματα', value: s.totalSubjects ?? 0, icon: 'bi-journal-text' },
+    { label: 'Κεφάλαια', value: s.totalChapters ?? 0, icon: 'bi-journal-bookmark' },
+    { label: 'Κατηγορίες', value: s.totalCategories ?? 0, icon: 'bi-folder' },
+    { label: 'Αγορές', value: s.totalPurchases ?? 0, icon: 'bi-cart' },
   ]
 })
 
@@ -160,7 +159,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="space-y-6">
-    <h1 class="text-2xl font-bold font-heading">{{ t('admin.statsTitle') }}</h1>
+    <h1 class="text-2xl font-bold font-heading">Επισκόπηση</h1>
 
     <!-- Loading skeleton -->
     <template v-if="loading">
@@ -217,7 +216,7 @@ onBeforeUnmount(() => {
                     </div>
                   </div>
                 </div>
-                <p class="text-xs text-muted-foreground">{{ t('admin.stats.total') }}</p>
+                <p class="text-xs text-muted-foreground">Σύνολο</p>
                 <p class="text-xl font-bold leading-tight sm:text-2xl">{{ card.total }}</p>
                 <div class="mt-auto pt-2">
                   <p class="line-clamp-2 text-xs leading-snug text-muted-foreground">{{ card.sub1 }}</p>
@@ -229,30 +228,30 @@ onBeforeUnmount(() => {
         </div>
         <UiCard class="shadow-md flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
           <UiCardContent class="flex flex-col gap-3 p-4 sm:p-4">
-            <p class="text-sm font-semibold">{{ t('admin.stats.quickActions') }}</p>
+            <p class="text-sm font-semibold">Γρήγορες ενέργειες</p>
             <div class="flex flex-col gap-2">
               <NuxtLink to="/admin/grades" class="w-full">
                 <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
                   <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
-                  {{ t('admin.createGrade') }}
+                  Νέα τάξη
                 </UiButton>
               </NuxtLink>
               <NuxtLink to="/admin/subjects" class="w-full">
                 <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
                   <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
-                  {{ t('admin.createSubject') }}
+                  Νέο μάθημα
                 </UiButton>
               </NuxtLink>
               <NuxtLink to="/admin/chapters" class="w-full">
                 <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
                   <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
-                  {{ t('admin.createChapter') }}
+                  Νέο κεφάλαιο
                 </UiButton>
               </NuxtLink>
               <NuxtLink to="/admin/lessons" class="w-full">
                 <UiButton variant="outline" size="sm" class="h-9 w-full justify-start">
                   <VIcon name="bi-plus-circle" class="mr-2 size-4 shrink-0" />
-                  {{ t('admin.createLesson') }}
+                  Νέο υλικό
                 </UiButton>
               </NuxtLink>
             </div>
@@ -265,7 +264,7 @@ onBeforeUnmount(() => {
         <!-- Content Breakdown -->
         <UiCard class="shadow-md">
           <UiCardHeader>
-            <p class="font-semibold text-sm">{{ t('admin.stats.contentBreakdown') }}</p>
+            <p class="font-semibold text-sm">Ανάλυση περιεχομένου</p>
           </UiCardHeader>
           <UiCardContent class="space-y-3">
             <div v-for="item in contentCounts" :key="item.label" class="flex items-center justify-between">
@@ -281,7 +280,7 @@ onBeforeUnmount(() => {
         <!-- Lessons by Grade -->
         <UiCard class="shadow-md">
           <UiCardHeader>
-            <p class="font-semibold text-sm">{{ t('admin.stats.lessonsByGrade') }}</p>
+            <p class="font-semibold text-sm">Υλικό ανά τάξη</p>
           </UiCardHeader>
           <UiCardContent class="space-y-3">
             <div v-if="!stats.lessonsByGrade?.length" class="text-sm text-muted-foreground">—</div>
@@ -308,10 +307,10 @@ onBeforeUnmount(() => {
           <!-- Recent Signups -->
           <UiCard class="shadow-md">
             <UiCardHeader>
-              <p class="font-semibold text-sm">{{ t('admin.stats.recentUsers') }}</p>
+              <p class="font-semibold text-sm">Πρόσφατες εγγραφές</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!recentUsersPreview.length" class="text-sm text-muted-foreground">{{ t('admin.usersEmpty') }}</p>
+              <p v-if="!recentUsersPreview.length" class="text-sm text-muted-foreground">Δεν υπάρχουν χρήστες ακόμα.</p>
               <ul v-else class="space-y-2.5">
                 <li v-for="u in recentUsersPreview" :key="u.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
@@ -322,7 +321,7 @@ onBeforeUnmount(() => {
                       class="size-5 rounded-full object-cover"
                     >
                     <VIcon v-else name="bi-person-circle" class="size-5 text-muted-foreground" />
-                    <span class="truncate">{{ u.name ?? u.email ?? t('common.empty') }}</span>
+                    <span class="truncate">{{ u.name ?? u.email ?? '—' }}</span>
                   </div>
                   <span class="ml-2 shrink-0 text-xs text-muted-foreground">
                     {{ new Date(u.created_at).toLocaleDateString() }}
@@ -335,15 +334,15 @@ onBeforeUnmount(() => {
           <!-- Recent Downloads -->
           <UiCard class="shadow-md">
             <UiCardHeader>
-              <p class="font-semibold text-sm">{{ t('admin.recentDownloads') }}</p>
+              <p class="font-semibold text-sm">Πρόσφατες λήψεις</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!recentDownloadsPreview.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
+              <p v-if="!recentDownloadsPreview.length" class="text-sm text-muted-foreground">Δεν υπάρχουν λήψεις ακόμα.</p>
               <ul v-else class="space-y-2.5">
                 <li v-for="d in recentDownloadsPreview" :key="d.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
                     <VIcon name="bi-download" class="size-3.5 text-muted-foreground shrink-0" />
-                    <span class="truncate">{{ d.users?.name ?? t('common.empty') }}</span>
+                    <span class="truncate">{{ d.users?.name ?? '—' }}</span>
                   </div>
                   <span class="ml-2 shrink-0 text-xs text-muted-foreground">{{ timeAgo(d.downloaded_at) }}</span>
                 </li>
@@ -354,18 +353,18 @@ onBeforeUnmount(() => {
           <!-- Recent Purchases -->
           <UiCard class="shadow-md">
             <UiCardHeader>
-              <p class="font-semibold text-sm">{{ t('admin.stats.recentPurchases') }}</p>
+              <p class="font-semibold text-sm">Πρόσφατες αγορές</p>
             </UiCardHeader>
             <UiCardContent>
-              <p v-if="!recentPurchasesPreview.length" class="text-sm text-muted-foreground">{{ t('admin.purchasesEmpty') }}</p>
+              <p v-if="!recentPurchasesPreview.length" class="text-sm text-muted-foreground">Δεν υπάρχουν αγορές ακόμη.</p>
               <ul v-else class="space-y-2.5">
                 <li v-for="p in recentPurchasesPreview" :key="p.id" class="flex items-center justify-between text-sm">
                   <div class="flex items-center gap-2 min-w-0">
                     <VIcon name="bi-cart" class="size-3.5 text-muted-foreground shrink-0" />
-                    <span class="truncate">{{ p.users?.name ?? p.users?.email ?? t('common.empty') }}</span>
+                    <span class="truncate">{{ p.users?.name ?? p.users?.email ?? '—' }}</span>
                   </div>
                   <UiBadge variant="secondary" class="ml-2 shrink-0 text-xs">
-                    {{ p.lessons?.title ?? t('common.empty') }}
+                    {{ p.lessons?.title ?? '—' }}
                   </UiBadge>
                 </li>
               </ul>
@@ -379,10 +378,10 @@ onBeforeUnmount(() => {
           :style="topLessonsCardStyle"
         >
           <UiCardHeader class="shrink-0">
-            <p class="font-semibold text-sm">{{ t('admin.topLessons') }}</p>
+            <p class="font-semibold text-sm">Κορυφαίο υλικό</p>
           </UiCardHeader>
           <UiCardContent class="min-h-0 flex-1 overflow-y-auto">
-            <p v-if="!stats.topLessons.length" class="text-sm text-muted-foreground">{{ t('admin.noDownloads') }}</p>
+            <p v-if="!stats.topLessons.length" class="text-sm text-muted-foreground">Δεν υπάρχουν λήψεις ακόμα.</p>
             <div v-else class="space-y-2">
               <div
                 v-for="(l, i) in stats.topLessons"

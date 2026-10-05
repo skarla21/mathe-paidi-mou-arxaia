@@ -21,8 +21,7 @@ import AdminSortModal from '~/components/admin/AdminSortModal.vue'
 import type { Subject } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
-useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.subjectsTitle')}` }))
+useHead(() => ({ title: 'Διαχείριση - Μαθήματα' }))
 
 const adminFetch = useAdminFetch()
 const subjects = ref<Subject[]>([])
@@ -63,7 +62,7 @@ async function fetchAll() {
     grades.value = gr
   } catch {
     subjects.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -84,7 +83,7 @@ async function confirmDelete() {
     deleteDialogOpen.value = false
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     deleteLoading.value = false
   }
@@ -94,15 +93,15 @@ async function confirmDelete() {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold font-heading">{{ t('admin.subjectsTitle') }}</h1>
+      <h1 class="text-2xl font-bold font-heading">Μαθήματα</h1>
       <div class="flex items-center gap-2">
         <UiButton variant="outline" @click="sortModalOpen = true">
           <VIcon name="bi-arrow-down-up" class="mr-2 size-4" />
-          {{ t('admin.sortSubjects') }}
+          Ταξινόμηση μαθημάτων
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
-          {{ t('admin.modal.create') }}
+          Δημιουργία
         </UiButton>
       </div>
     </div>
@@ -111,16 +110,16 @@ async function confirmDelete() {
     <div class="flex flex-wrap items-center gap-4 mb-6">
       <Select v-model="gradeId">
         <SelectTrigger class="w-[200px]">
-          <SelectValue :placeholder="t('admin.selectGrade')" />
+          <SelectValue placeholder="Επιλογή τάξης…" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">{{ t('admin.selectGrade') }}</SelectItem>
+          <SelectItem value="__all__">Επιλογή τάξης…</SelectItem>
           <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
         </SelectContent>
       </Select>
       <div class="relative flex-1 min-w-[200px]">
         <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-        <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+        <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
       </div>
     </div>
 
@@ -140,7 +139,7 @@ async function confirmDelete() {
     <template v-else>
       <div v-if="!filteredSubjects.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
-        <p>{{ t('admin.subjectsEmpty') }}</p>
+        <p>Δεν υπάρχουν μαθήματα. Δημιούργησε το πρώτο.</p>
       </div>
       <div v-else class="space-y-3">
         <UiCard v-for="s in filteredSubjects" :key="s.id">
@@ -153,8 +152,8 @@ async function confirmDelete() {
               <p class="font-medium">{{ s.name }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <UiButton size="sm" variant="outline" @click.stop="openEdit(s)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click.stop="openDelete(s.id)">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(s)">Επεξεργασία</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(s.id)">Διαγραφή</UiButton>
             </div>
           </UiCardContent>
         </UiCard>
@@ -175,13 +174,13 @@ async function confirmDelete() {
         <UiAlertDialogOverlay />
         <UiAlertDialogContent>
           <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.modal.deleteTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.modal.confirmDelete') }}</UiAlertDialogDescription>
+            <UiAlertDialogTitle>Επιβεβαίωση διαγραφής</UiAlertDialogTitle>
+            <UiAlertDialogDescription>Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.</UiAlertDialogDescription>
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
-            <UiAlertDialogCancel><UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton></UiAlertDialogCancel>
+            <UiAlertDialogCancel><UiButton variant="cancel">Ακύρωση</UiButton></UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
-              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">Διαγραφή</UiButton>
             </UiAlertDialogAction>
           </UiAlertDialogFooter>
         </UiAlertDialogContent>

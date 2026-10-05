@@ -15,8 +15,17 @@ import type { AdminNotificationItem, AdminNotificationKind } from '~/types/datab
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: []; refresh: [] }>()
 
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
+
+const kindLabels: Record<AdminNotificationKind, string> = {
+  purchase: 'Αγορά',
+  download: 'Λήψη',
+  rating: 'Αξιολόγηση',
+  comment: 'Σχόλιο',
+  contact: 'Επικοινωνία',
+  article_like: 'Προτίμηση άρθρου',
+  article_comment: 'Σχόλιο άρθρου',
+}
 
 const loading = ref(false)
 const prefsLoading = ref(false)
@@ -39,7 +48,7 @@ async function loadPrefs() {
     const p = await adminFetch<typeof prefs.value>('/api/admin/notification-preferences')
     prefs.value = { ...prefs.value, ...p }
   } catch {
-    toast.error(t('admin.notifications.loadError'))
+    toast.error('Δεν ήταν δυνατή η φόρτωση των ειδοποιήσεων.')
   } finally {
     prefsLoading.value = false
   }
@@ -54,7 +63,7 @@ async function savePrefs() {
     await loadList()
     emit('refresh')
   } catch {
-    toast.error(t('admin.notifications.savePrefsError'))
+    toast.error('Δεν ήταν δυνατή η αποθήκευση των προτιμήσεων.')
   }
 }
 
@@ -68,7 +77,7 @@ async function loadList() {
     items.value = res.items ?? []
     unreadCount.value = res.unreadCount ?? 0
   } catch {
-    toast.error(t('admin.notifications.loadError'))
+    toast.error('Δεν ήταν δυνατή η φόρτωση των ειδοποιήσεων.')
   } finally {
     loading.value = false
   }
@@ -85,7 +94,7 @@ watch(
 function displayName(payload: Record<string, unknown>) {
   const name = typeof payload.user_name === 'string' ? payload.user_name : ''
   const email = typeof payload.user_email === 'string' ? payload.user_email : ''
-  return name || email || t('admin.notifications.anonymousUser')
+  return name || email || 'Χρήστης'
 }
 
 function lineForKind(item: AdminNotificationItem): string {
@@ -93,39 +102,25 @@ function lineForKind(item: AdminNotificationItem): string {
   const lesson = typeof p.lesson_title === 'string' ? p.lesson_title : ''
   switch (item.kind) {
     case 'purchase':
-      return t('admin.notifications.linePurchase', {
-        name: displayName(p),
-        lesson,
-      })
+      return `Ο/Η ${displayName(p)} αγόρασε "${lesson}".`
     case 'download':
-      return t('admin.notifications.lineDownload', {
-        name: displayName(p),
-        lesson,
-      })
+      return `Ο/Η ${displayName(p)} έκανε λήψη του "${lesson}".`
     case 'rating': {
       const r = typeof p.rating === 'number' ? p.rating : ''
-      return t('admin.notifications.lineRating', {
-        name: displayName(p),
-        lesson,
-        rating: String(r),
-      })
+      return `Ο/Η ${displayName(p)} αξιολόγησε "${lesson}" (${String(r)}/5).`
     }
     case 'comment': {
       const ex = typeof p.excerpt === 'string' ? p.excerpt : ''
-      return t('admin.notifications.lineComment', {
-        name: displayName(p),
-        lesson,
-        excerpt: ex,
-      })
+      return `Ο/Η ${displayName(p)} στο "${lesson}": ${ex}`
     }
     case 'article_like': {
       const at = typeof p.article_title === 'string' ? p.article_title : ''
-      return t('admin.notifications.lineArticleLike', { name: displayName(p), article: at })
+      return `Ο/Η ${displayName(p)} εξέφρασε προτίμηση στο "${at}".`
     }
     case 'article_comment': {
       const at = typeof p.article_title === 'string' ? p.article_title : ''
       const ex = typeof p.excerpt === 'string' ? p.excerpt : ''
-      return t('admin.notifications.lineArticleComment', { name: displayName(p), article: at, excerpt: ex })
+      return `Ο/Η ${displayName(p)} στο "${at}": ${ex}`
     }
     case 'contact':
       return ''
@@ -135,7 +130,7 @@ function lineForKind(item: AdminNotificationItem): string {
 }
 
 function kindLabel(kind: AdminNotificationKind) {
-  return t(`admin.notifications.kind.${kind}`)
+  return kindLabels[kind]
 }
 
 async function markRead(id: string) {
@@ -144,7 +139,7 @@ async function markRead(id: string) {
     await loadList()
     emit('refresh')
   } catch {
-    toast.error(t('admin.notifications.markReadError'))
+    toast.error('Δεν ήταν δυνατή η ενημέρωση της κατάστασης ανάγνωσης.')
   }
 }
 
@@ -154,7 +149,7 @@ async function markAllRead() {
     await loadList()
     emit('refresh')
   } catch {
-    toast.error(t('admin.notifications.markReadError'))
+    toast.error('Δεν ήταν δυνατή η ενημέρωση της κατάστασης ανάγνωσης.')
   }
 }
 
@@ -180,19 +175,19 @@ function togglePref(
       <UiDialogOverlay />
       <UiDialogContent class="max-w-lg max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ t('admin.notifications.title') }}</UiDialogTitle>
+          <UiDialogTitle>Ειδοποιήσεις</UiDialogTitle>
           <UiDialogDescription class="sr-only">
-            {{ t('admin.notifications.description') }}
+            Δραστηριότητα διαχειριστή και μηνύματα φόρμας επικοινωνίας.
           </UiDialogDescription>
         </UiDialogHeader>
 
         <div class="space-y-4">
           <div class="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
-            <p class="text-sm font-medium font-heading">{{ t('admin.notifications.prefsTitle') }}</p>
-            <div v-if="prefsLoading" class="text-xs text-muted-foreground">{{ t('common.loading') }}</div>
+            <p class="text-sm font-medium font-heading">Εμφάνιση στην εφαρμογή</p>
+            <div v-if="prefsLoading" class="text-xs text-muted-foreground">Φόρτωση...</div>
             <template v-else>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.purchase') }}</UiLabel>
+                <UiLabel class="text-sm">Αγορές</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_purchase"
@@ -200,7 +195,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.download') }}</UiLabel>
+                <UiLabel class="text-sm">Λήψεις</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_download"
@@ -208,7 +203,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.rating') }}</UiLabel>
+                <UiLabel class="text-sm">Αξιολογήσεις</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_rating"
@@ -216,7 +211,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.comment') }}</UiLabel>
+                <UiLabel class="text-sm">Σχόλια</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_comment"
@@ -224,7 +219,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.contact') }}</UiLabel>
+                <UiLabel class="text-sm">Φόρμα επικοινωνίας</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_contact"
@@ -232,7 +227,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleLike') }}</UiLabel>
+                <UiLabel class="text-sm">Προτιμήσεις σε άρθρα</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_article_like"
@@ -240,7 +235,7 @@ function togglePref(
                 />
               </div>
               <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">{{ t('admin.notifications.pref.articleComment') }}</UiLabel>
+                <UiLabel class="text-sm">Σχόλια σε άρθρα</UiLabel>
                 <Switch
                   class="cursor-pointer"
                   :model-value="prefs.notify_article_comment"
@@ -252,7 +247,7 @@ function togglePref(
 
           <div class="flex justify-between items-center gap-2">
             <span class="text-xs text-muted-foreground">
-              {{ t('admin.notifications.unreadCount', { count: unreadCount }) }}
+              {{ `${unreadCount} μη αναγνωσμένα` }}
             </span>
             <UiButton
               v-if="unreadCount > 0"
@@ -261,15 +256,15 @@ function togglePref(
               class="text-xs"
               @click="markAllRead"
             >
-              {{ t('admin.notifications.markAllRead') }}
+              Σήμανση όλων ως αναγνωσμένων
             </UiButton>
           </div>
 
           <div v-if="loading" class="py-8 text-center text-sm text-muted-foreground">
-            {{ t('common.loading') }}
+            Φόρτωση...
           </div>
           <p v-else-if="!items.length" class="py-8 text-center text-sm text-muted-foreground">
-            {{ t('admin.notifications.empty') }}
+            Δεν υπάρχουν ειδοποιήσεις ακόμα.
           </p>
           <ul v-else class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
             <li
@@ -309,7 +304,7 @@ function togglePref(
                   class="shrink-0 text-xs"
                   @click="markRead(item.id)"
                 >
-                  {{ t('admin.notifications.markRead') }}
+                  Ανάγνωση
                 </UiButton>
               </div>
             </li>

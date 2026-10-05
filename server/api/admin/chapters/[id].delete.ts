@@ -4,7 +4,7 @@ import { requireAdmin } from '../../../utils/requireAdmin'
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
+  if (!id) throw createError({ statusCode: 400, message: 'Λείπει το αναγνωριστικό' })
   const supabase = serverSupabaseService()
 
   // Check for lessons that would become orphans (only placement is in this chapter)
@@ -25,7 +25,9 @@ export default defineEventHandler(async (event) => {
     if (orphanIds.length) {
       throw createError({
         statusCode: 409,
-        message: `Cannot delete: ${orphanIds.length} lesson(s) would be left with no placements. Reassign them first.`,
+        message: orphanIds.length === 1
+          ? 'Δεν γίνεται διαγραφή: ένα υλικό θα μείνει χωρίς ανάθεση. Ανάθεσέ το αλλού πρώτα.'
+          : `Δεν γίνεται διαγραφή: ${orphanIds.length} υλικά θα μείνουν χωρίς ανάθεση. Ανάθεσέ τα αλλού πρώτα.`,
       })
     }
   }
@@ -33,7 +35,7 @@ export default defineEventHandler(async (event) => {
   const { error } = await supabase.from('chapters').delete().eq('id', id)
   if (error) {
     console.error('[admin/chapters/[id].delete]', error.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
   return { ok: true }
 })

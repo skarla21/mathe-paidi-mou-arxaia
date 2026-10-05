@@ -19,8 +19,7 @@ import UiAlertDialogAction from '~/components/ui/alert-dialog/AlertDialogAction.
 import type { Article } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
-useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.articlesTitle')}` }))
+useHead(() => ({ title: 'Διαχείριση - Άρθρα' }))
 
 const adminFetch = useAdminFetch()
 const articles = ref<Article[]>([])
@@ -46,7 +45,7 @@ async function fetchAll() {
     articles.value = await adminFetch<Article[]>('/api/admin/articles')
   } catch {
     articles.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -79,7 +78,7 @@ async function confirmDelete() {
     await fetchAll()
     deleteDialogOpen.value = false
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     deleteLoading.value = false
   }
@@ -89,16 +88,16 @@ async function confirmDelete() {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold font-heading">{{ t('admin.articlesTitle') }}</h1>
+      <h1 class="text-2xl font-bold font-heading">Άρθρα</h1>
       <UiButton @click="openCreate">
         <VIcon name="bi-plus-circle" class="mr-2 size-4" />
-        {{ t('admin.modal.create') }}
+        Δημιουργία
       </UiButton>
     </div>
 
     <div class="relative mb-6 max-w-md">
       <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+      <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
     </div>
 
     <template v-if="loading">
@@ -115,7 +114,7 @@ async function confirmDelete() {
     <template v-else>
       <div v-if="!filteredArticles.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
-        <p>{{ t('admin.articlesEmpty') }}</p>
+        <p>Δεν υπάρχουν άρθρα ακόμα.</p>
       </div>
       <div v-else class="space-y-3">
         <UiCard v-for="a in filteredArticles" :key="a.id">
@@ -127,9 +126,9 @@ async function confirmDelete() {
               <p class="font-medium">{{ a.title }}</p>
               <div class="flex items-center gap-2 mt-1 flex-wrap text-xs text-muted-foreground">
                 <UiBadge :variant="a.published ? 'default' : 'secondary'">
-                  {{ a.published ? t('admin.field.published') : t('admin.draft') }}
+                  {{ a.published ? 'Δημοσιευμένο' : 'Πρόχειρο' }}
                 </UiBadge>
-                <span>| {{ t('admin.field.readingTime') }}: {{ t('articlesPage.readTime', { n: a.reading_time_minutes }) }}</span>
+                <span>| Χρόνος ανάγνωσης: {{ `${a.reading_time_minutes} λεπτά ανάγνωσης` }}</span>
                 <span v-if="a.tags?.length" class="flex items-center gap-1 flex-wrap">
                   | <span v-for="tag in a.tags" :key="tag" class="rounded bg-muted px-1.5 py-0.5">{{ tag }}</span>
                 </span>
@@ -139,10 +138,10 @@ async function confirmDelete() {
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <UiButton size="sm" variant="outline" @click.stop="openDetail(a.id)">
-                <VIcon name="bi-eye" class="mr-1 size-3.5" />{{ t('admin.viewDetails') }}
+                <VIcon name="bi-eye" class="mr-1 size-3.5" />Λεπτομέρειες
               </UiButton>
-              <UiButton size="sm" variant="outline" @click.stop="openEdit(a)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click.stop="openDelete(a.id)">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(a)">Επεξεργασία</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(a.id)">Διαγραφή</UiButton>
             </div>
           </UiCardContent>
         </UiCard>
@@ -157,13 +156,13 @@ async function confirmDelete() {
         <UiAlertDialogOverlay />
         <UiAlertDialogContent>
           <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.confirmDeleteArticleTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.confirmDeleteArticle') }}</UiAlertDialogDescription>
+            <UiAlertDialogTitle>Διαγραφή άρθρου</UiAlertDialogTitle>
+            <UiAlertDialogDescription>Θα αφαιρεθεί το άρθρο και όλες οι προτιμήσεις και τα σχόλια.</UiAlertDialogDescription>
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
-            <UiAlertDialogCancel><UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton></UiAlertDialogCancel>
+            <UiAlertDialogCancel><UiButton variant="cancel">Ακύρωση</UiButton></UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
-              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">Διαγραφή</UiButton>
             </UiAlertDialogAction>
           </UiAlertDialogFooter>
         </UiAlertDialogContent>

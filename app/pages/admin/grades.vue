@@ -19,8 +19,7 @@ import AdminGradeModal from '~/components/admin/GradeModal.vue'
 import type { Grade } from '~/types/database'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
-const { t } = useI18n()
-useHead(() => ({ title: `${t('admin.nav')} - ${t('admin.gradesTitle')}` }))
+useHead(() => ({ title: 'Διαχείριση - Τάξεις' }))
 
 const adminFetch = useAdminFetch()
 const grades = ref<Grade[]>([])
@@ -71,7 +70,7 @@ async function fetchGrades() {
     syncOrderedIds()
   } catch {
     grades.value = []
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -92,7 +91,7 @@ async function confirmDelete() {
     deleteDialogOpen.value = false
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     deleteLoading.value = false
   }
@@ -103,10 +102,10 @@ async function saveOrder() {
   saveOrderLoading.value = true
   try {
     await adminFetch('/api/admin/grades/reorder', { method: 'PATCH', body: { ids: orderedIds.value } })
-    toast.success(t('admin.saveOrderSuccess'))
+    toast.success('Η σειρά αποθηκεύτηκε')
     await fetchGrades()
   } catch {
-    toast.error(t('admin.saveOrderError'))
+    toast.error('Αποτυχία αποθήκευσης σειράς')
   } finally {
     saveOrderLoading.value = false
   }
@@ -144,17 +143,17 @@ function onDrop(e: DragEvent, dropIndex: number) {
 <template>
   <div>
     <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold font-heading">{{ t('admin.gradesTitle') }}</h1>
+      <h1 class="text-2xl font-bold font-heading">Τάξεις</h1>
       <div class="flex items-center gap-2">
         <UiButton
           :disabled="!canReorder || !hasOrderChanged || saveOrderLoading"
           @click="saveOrder"
         >
-          {{ saveOrderLoading ? t('common.loading') : t('admin.saveOrder') }}
+          {{ saveOrderLoading ? 'Φόρτωση...' : 'Αποθήκευση σειράς' }}
         </UiButton>
         <UiButton @click="openCreate">
           <VIcon name="bi-plus-circle" class="mr-2 size-4" />
-          {{ t('admin.modal.create') }}
+          Δημιουργία
         </UiButton>
       </div>
     </div>
@@ -162,7 +161,7 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <!-- Search -->
     <div class="relative mb-6">
       <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <UiInput v-model="search" :placeholder="t('admin.search')" class="pl-9" />
+      <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
     </div>
 
     <!-- Skeleton -->
@@ -181,7 +180,7 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <template v-else>
       <div v-if="!displayedGrades.length" class="rounded-lg border border-dashed p-12 text-center text-muted-foreground">
         <VIcon name="bi-inbox" class="size-12 mx-auto mb-3 opacity-50" />
-        <p>{{ t('admin.gradesEmpty') }}</p>
+        <p>Δεν υπάρχουν τάξεις. Δημιούργησέ τες μέσω API ή διαχείρισης.</p>
       </div>
       <div v-else class="space-y-3">
         <UiCard
@@ -197,7 +196,7 @@ function onDrop(e: DragEvent, dropIndex: number) {
           <UiCardContent class="p-4 flex items-center gap-4">
             <div
               class="cursor-grab active:cursor-grabbing shrink-0 rounded p-1 hover:bg-muted text-muted-foreground"
-              aria-label="Drag to reorder"
+              aria-label="Σύρε για αναδιάταξη"
             >
               <VIcon name="bi-grip-vertical" class="size-5" />
             </div>
@@ -208,8 +207,8 @@ function onDrop(e: DragEvent, dropIndex: number) {
               <p class="font-medium">{{ g.name }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <UiButton size="sm" variant="outline" @click.stop="openEdit(g)">{{ t('admin.modal.edit') }}</UiButton>
-              <UiButton size="sm" variant="destructive" @click.stop="openDelete(g.id)">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton size="sm" variant="outline" @click.stop="openEdit(g)">Επεξεργασία</UiButton>
+              <UiButton size="sm" variant="destructive" @click.stop="openDelete(g.id)">Διαγραφή</UiButton>
             </div>
           </UiCardContent>
         </UiCard>
@@ -223,13 +222,13 @@ function onDrop(e: DragEvent, dropIndex: number) {
         <UiAlertDialogOverlay />
         <UiAlertDialogContent>
           <UiAlertDialogHeader>
-            <UiAlertDialogTitle>{{ t('admin.modal.deleteTitle') }}</UiAlertDialogTitle>
-            <UiAlertDialogDescription>{{ t('admin.modal.confirmDelete') }}</UiAlertDialogDescription>
+            <UiAlertDialogTitle>Επιβεβαίωση διαγραφής</UiAlertDialogTitle>
+            <UiAlertDialogDescription>Είστε σίγουροι; Δεν μπορεί να αναιρεθεί.</UiAlertDialogDescription>
           </UiAlertDialogHeader>
           <UiAlertDialogFooter>
-            <UiAlertDialogCancel><UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton></UiAlertDialogCancel>
+            <UiAlertDialogCancel><UiButton variant="cancel">Ακύρωση</UiButton></UiAlertDialogCancel>
             <UiAlertDialogAction as-child>
-              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">{{ t('admin.modal.delete') }}</UiButton>
+              <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">Διαγραφή</UiButton>
             </UiAlertDialogAction>
           </UiAlertDialogFooter>
         </UiAlertDialogContent>

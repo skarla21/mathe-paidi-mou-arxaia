@@ -6,7 +6,6 @@ interface ArticleCard {
   reading_time_minutes: number | null
 }
 
-const { t } = useI18n()
 const { categories, ensureCategories, categoriesFailed } = useCatalogNav()
 const articles = ref<ArticleCard[]>([])
 const articlesFailed = ref(false)
@@ -28,21 +27,21 @@ try {
   <section id="more" class="scroll-mt-24 py-16">
     <div class="mb-10">
       <span class="inline-flex rounded-full bg-amethyst-fixed px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-amethyst-fixed-foreground">
-        {{ t('home.extras.eyebrow') }}
+        Έξτρα ύλη
       </span>
-      <h2 class="mt-2 font-heading text-3xl font-extrabold text-foreground sm:text-4xl">{{ t('home.extras.title') }}</h2>
-      <p class="text-muted-foreground">{{ t('home.extras.lead') }}</p>
+      <h2 class="mt-2 font-heading text-3xl font-extrabold text-foreground sm:text-4xl">Πέρα από το μάθημα της τάξης</h2>
+      <p class="text-muted-foreground">Κατηγορίες με επιπλέον μαθήματα και άρθρα, ό,τι έχει δημοσιεύσει η διδάσκουσα.</p>
     </div>
 
     <p v-if="failed && !hasCards" class="rounded-3xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
-      {{ t('home.extras.error') }}
+      Το έξτρα υλικό δεν φορτώθηκε. Δοκίμασε ξανά σε λίγο.
     </p>
     <p v-else-if="!hasCards" class="rounded-3xl border border-dashed border-border bg-card p-8 text-center text-muted-foreground">
-      {{ t('home.extras.empty') }}
+      Δεν υπάρχει ακόμη έξτρα υλικό.
     </p>
     <div v-else id="extras-grid" class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
       <p v-if="failed" class="text-sm text-muted-foreground md:col-span-2 xl:col-span-3">
-        {{ t('home.extras.error') }}
+        Το έξτρα υλικό δεν φορτώθηκε. Δοκίμασε ξανά σε λίγο.
       </p>
       <article
         v-for="category in shownCategories"
@@ -62,12 +61,12 @@ try {
         </div>
         <div class="flex flex-1 flex-col p-6">
           <span class="mb-2 w-fit rounded-full bg-laurel-fixed px-2.5 py-0.5 text-[11px] font-bold text-laurel-fixed-foreground">
-            {{ t('nav.categories') }}
+            Κατηγορίες
           </span>
           <h3 class="font-heading text-xl font-bold">{{ category.name }}</h3>
           <p v-if="category.description" class="mt-2 text-sm text-muted-foreground">{{ category.description }}</p>
           <NuxtLink :to="`/category/${category.id}`" class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-laurel">
-            {{ t('home.extras.openCategory') }}
+            Άνοιγμα κατηγορίας
             <VIcon name="bi-arrow-right" class="size-3.5" aria-hidden="true" />
           </NuxtLink>
         </div>
@@ -83,15 +82,15 @@ try {
         <div class="flex flex-1 flex-col p-6">
           <div class="mb-2 flex items-center justify-between gap-2">
             <span class="rounded-full bg-amethyst-fixed px-2.5 py-0.5 text-[11px] font-bold text-amethyst-fixed-foreground">
-              {{ t('nav.articles') }}
+              Άρθρα
             </span>
             <span v-if="article.reading_time_minutes" class="text-xs text-muted-foreground">
-              {{ t('articlesPage.readTime', { n: article.reading_time_minutes }) }}
+              {{ `${article.reading_time_minutes} λεπτά ανάγνωσης` }}
             </span>
           </div>
           <h3 class="font-heading text-xl font-bold">{{ article.title }}</h3>
           <NuxtLink :to="`/articles/${article.id}`" class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-amethyst">
-            {{ t('home.extras.readArticle') }}
+            Ανάγνωση άρθρου
             <VIcon name="bi-book" class="size-3.5" aria-hidden="true" />
           </NuxtLink>
         </div>

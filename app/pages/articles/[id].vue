@@ -9,7 +9,6 @@ import UiSkeleton from '~/components/ui/Skeleton.vue'
 import { NuxtLink } from '#components'
 
 definePageMeta({ layout: 'default' })
-const { t } = useI18n()
 const route = useRoute()
 const { session } = useCurrentUser()
 
@@ -43,7 +42,7 @@ const commentLoading = ref(false)
 const id = computed(() => route.params.id as string)
 
 useHead(() => ({
-  title: article.value?.title ? `${article.value.title} — ${t('articlesPage.title')}` : t('articlesPage.title'),
+  title: article.value?.title ? `${article.value.title} — Άρθρα` : 'Άρθρα',
 }))
 
 async function loadArticle() {
@@ -52,7 +51,7 @@ async function loadArticle() {
     article.value = await $fetch<ArticlePayload>(`/api/articles/${id.value}`, { credentials: 'include' })
   } catch {
     article.value = null
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     articlePending.value = false
   }
@@ -89,7 +88,7 @@ watch(
 
 async function toggleLike() {
   if (!session.value?.user?.id) {
-    toast.error(t('articlesPage.loginToEngage'))
+    toast.error('Συνδεθείτε για να σχολιάσετε ή να εκφράσετε προτίμηση.')
     return
   }
   const a = article.value
@@ -106,7 +105,7 @@ async function toggleLike() {
       a.likeCount += 1
     }
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     likeLoading.value = false
   }
@@ -114,12 +113,12 @@ async function toggleLike() {
 
 async function saveComment() {
   if (!session.value?.user?.id) {
-    toast.error(t('articlesPage.loginToEngage'))
+    toast.error('Συνδεθείτε για να σχολιάσετε ή να εκφράσετε προτίμηση.')
     return
   }
   const body = commentText.value.trim()
   if (body.length < 1 || body.length > 2000) {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
     return
   }
   commentLoading.value = true
@@ -131,9 +130,9 @@ async function saveComment() {
     })
     await loadArticle()
     await loadComments()
-    toast.success(t('articlesPage.commentSaved'))
+    toast.success('Το σχόλιο αποθηκεύτηκε')
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     commentLoading.value = false
   }
@@ -148,7 +147,7 @@ async function removeComment() {
     await loadArticle()
     await loadComments()
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   } finally {
     commentLoading.value = false
   }
@@ -158,9 +157,9 @@ async function copyLink() {
   const url = typeof window !== 'undefined' ? window.location.href : ''
   try {
     await navigator.clipboard.writeText(url)
-    toast.success(t('articlesPage.linkCopied'))
+    toast.success('Ο σύνδεσμος αντιγράφηκε στο πρόχειρο.')
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   }
 }
 </script>
@@ -168,7 +167,7 @@ async function copyLink() {
 <template>
   <div class="mx-auto w-full max-w-3xl px-4 py-12">
     <NuxtLink to="/articles" class="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block">
-      {{ t('articlesPage.backToList') }}
+      Όλα τα άρθρα
     </NuxtLink>
 
     <template v-if="articlePending">
@@ -177,14 +176,14 @@ async function copyLink() {
     </template>
 
     <template v-else-if="!article">
-      <p class="text-muted-foreground">{{ t('common.error') }}</p>
+      <p class="text-muted-foreground">Κάτι πήγε στραβά</p>
     </template>
 
     <template v-else>
       <header class="mb-8">
         <h1 class="text-3xl font-heading font-bold">{{ article.title }}</h1>
         <p class="text-sm text-muted-foreground mt-2">
-          {{ t('articlesPage.readTime', { n: article.reading_time_minutes }) }}
+          {{ `${article.reading_time_minutes} λεπτά ανάγνωσης` }}
         </p>
         <div v-if="article.tags?.length" class="flex flex-wrap gap-2 mt-4">
           <span
@@ -210,22 +209,22 @@ async function copyLink() {
             @click="toggleLike"
           >
             <VIcon :name="article.likedByMe ? 'bi-heart-fill' : 'bi-heart'" class="mr-2 size-4" />
-            {{ article.likedByMe ? t('articlesPage.unlike') : t('articlesPage.like') }}
+            {{ article.likedByMe ? 'Αναίρεση' : 'Μου αρέσει' }}
             <span class="ml-1 text-muted-foreground">({{ article.likeCount }})</span>
           </UiButton>
         </template>
         <UiButton variant="outline" size="sm" @click="copyLink">
           <VIcon name="bi-link-45deg" class="mr-2 size-4" />
-          {{ t('articlesPage.share') }}
+          Αντιγραφή συνδέσμου
         </UiButton>
       </div>
 
       <UiCard v-if="session?.user?.id" class="mb-10">
         <UiCardContent class="p-6 space-y-3">
-          <UiLabel>{{ t('articlesPage.commentLabel') }}</UiLabel>
-          <UiTextarea v-model="commentText" :placeholder="t('articlesPage.commentPlaceholder')" class="min-h-[100px] font-mono text-sm" />
+          <UiLabel>Το σχόλιό σας</UiLabel>
+          <UiTextarea v-model="commentText" placeholder="Γράψτε ένα σχόλιο…" class="min-h-[100px] font-mono text-sm" />
           <div class="flex gap-2">
-            <UiButton size="sm" :disabled="commentLoading" @click="saveComment">{{ t('articlesPage.saveComment') }}</UiButton>
+            <UiButton size="sm" :disabled="commentLoading" @click="saveComment">Αποθήκευση</UiButton>
             <UiButton
               v-if="article.myComment"
               size="sm"
@@ -233,23 +232,23 @@ async function copyLink() {
               :disabled="commentLoading"
               @click="removeComment"
             >
-              {{ t('articlesPage.deleteComment') }}
+              Αφαίρεση σχολίου
             </UiButton>
           </div>
         </UiCardContent>
       </UiCard>
-      <p v-else class="text-sm text-muted-foreground mb-10">{{ t('articlesPage.loginToEngage') }}</p>
+      <p v-else class="text-sm text-muted-foreground mb-10">Συνδεθείτε για να σχολιάσετε ή να εκφράσετε προτίμηση.</p>
 
       <section>
-        <h2 class="text-lg font-heading font-semibold mb-4">{{ t('articlesPage.commentsTitle') }}</h2>
+        <h2 class="text-lg font-heading font-semibold mb-4">Σχόλια</h2>
         <ul class="space-y-4">
           <li v-for="c in comments" :key="c.id" class="rounded-lg border border-border p-4 text-sm">
-            <p class="font-medium">{{ c.users?.name ?? t('admin.notifications.anonymousUser') }}</p>
+            <p class="font-medium">{{ c.users?.name ?? 'Χρήστης' }}</p>
             <p class="mt-1 whitespace-pre-wrap">{{ c.body }}</p>
             <p class="text-xs text-muted-foreground mt-2">{{ new Date(c.created_at).toLocaleString() }}</p>
           </li>
         </ul>
-        <p v-if="!comments.length" class="text-sm text-muted-foreground">{{ t('admin.commentsEmpty') }}</p>
+        <p v-if="!comments.length" class="text-sm text-muted-foreground">Δεν υπάρχουν σχόλια ακόμα.</p>
       </section>
     </template>
   </div>

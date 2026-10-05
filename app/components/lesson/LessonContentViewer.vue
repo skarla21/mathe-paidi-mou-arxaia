@@ -3,7 +3,6 @@ import { computed, onMounted } from 'vue'
 import LessonPdfViewer from '~/components/lesson/PdfViewer.vue'
 
 const props = defineProps<{ src: string; lessonId?: string }>()
-const { t } = useI18n()
 
 onMounted(() => {
   if (!import.meta.client || !props.lessonId) return
@@ -35,6 +34,6 @@ const isImage = computed(() => /\.(jpg|jpeg|png)$/i.test(pathPart.value))
     v-else
     class="border rounded-lg overflow-hidden bg-muted/30 p-8 text-center text-muted-foreground"
   >
-    {{ t('lesson.contentUnsupported') }}
+    Αυτή η μορφή περιεχομένου δεν υποστηρίζεται
   </div>
 </template>

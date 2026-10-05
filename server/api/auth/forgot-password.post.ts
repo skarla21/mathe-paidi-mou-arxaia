@@ -11,14 +11,14 @@ export default defineEventHandler(async (event) => {
     name: 'forgot-password',
     maxRequests: 3,
     windowMs: 15 * 60 * 1000,
-    message: 'auth.forgotPassword.rateLimited',
+    message: 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.',
   })
 
   const body = await readBody<{ email?: string }>(event)
   const email = body.email?.toLowerCase().trim()
 
   if (!email || !EMAIL_REGEX.test(email)) {
-    throw createError({ statusCode: 400, message: 'auth.validation.emailInvalid' })
+    throw createError({ statusCode: 400, message: 'Παρακαλώ εισάγετε έγκυρο email' })
   }
 
   const supabase = serverSupabaseService()
@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
 
   if (lookupError) {
     console.error('[forgot-password]', lookupError.message)
-    throw createError({ statusCode: 500, message: 'auth.forgotPassword.sendFailed' })
+    throw createError({ statusCode: 500, message: 'Δεν ήταν δυνατή η αποστολή του email επαναφοράς. Παρακαλώ δοκίμασε ξανά.' })
   }
 
   if (user) {
@@ -50,12 +50,12 @@ export default defineEventHandler(async (event) => {
 
     if (error) {
       console.error('[forgot-password]', error.message)
-      throw createError({ statusCode: 500, message: 'auth.forgotPassword.sendFailed' })
+      throw createError({ statusCode: 500, message: 'Δεν ήταν δυνατή η αποστολή του email επαναφοράς. Παρακαλώ δοκίμασε ξανά.' })
     }
 
     if (issued === 'busy') {
       console.error('[forgot-password]', 'reset send already in flight')
-      throw createError({ statusCode: 500, message: 'auth.forgotPassword.sendFailed' })
+      throw createError({ statusCode: 500, message: 'Δεν ήταν δυνατή η αποστολή του email επαναφοράς. Παρακαλώ δοκίμασε ξανά.' })
     }
 
     if (issued === 'issued') {
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
       } catch (e) {
         console.error('[forgot-password]', e)
         await deleteIssuedToken(supabase, 'password_reset_tokens', tokenHash, '[forgot-password]')
-        throw createError({ statusCode: 500, message: 'auth.forgotPassword.sendFailed' })
+        throw createError({ statusCode: 500, message: 'Δεν ήταν δυνατή η αποστολή του email επαναφοράς. Παρακαλώ δοκίμασε ξανά.' })
       }
 
       let marked = false
@@ -81,11 +81,11 @@ export default defineEventHandler(async (event) => {
 
       if (!marked) {
         console.error('[forgot-password]', markMessage)
-        throw createError({ statusCode: 500, message: 'auth.forgotPassword.sentUnconfirmed' })
+        throw createError({ statusCode: 500, message: 'Το email επαναφοράς στάλθηκε, αλλά δεν μπορέσαμε να το επιβεβαιώσουμε. Αν δεν φτάσει, περίμενε λίγα λεπτά και δοκίμασε ξανά.' })
       }
     } else if (issued !== 'cooldown') {
       console.error('[forgot-password]', 'issue_password_reset_token returned an unexpected status')
-      throw createError({ statusCode: 500, message: 'auth.forgotPassword.sendFailed' })
+      throw createError({ statusCode: 500, message: 'Δεν ήταν δυνατή η αποστολή του email επαναφοράς. Παρακαλώ δοκίμασε ξανά.' })
     }
   }
 

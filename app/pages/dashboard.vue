@@ -7,8 +7,7 @@ import UiSkeleton from '~/components/ui/Skeleton.vue'
 
 definePageMeta({ middleware: 'auth' })
 
-const { t } = useI18n()
-useHead(() => ({ title: t('dashboard.title') }))
+useHead(() => ({ title: 'Πίνακας' }))
 
 const { data: purchasesData, pending } = await useFetch<
   { id: string; title: string; is_free: boolean; price: number }[]
@@ -29,12 +28,12 @@ onMounted(() => {
 <template>
   <div class="mx-auto w-full max-w-5xl px-4 py-12">
     <div id="dashboard-title">
-      <LayoutPageIntro :title="t('dashboard.title')" :lead="t('dashboard.body')" />
+      <LayoutPageIntro title="Πίνακας" lead="Το αγορασμένο υλικό σου και η πρόοδός σου." />
     </div>
 
     <!-- My Courses section -->
     <section>
-      <h2 class="font-heading text-xl font-semibold mb-4">{{ t('dashboard.myCourses') }}</h2>
+      <h2 class="font-heading text-xl font-semibold mb-4">Το Υλικό Μου</h2>
 
       <!-- Skeleton loading -->
       <div v-if="pending" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -47,13 +46,13 @@ onMounted(() => {
         class="max-w-md rounded-3xl border border-dashed border-border bg-card p-10 text-center shadow-sm"
       >
         <VIcon name="bi-cart" class="size-10 mx-auto text-muted-foreground/70" aria-hidden="true" />
-        <p class="mt-3 font-heading font-medium">{{ t('dashboard.empty') }}</p>
-        <p class="mt-1 text-sm text-muted-foreground">{{ t('dashboard.emptyHint') }}</p>
+        <p class="mt-3 font-heading font-medium">Δεν έχεις αγοράσει υλικό ακόμα.</p>
+        <p class="mt-1 text-sm text-muted-foreground">Αγόρασε υλικό για να ξεκλειδώσεις το PDF.</p>
         <NuxtLink
           to="/"
           class="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {{ t('dashboard.emptyCta') }}
+          Εξερεύνηση υλικού
         </NuxtLink>
       </div>
 
@@ -77,7 +76,7 @@ onMounted(() => {
             </UiCardHeader>
             <UiCardContent class="pt-0 pb-4">
               <span class="text-xs text-muted-foreground">
-                {{ c.is_free ? t('lesson.free') : `€${(c.price / 100).toFixed(2)}` }}
+                {{ c.is_free ? 'Δωρεάν' : `€${(c.price / 100).toFixed(2)}` }}
               </span>
             </UiCardContent>
           </UiCard>

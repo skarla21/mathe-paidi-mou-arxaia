@@ -7,7 +7,12 @@ import { EMAIL_REGEX } from "../utils/validation";
 const MESSAGE_MAX = 4000
 
 export default defineEventHandler(async (event) => {
-  checkRateLimit(event, { name: 'contact', maxRequests: 3, windowMs: 60 * 1000 })
+  checkRateLimit(event, {
+    name: 'contact',
+    maxRequests: 3,
+    windowMs: 60 * 1000,
+    message: 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.',
+  })
 
   const body = await readBody<{
     email?: unknown
@@ -25,7 +30,7 @@ export default defineEventHandler(async (event) => {
   if (!body || typeof body.email !== 'string' || typeof body.message !== 'string') {
     throw createError({
       statusCode: 400,
-      message: "Email and message are required",
+      message: "Το email και το μήνυμα είναι υποχρεωτικά",
     });
   }
 
@@ -33,16 +38,16 @@ export default defineEventHandler(async (event) => {
   if (!body.email.trim() || !message) {
     throw createError({
       statusCode: 400,
-      message: "Email and message are required",
+      message: "Το email και το μήνυμα είναι υποχρεωτικά",
     });
   }
 
   if (message.length > MESSAGE_MAX) {
-    throw createError({ statusCode: 400, message: "Message is too long" });
+    throw createError({ statusCode: 400, message: "Το μήνυμα είναι πολύ μεγάλο" });
   }
 
   if (!EMAIL_REGEX.test(body.email)) {
-    throw createError({ statusCode: 400, message: "Invalid email address" });
+    throw createError({ statusCode: 400, message: "Μη έγκυρο email" });
   }
 
   const sanitizedEmail = body.email.replace(/[\r\n]/g, '')
@@ -77,7 +82,7 @@ export default defineEventHandler(async (event) => {
     });
   } catch (e) {
     console.error("[contact] Resend error:", e);
-    throw createError({ statusCode: 502, message: "Failed to send message" });
+    throw createError({ statusCode: 502, message: "Αποτυχία αποστολής μηνύματος" });
   }
 
   try {

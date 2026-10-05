@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     name: 'resend-verification',
     maxRequests: 5,
     windowMs: 60 * 60 * 1000,
-    message: 'auth.verification.rateLimited',
+    message: 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.',
   })
 
   const userId = requireAuth(event)
@@ -25,14 +25,14 @@ export default defineEventHandler(async (event) => {
 
   if (userError && userError.code !== 'PGRST116') {
     console.error('[resend-verification]', userError.message)
-    throw createError({ statusCode: 500, message: 'auth.verification.resendError' })
+    throw createError({ statusCode: 500, message: 'Αποτυχία αποστολής email επαλήθευσης' })
   }
 
   if (!user?.email) {
-    throw createError({ statusCode: 404, message: 'auth.verification.userNotFound' })
+    throw createError({ statusCode: 404, message: 'Ο χρήστης δεν βρέθηκε' })
   }
   if (user.email_verified) {
-    throw createError({ statusCode: 400, message: 'auth.verification.verified' })
+    throw createError({ statusCode: 400, message: 'Email επαληθεύτηκε' })
   }
 
   const rawToken = randomBytes(32).toString('hex')
@@ -48,19 +48,19 @@ export default defineEventHandler(async (event) => {
 
   if (tokenError) {
     console.error('[resend-verification]', tokenError.message)
-    throw createError({ statusCode: 500, message: 'auth.verification.resendError' })
+    throw createError({ statusCode: 500, message: 'Αποτυχία αποστολής email επαλήθευσης' })
   }
 
   if (issued === false) {
     throw createError({
       statusCode: 429,
-      message: 'auth.verification.resendCooldown',
+      message: 'Παρακαλώ περίμενε πριν ζητήσεις ξανά email επαλήθευσης',
     })
   }
 
   if (issued !== true) {
     console.error('[resend-verification]', 'issue_verification_token returned no boolean')
-    throw createError({ statusCode: 500, message: 'auth.verification.resendError' })
+    throw createError({ statusCode: 500, message: 'Αποτυχία αποστολής email επαλήθευσης' })
   }
 
   const baseUrl = getRequestURL(event).origin
@@ -71,7 +71,7 @@ export default defineEventHandler(async (event) => {
   } catch (e) {
     console.error('[resend-verification]', e)
     await deleteIssuedToken(supabase, 'verification_tokens', tokenHash, '[resend-verification]')
-    throw createError({ statusCode: 500, message: 'auth.verification.resendError' })
+    throw createError({ statusCode: 500, message: 'Αποτυχία αποστολής email επαλήθευσης' })
   }
 
   return { ok: true }

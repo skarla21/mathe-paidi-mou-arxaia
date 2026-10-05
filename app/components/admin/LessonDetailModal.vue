@@ -23,7 +23,6 @@ import type { LessonRating, LessonComment } from '~/types/database'
 
 const props = defineProps<{ open: boolean; lessonId: string | null }>()
 const emit = defineEmits<{ close: [] }>()
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const ratings = ref<LessonRating[]>([])
@@ -55,7 +54,7 @@ watch(() => props.open, async (val) => {
     ratings.value = r
     comments.value = c
   }
-  catch { toast.error(t('common.error')) }
+  catch { toast.error('Κάτι πήγε στραβά') }
   finally { loading.value = false }
 })
 
@@ -77,18 +76,18 @@ async function confirmDelete() {
     if (kind === 'rating') {
       await adminFetch(`/api/admin/ratings/${id}`, { method: 'DELETE' })
       ratings.value = ratings.value.filter(r => r.id !== id)
-      toast.success(t('admin.ratingDeleted'))
+      toast.success('Η βαθμολογία διαγράφηκε')
     }
     else {
       await adminFetch(`/api/admin/comments/${id}`, { method: 'DELETE' })
       comments.value = comments.value.filter(c => c.id !== id)
-      toast.success(t('admin.commentDeleted'))
+      toast.success('Το σχόλιο διαγράφηκε')
     }
     deleteDialogOpen.value = false
     pendingDelete.value = null
   }
   catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   }
   finally { deleteLoading.value = false }
 }
@@ -108,20 +107,20 @@ function formatDate(iso: string) {
       <UiDialogOverlay />
       <UiDialogContent class="max-w-lg max-h-[80vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ t('admin.lessonDetails') }}</UiDialogTitle>
+          <UiDialogTitle>Λεπτομέρειες υλικού</UiDialogTitle>
         </UiDialogHeader>
 
         <div v-if="loading" class="py-4 text-sm text-muted-foreground">
-          {{ t('common.loading') }}
+          Φόρτωση...
         </div>
 
         <Tabs v-else default-value="ratings">
           <TabsList class="w-full">
             <TabsTrigger value="ratings" class="flex-1">
-              {{ t('admin.field.ratings') }} ({{ ratings.length }})
+              Βαθμολογίες ({{ ratings.length }})
             </TabsTrigger>
             <TabsTrigger value="comments" class="flex-1">
-              {{ t('admin.field.comments') }} ({{ comments.length }})
+              Σχόλια ({{ comments.length }})
             </TabsTrigger>
           </TabsList>
 
@@ -129,7 +128,7 @@ function formatDate(iso: string) {
           <TabsContent value="ratings" class="mt-4 space-y-3">
             <!-- Average rating header -->
             <div v-if="ratings.length" class="flex items-center gap-2 pb-2 border-b border-border">
-              <span class="text-xs font-medium text-muted-foreground">{{ t('admin.field.avgRating') }}:</span>
+              <span class="text-xs font-medium text-muted-foreground">Μέση Βαθμολογία:</span>
               <span class="flex items-center gap-0.5">
                 <VIcon
                   v-for="n in 5"
@@ -144,7 +143,7 @@ function formatDate(iso: string) {
             </div>
 
             <p v-if="!ratings.length" class="text-xs text-muted-foreground">
-              {{ t('admin.ratingsEmpty') }}
+              Δεν υπάρχουν βαθμολογίες ακόμα.
             </p>
 
             <ul v-else class="space-y-2">
@@ -172,7 +171,7 @@ function formatDate(iso: string) {
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                  :aria-label="t('admin.deleteRating')"
+                  aria-label="Διαγραφή βαθμολογίας"
                   @click="requestDeleteRating(rating.id)"
                 >
                   <VIcon name="bi-trash" class="w-3.5 h-3.5" />
@@ -184,7 +183,7 @@ function formatDate(iso: string) {
           <!-- Comments tab -->
           <TabsContent value="comments" class="mt-4 space-y-2">
             <p v-if="!comments.length" class="text-xs text-muted-foreground">
-              {{ t('admin.commentsEmpty') }}
+              Δεν υπάρχουν σχόλια ακόμα.
             </p>
 
             <ul v-else class="space-y-2">
@@ -204,7 +203,7 @@ function formatDate(iso: string) {
                   variant="ghost"
                   size="icon"
                   class="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
-                  :aria-label="t('admin.deleteComment')"
+                  aria-label="Διαγραφή σχολίου"
                   @click="requestDeleteComment(comment.id)"
                 >
                   <VIcon name="bi-trash" class="w-3.5 h-3.5" />
@@ -215,7 +214,7 @@ function formatDate(iso: string) {
         </Tabs>
 
         <UiDialogFooter class="mt-4">
-          <UiButton variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
+          <UiButton variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
         </UiDialogFooter>
       </UiDialogContent>
     </UiDialogPortal>
@@ -230,25 +229,25 @@ function formatDate(iso: string) {
           <UiAlertDialogTitle>
             {{
               pendingDelete?.kind === 'rating'
-                ? t('admin.confirmDeleteRatingTitle')
-                : t('admin.confirmDeleteCommentTitle')
+                ? 'Διαγραφή βαθμολογίας'
+                : 'Διαγραφή σχολίου'
             }}
           </UiAlertDialogTitle>
           <UiAlertDialogDescription>
             {{
               pendingDelete?.kind === 'rating'
-                ? t('admin.confirmDeleteRating')
-                : t('admin.confirmDeleteComment')
+                ? 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτήν τη βαθμολογία;'
+                : 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το σχόλιο;'
             }}
           </UiAlertDialogDescription>
         </UiAlertDialogHeader>
         <UiAlertDialogFooter>
           <UiAlertDialogCancel>
-            <UiButton variant="cancel">{{ t('admin.modal.cancel') }}</UiButton>
+            <UiButton variant="cancel">Ακύρωση</UiButton>
           </UiAlertDialogCancel>
           <UiAlertDialogAction as-child>
             <UiButton variant="destructive" :disabled="deleteLoading" @click="confirmDelete">
-              {{ t('admin.modal.delete') }}
+              Διαγραφή
             </UiButton>
           </UiAlertDialogAction>
         </UiAlertDialogFooter>

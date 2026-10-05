@@ -11,11 +11,10 @@ definePageMeta({
   middleware: 'guest-only',
 })
 
-const { t } = useI18n()
 const { signInWithGoogle } = useGoogleSignIn()
 
 useHead(() => ({
-  title: t('auth.register.title'),
+  title: 'Εγγραφή',
 }))
 
 const name = ref('')
@@ -41,7 +40,7 @@ async function onSubmit() {
     })
 
     if (result?.error) {
-      toast.error(t('auth.register.error.generic'))
+      toast.error('Η εγγραφή δεν ήταν δυνατή')
       return
     }
 
@@ -67,15 +66,15 @@ async function onSubmit() {
 
     const redirectUrl = signInResult?.url ?? ''
     if (redirectUrl.includes('/error') || redirectUrl.includes('error=')) {
-      toast.error(t('auth.register.error.generic'))
+      toast.error('Η εγγραφή δεν ήταν δυνατή')
       return
     }
 
     pendingToast.value = 'registered'
     await navigateTo('/')
   } catch (e: unknown) {
-    const error = e as { message?: string }
-    toast.error(error?.message ?? t('auth.register.error.generic'))
+    const error = e as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Η εγγραφή δεν ήταν δυνατή')
   } finally {
     loading.value = false
   }
@@ -89,32 +88,32 @@ async function onSubmit() {
     >
       <div
         class="absolute inset-0 rounded-3xl bg-cover bg-center bg-no-repeat"
-        :style="{ backgroundImage: `url('/imgs/sign_up.jpg')`, opacity: 0.2 }"
+        :style="{ backgroundImage: 'url(\'/imgs/sign_up.jpg\')', opacity: 0.2 }"
         aria-hidden="true"
       />
       <div class="relative z-10 rounded-3xl max-w-sm mx-auto">
         <UiCardHeader class="space-y-1 pb-4">
           <h1 class="text-2xl font-bold font-heading">
-            {{ t('auth.register.title') }}
+            Εγγραφή
           </h1>
           <p class="text-muted-foreground text-sm">
-            {{ t('auth.register.subtitle') }}
+            Δημιούργησε λογαριασμό μαθητή για να ξεκινήσεις.
           </p>
         </UiCardHeader>
         <UiCardContent class="space-y-4 pt-0">
           <form class="space-y-4" @submit.prevent="onSubmit">
             <div class="space-y-2">
-              <UiLabel for="name">{{ t('auth.register.name') }}</UiLabel>
+              <UiLabel for="name">Ονοματεπώνυμο</UiLabel>
               <UiInput id="name" v-model="name" type="text" required minlength="2" />
             </div>
 
             <div class="space-y-2">
-              <UiLabel for="email">{{ t('auth.register.email') }}</UiLabel>
+              <UiLabel for="email">Email</UiLabel>
               <UiInput id="email" v-model="email" type="email" required />
             </div>
 
             <div class="space-y-2">
-              <UiLabel for="password">{{ t('auth.register.password') }}</UiLabel>
+              <UiLabel for="password">Κωδικός πρόσβασης</UiLabel>
               <UiInput
                 id="password"
                 v-model="password"
@@ -125,8 +124,8 @@ async function onSubmit() {
             </div>
 
             <UiButton type="submit" class="w-full" :disabled="loading">
-              <span v-if="!loading">{{ t('auth.register.submit') }}</span>
-              <span v-else>{{ t('auth.register.submitting') }}</span>
+              <span v-if="!loading">Εγγραφή</span>
+              <span v-else>Γίνεται εγγραφή...</span>
             </UiButton>
           </form>
 
@@ -159,17 +158,17 @@ async function onSubmit() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              {{ t('auth.register.google') }}
+              Εγγραφή με Google
             </UiButton>
           </div>
 
           <p class="text-center text-sm text-muted-foreground">
-            {{ t('auth.register.hasAccount') }}
+            Έχεις ήδη λογαριασμό;
             <NuxtLink
               to="/login"
               class="text-primary font-medium hover:underline"
             >
-              {{ t('auth.register.loginLink') }}
+              Σύνδεση
             </NuxtLink>
           </p>
 
@@ -177,7 +176,7 @@ async function onSubmit() {
             to="/"
             class="flex items-center justify-center gap-1 text-sm text-primary hover:underline"
           >
-            <VIcon name="bi-arrow-right" class="size-4 rotate-180" aria-hidden="true" /> {{ t('auth.back') }}
+            <VIcon name="bi-arrow-right" class="size-4 rotate-180" aria-hidden="true" /> Πίσω
           </NuxtLink>
         </UiCardContent>
       </div>

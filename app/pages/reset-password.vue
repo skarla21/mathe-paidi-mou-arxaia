@@ -9,10 +9,9 @@ import UiLabel from "~/components/ui/Label.vue";
 import UiPasswordInput from "~/components/ui/PasswordInput.vue";
 
 const route = useRoute();
-const { t, translateApiError } = useI18n();
 
 useHead(() => ({
-  title: t("auth.resetPassword.title"),
+  title: 'Ορισμός νέου κωδικού',
 }));
 
 const token = computed(() => (route.query.token as string) || "");
@@ -22,15 +21,15 @@ const loading = ref(false);
 
 async function onSubmit() {
   if (newPassword.value.length < PASSWORD_MIN_LENGTH) {
-    toast.error(t("auth.validation.passwordMin"));
+    toast.error('Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες');
     return;
   }
   if (newPassword.value !== confirmPassword.value) {
-    toast.error(t("profile.edit.passwordMismatch"));
+    toast.error('Οι κωδικοί δεν ταιριάζουν');
     return;
   }
   if (!token.value) {
-    toast.error(t("auth.resetPassword.invalidLink"));
+    toast.error('Αυτός ο σύνδεσμος δεν είναι έγκυρος ή έχει λήξει.');
     return;
   }
 
@@ -40,13 +39,11 @@ async function onSubmit() {
       method: "POST",
       body: { token: token.value, newPassword: newPassword.value },
     });
-    toast.success(t("auth.resetPassword.success"));
+    toast.success('Ο κωδικός ενημερώθηκε.');
     await navigateTo("/login");
   } catch (e: unknown) {
-    const err = e as { data?: { message?: string }; message?: string };
-    const msg =
-      err?.data?.message ?? err?.message ?? "auth.resetPassword.error";
-    toast.error(translateApiError(msg, t("auth.resetPassword.error")));
+    const err = e as { data?: { message?: string } };
+    toast.error(err.data?.message || 'Κάτι πήγε στραβά');
   } finally {
     loading.value = false;
   }
@@ -60,45 +57,41 @@ async function onSubmit() {
     >
       <div
         class="absolute inset-0 rounded-3xl bg-cover bg-center bg-no-repeat"
-        :style="{ backgroundImage: `url('/imgs/login_bg.jpg')`, opacity: 0.2 }"
+        :style="{ backgroundImage: 'url(\'/imgs/login_bg.jpg\')', opacity: 0.2 }"
         aria-hidden="true"
       />
       <div class="relative z-10 rounded-3xl max-w-sm mx-auto">
         <UiCardHeader class="space-y-1 pb-4">
           <h1 class="text-2xl font-bold font-heading">
-            {{ t("auth.resetPassword.title") }}
+            Ορισμός νέου κωδικού
           </h1>
           <p class="text-muted-foreground text-sm">
-            {{ t("auth.resetPassword.subtitle") }}
+            Εισήγαγε τον νέο κωδικό σου παρακάτω.
           </p>
         </UiCardHeader>
         <UiCardContent class="space-y-4 pt-0">
           <form v-if="token" class="space-y-4" @submit.prevent="onSubmit">
             <div class="space-y-2">
-              <UiLabel for="new-password">{{
-                t("auth.resetPassword.newPassword")
-              }}</UiLabel>
+              <UiLabel for="new-password">Νέος κωδικός</UiLabel>
               <UiPasswordInput
                 id="new-password"
                 v-model="newPassword"
-                :placeholder="t('auth.resetPassword.newPassword')"
+                placeholder="Νέος κωδικός"
                 autocomplete="new-password"
               />
             </div>
             <div class="space-y-2">
-              <UiLabel for="confirm-password">{{
-                t("auth.resetPassword.confirmPassword")
-              }}</UiLabel>
+              <UiLabel for="confirm-password">Επιβεβαίωση κωδικού</UiLabel>
               <UiPasswordInput
                 id="confirm-password"
                 v-model="confirmPassword"
-                :placeholder="t('auth.resetPassword.confirmPassword')"
+                placeholder="Επιβεβαίωση κωδικού"
                 autocomplete="new-password"
               />
             </div>
             <UiButton type="submit" class="w-full" :disabled="loading">
               {{
-                loading ? t("common.loading") : t("auth.resetPassword.submit")
+                loading ? 'Φόρτωση...' : 'Επαναφορά κωδικού'
               }}
             </UiButton>
           </form>
@@ -107,13 +100,13 @@ async function onSubmit() {
             class="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-center"
           >
             <p class="text-sm text-destructive">
-              {{ t("auth.resetPassword.invalidLink") }}
+              Αυτός ο σύνδεσμος δεν είναι έγκυρος ή έχει λήξει.
             </p>
             <NuxtLink
               to="/login"
               class="block mt-2 text-sm text-primary hover:underline"
             >
-              {{ t("auth.back") }}
+              Πίσω
             </NuxtLink>
           </div>
           <NuxtLink
@@ -125,7 +118,7 @@ async function onSubmit() {
               class="size-4 rotate-180"
               aria-hidden="true"
             />
-            {{ t("auth.back") }}
+            Πίσω
           </NuxtLink>
         </UiCardContent>
       </div>

@@ -5,13 +5,11 @@ import LayoutAppHeader from '~/components/layout/AppHeader.vue'
 import LayoutAppFooter from '~/components/layout/AppFooter.vue'
 
 const theme = useTheme()
-const { init: initI18n } = useI18n()
 const route = useRoute()
 const hideLayoutFooter = computed(() => !!route.meta['hideLayoutFooter'])
 
 onMounted(() => {
   theme.init()
-  initI18n()
 })
 </script>
 

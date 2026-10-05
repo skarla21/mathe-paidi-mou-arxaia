@@ -1,6 +1,5 @@
 <script setup lang="ts">
 const { toggle, colorMode } = useTheme()
-const { t } = useI18n()
 </script>
 
 <template>
@@ -9,7 +8,7 @@ const { t } = useI18n()
     role="switch"
     :aria-checked="colorMode === 'dark'"
     class="rounded-lg px-2 py-1.5 flex items-center transition-colors cursor-pointer"
-    :aria-label="t('header.toggleTheme')"
+    aria-label="Εναλλαγή θέματος"
     @click="toggle"
   >
     <div

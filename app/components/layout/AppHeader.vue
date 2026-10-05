@@ -17,7 +17,6 @@ import UiAlertDialogDescription from "~/components/ui/alert-dialog/AlertDialogDe
 import UiAlertDialogCancel from "~/components/ui/alert-dialog/AlertDialogCancel.vue";
 import UiAlertDialogAction from "~/components/ui/alert-dialog/AlertDialogAction.vue";
 
-const { t } = useI18n();
 const route = useRoute();
 const { session, isAdmin } = useCurrentUser();
 const { openLogin, openRegister } = useAuthModal();
@@ -54,7 +53,9 @@ function onMobileNavLink() {
 function goToContact(event: MouseEvent) {
   if (route.path !== "/") return;
   event.preventDefault();
-  document.getElementById("communication")?.scrollIntoView({ behavior: "smooth" });
+  document
+    .getElementById("communication")
+    ?.scrollIntoView({ behavior: "smooth" });
   closeMobileMenu();
 }
 
@@ -66,7 +67,7 @@ async function confirmLogout() {
   }
   session.value.user = null;
   closeMobileMenu();
-  toast.success(t("auth.logoutConfirm.successToast"));
+  toast.success("Αποσυνδεθήκατε");
   await navigateTo("/");
 }
 </script>
@@ -75,7 +76,9 @@ async function confirmLogout() {
   <header
     class="sticky top-0 z-50 w-full border-b border-header-border bg-header-bg/90 shadow-[0_1px_10px_rgba(0,0,0,0.03)] backdrop-blur-xl"
   >
-    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-12">
+    <div
+      class="relative flex h-20 w-full items-center gap-3 px-4 sm:px-6 lg:px-8"
+    >
       <NuxtLink
         to="/"
         class="group/logo flex shrink-0 items-center gap-3 text-foreground"
@@ -83,54 +86,77 @@ async function confirmLogout() {
       >
         <span
           ref="logoRef"
-          class="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20 transition-all group-hover/logo:ring-primary"
+          class="size-9 shrink-0 overflow-hidden rounded-full ring-2 ring-primary/20 transition-all group-hover/logo:ring-primary"
           aria-hidden="true"
         >
-          <VIcon name="bi-journal-bookmark-fill" class="size-4" />
+          <img
+            src="/imgs/mathe_arxaia_logo.jpg"
+            alt=""
+            class="size-full object-cover"
+          />
         </span>
-        <span class="font-brand text-base font-bold leading-tight tracking-tight sm:text-lg group-hover/logo:text-primary transition-colors">
-          {{ t("brand.logo") }}
+        <span
+          class="font-brand text-base font-bold leading-tight tracking-tight sm:text-lg group-hover/logo:text-primary transition-colors"
+        >
+          Μάθε Παιδί Μου Αρχαία!
         </span>
       </NuxtLink>
 
       <button
         type="button"
         class="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground xl:hidden"
-        :aria-label="t('nav.openMenu')"
+        aria-label="Άνοιγμα μενού πλοήγησης"
         @click="openMobileMenu"
       >
         <VIcon name="bi-list" class="size-5" aria-hidden="true" />
       </button>
 
-      <nav class="hidden items-center gap-4 font-ui text-[15px] font-bold whitespace-nowrap xl:flex">
-        <NuxtLink
-          to="/"
-          class="nav-bobble px-1 py-1"
-          :class="homeActive ? 'text-primary wavy-underline' : 'text-muted-foreground hover:text-primary hover-wavy-amber'"
-          :aria-current="homeActive ? 'page' : undefined"
+      <div
+        class="ml-auto hidden items-center gap-4 md:flex xl:absolute xl:left-1/2 xl:ml-0 xl:-translate-x-1/2"
+      >
+        <nav
+          class="hidden items-center gap-4 font-ui text-[15px] font-bold whitespace-nowrap xl:flex"
         >
-          {{ t("nav.main") }}
-        </NuxtLink>
-        <NuxtLink
-          to="/about"
-          class="nav-bobble px-1 py-1"
-          :class="aboutActive ? 'text-[#f59e0b] wavy-underline' : 'text-muted-foreground hover:text-[#f59e0b] hover-wavy-amber'"
-        >
-          {{ t("nav.about") }}
-        </NuxtLink>
-        <LayoutNotesMegaMenu />
-        <LayoutExtrasMenu />
-        <a
-          href="/#communication"
-          class="nav-bobble px-1 py-1 text-muted-foreground hover:text-amethyst hover-wavy-purple"
-          @click="goToContact"
-        >
-          {{ t("nav.contact") }}
-        </a>
-      </nav>
+          <NuxtLink
+            to="/"
+            class="nav-bobble px-1 py-1"
+            :class="
+              homeActive
+                ? 'text-primary wavy-underline'
+                : 'text-muted-foreground hover:text-primary hover-wavy-orange'
+            "
+            :aria-current="homeActive ? 'page' : undefined"
+          >
+            Αρχική
+          </NuxtLink>
+          <NuxtLink
+            to="/about"
+            class="nav-bobble px-1 py-1"
+            :class="
+              aboutActive
+                ? 'text-[#f59e0b] wavy-amber'
+                : 'text-muted-foreground hover:text-[#f59e0b] hover-wavy-amber'
+            "
+          >
+            Σχετικά
+          </NuxtLink>
+          <LayoutNotesMegaMenu />
+          <LayoutExtrasMenu />
+          <a
+            href="/#communication"
+            class="nav-bobble px-1 py-1 text-muted-foreground hover:text-amethyst hover-wavy-purple"
+            @click="goToContact"
+          >
+            Επικοινωνία
+          </a>
+        </nav>
+        <SearchGlobalSearch
+          hotkey
+          class="w-52 shrink-0 lg:w-64 xl:w-56 2xl:w-64"
+        />
+      </div>
 
-      <div class="ml-auto flex shrink-0 items-center gap-2">
-        <SearchGlobalSearch hotkey class="hidden w-52 md:block lg:w-64" />
+      <div class="flex shrink-0 items-center gap-2 max-md:ml-auto xl:ml-auto">
         <div class="hidden sm:block">
           <LayoutThemeLanguageControls />
         </div>
@@ -140,36 +166,49 @@ async function confirmLogout() {
               <button
                 type="button"
                 class="flex size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-transparent bg-muted ring-offset-background transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                :aria-label="t('nav.userMenu')"
+                aria-label="Μενού χρήστη"
               >
                 <img
                   v-if="session.user.avatar_url"
                   :src="session.user.avatar_url"
                   :alt="session.user.name ?? ''"
                   class="size-full object-cover"
-                >
+                />
                 <span
                   v-else
                   class="flex size-full items-center justify-center rounded-full bg-muted text-muted-foreground"
                 >
-                  <VIcon name="bi-person-fill" class="size-5" aria-hidden="true" />
+                  <VIcon
+                    name="bi-person-fill"
+                    class="size-5"
+                    aria-hidden="true"
+                  />
                 </span>
               </button>
             </UiDropdownMenuTrigger>
             <UiDropdownMenuContent align="end" class="min-w-52">
-              <div class="flex items-center gap-3 border-b border-border px-3 py-2.5">
-                <div class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+              <div
+                class="flex items-center gap-3 border-b border-border px-3 py-2.5"
+              >
+                <div
+                  class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
+                >
                   <img
                     v-if="session.user.avatar_url"
                     :src="session.user.avatar_url"
                     :alt="session.user.name ?? ''"
                     class="size-full object-cover"
-                  >
-                  <VIcon v-else name="bi-person-fill" class="size-4 text-muted-foreground" aria-hidden="true" />
+                  />
+                  <VIcon
+                    v-else
+                    name="bi-person-fill"
+                    class="size-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-medium leading-none">
-                    {{ session.user.name ?? t("nav.user") }}
+                    {{ session.user.name ?? "Χρήστης" }}
                   </p>
                   <p class="mt-0.5 truncate text-xs text-muted-foreground">
                     {{ session.user.email }}
@@ -180,13 +219,16 @@ async function confirmLogout() {
                 <UiDropdownMenuItem @click="openEditProfile">
                   <span class="flex w-full items-center">
                     <VIcon name="bi-pencil" class="mr-2 size-4 shrink-0" />
-                    {{ t("nav.editProfile") }}
+                    Επεξεργασία προφίλ
                   </span>
                 </UiDropdownMenuItem>
                 <UiDropdownMenuItem v-if="!isAdmin">
                   <NuxtLink to="/dashboard" class="flex w-full items-center">
-                    <VIcon name="bi-journal-bookmark" class="mr-2 size-4 shrink-0" />
-                    {{ t("nav.myCourses") }}
+                    <VIcon
+                      name="bi-journal-bookmark"
+                      class="mr-2 size-4 shrink-0"
+                    />
+                    Το υλικό μου
                   </NuxtLink>
                 </UiDropdownMenuItem>
               </div>
@@ -194,14 +236,17 @@ async function confirmLogout() {
                 <UiDropdownMenuItem>
                   <NuxtLink to="/admin" class="flex w-full items-center">
                     <VIcon name="bi-gear" class="mr-2 size-4 shrink-0" />
-                    {{ t("nav.adminPanel") }}
+                    Πίνακας διαχείρισης
                   </NuxtLink>
                 </UiDropdownMenuItem>
               </div>
               <div class="py-1">
                 <UiDropdownMenuItem @click="logoutDialogOpen = true">
-                  <VIcon name="bi-box-arrow-right" class="mr-2 size-4 shrink-0" />
-                  {{ t("nav.logout") }}
+                  <VIcon
+                    name="bi-box-arrow-right"
+                    class="mr-2 size-4 shrink-0"
+                  />
+                  Αποσύνδεση
                 </UiDropdownMenuItem>
               </div>
             </UiDropdownMenuContent>
@@ -214,7 +259,7 @@ async function confirmLogout() {
             class="rounded-lg border-2 font-semibold"
             @click="openLogin()"
           >
-            {{ t("nav.login") }}
+            Σύνδεση
           </UiButton>
 
           <UiAlertDialogRoot v-model:open="logoutDialogOpen">
@@ -222,16 +267,19 @@ async function confirmLogout() {
               <UiAlertDialogOverlay />
               <UiAlertDialogContent>
                 <UiAlertDialogHeader>
-                  <UiAlertDialogTitle>{{ t("auth.logoutConfirm.title") }}</UiAlertDialogTitle>
-                  <UiAlertDialogDescription>{{ t("auth.logoutConfirm.description") }}</UiAlertDialogDescription>
+                  <UiAlertDialogTitle>Αποσύνδεση</UiAlertDialogTitle>
+                  <UiAlertDialogDescription
+                    >Είστε σίγουροι ότι θέλετε να
+                    αποσυνδεθείτε;</UiAlertDialogDescription
+                  >
                 </UiAlertDialogHeader>
                 <UiAlertDialogFooter>
                   <UiAlertDialogCancel>
-                    <UiButton variant="cancel">{{ t("auth.logoutConfirm.cancel") }}</UiButton>
+                    <UiButton variant="cancel">Ακύρωση</UiButton>
                   </UiAlertDialogCancel>
                   <UiAlertDialogAction as-child>
                     <UiButton variant="destructive" @click="confirmLogout">
-                      {{ t("auth.logoutConfirm.confirm") }}
+                      Αποσύνδεση
                     </UiButton>
                   </UiAlertDialogAction>
                 </UiAlertDialogFooter>
@@ -243,9 +291,13 @@ async function confirmLogout() {
             <button
               type="button"
               class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-transparent bg-muted"
-              :aria-label="t('nav.userMenu')"
+              aria-label="Μενού χρήστη"
             >
-              <VIcon name="bi-person-circle" class="size-6 text-muted-foreground" aria-hidden="true" />
+              <VIcon
+                name="bi-person-circle"
+                class="size-6 text-muted-foreground"
+                aria-hidden="true"
+              />
             </button>
           </template>
         </ClientOnly>
@@ -264,22 +316,34 @@ async function confirmLogout() {
     >
       <div
         v-if="mobileMenuOpen"
-        class="fixed inset-0 z-[100] flex flex-col overflow-y-auto bg-background/95 backdrop-blur-sm xl:hidden"
+        class="fixed inset-0 z-100 flex flex-col overflow-y-auto bg-background/95 backdrop-blur-sm xl:hidden"
         role="dialog"
         aria-modal="true"
-        :aria-label="t('nav.mobileMenu')"
+        aria-label="Μενού πλοήγησης κινητού"
       >
-        <div class="flex shrink-0 items-center justify-between border-b border-border px-4 py-4">
-          <NuxtLink to="/" class="flex items-center gap-2 text-foreground" @click="onMobileNavLink">
-            <span class="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <VIcon name="bi-journal-bookmark-fill" class="size-4" aria-hidden="true" />
+        <div
+          class="flex shrink-0 items-center justify-between border-b border-border px-4 py-4"
+        >
+          <NuxtLink
+            to="/"
+            class="flex items-center gap-2 text-foreground"
+            @click="onMobileNavLink"
+          >
+            <span class="size-9 shrink-0 overflow-hidden rounded-full">
+              <img
+                src="/imgs/mathe_arxaia_logo.jpg"
+                alt=""
+                class="size-full object-cover"
+              />
             </span>
-            <span class="font-brand text-lg font-bold leading-tight">{{ t("brand.logo") }}</span>
+            <span class="font-brand text-lg font-bold leading-tight"
+              >Μάθε Παιδί Μου Αρχαία!</span
+            >
           </NuxtLink>
           <button
             type="button"
             class="flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
-            :aria-label="t('nav.closeMenu')"
+            aria-label="Κλείσιμο μενού πλοήγησης"
             @click="closeMobileMenu"
           >
             <VIcon name="bi-x" class="size-5" aria-hidden="true" />
@@ -296,16 +360,24 @@ async function confirmLogout() {
             class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
             @click="onMobileNavLink"
           >
-            <VIcon name="bi-house-door" class="size-5 shrink-0" aria-hidden="true" />
-            {{ t("nav.main") }}
+            <VIcon
+              name="bi-house-door"
+              class="size-5 shrink-0"
+              aria-hidden="true"
+            />
+            Αρχική
           </NuxtLink>
           <NuxtLink
             to="/about"
             class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
             @click="onMobileNavLink"
           >
-            <VIcon name="bi-info-circle" class="size-5 shrink-0" aria-hidden="true" />
-            {{ t("nav.about") }}
+            <VIcon
+              name="bi-info-circle"
+              class="size-5 shrink-0"
+              aria-hidden="true"
+            />
+            Σχετικά
           </NuxtLink>
           <LayoutNotesMegaMenu variant="mobile" @navigate="onMobileNavLink" />
           <LayoutExtrasMenu variant="mobile" @navigate="onMobileNavLink" />
@@ -314,8 +386,12 @@ async function confirmLogout() {
             class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
             @click="goToContact"
           >
-            <VIcon name="bi-chat-dots" class="size-5 shrink-0" aria-hidden="true" />
-            {{ t("nav.contact") }}
+            <VIcon
+              name="bi-chat-dots"
+              class="size-5 shrink-0"
+              aria-hidden="true"
+            />
+            Επικοινωνία
           </a>
 
           <div class="my-3 border-t border-border" />
@@ -323,27 +399,45 @@ async function confirmLogout() {
           <ClientOnly>
             <template v-if="session.user">
               <div class="mb-2 flex items-center gap-3 px-3 py-2">
-                <div class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted">
+                <div
+                  class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
+                >
                   <img
                     v-if="session.user.avatar_url"
                     :src="session.user.avatar_url"
                     :alt="session.user.name ?? ''"
                     class="size-full object-cover"
-                  >
-                  <VIcon v-else name="bi-person-fill" class="size-5 text-muted-foreground" aria-hidden="true" />
+                  />
+                  <VIcon
+                    v-else
+                    name="bi-person-fill"
+                    class="size-5 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-medium">{{ session.user.name ?? t("nav.user") }}</p>
-                  <p class="truncate text-xs text-muted-foreground">{{ session.user.email }}</p>
+                  <p class="truncate text-sm font-medium">
+                    {{ session.user.name ?? "Χρήστης" }}
+                  </p>
+                  <p class="truncate text-xs text-muted-foreground">
+                    {{ session.user.email }}
+                  </p>
                 </div>
               </div>
               <button
                 type="button"
                 class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
-                @click="openEditProfile(); closeMobileMenu()"
+                @click="
+                  openEditProfile();
+                  closeMobileMenu();
+                "
               >
-                <VIcon name="bi-pencil" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.editProfile") }}
+                <VIcon
+                  name="bi-pencil"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Επεξεργασία προφίλ
               </button>
               <NuxtLink
                 v-if="!isAdmin"
@@ -351,8 +445,12 @@ async function confirmLogout() {
                 class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
                 @click="onMobileNavLink"
               >
-                <VIcon name="bi-journal-bookmark" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.myCourses") }}
+                <VIcon
+                  name="bi-journal-bookmark"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Το υλικό μου
               </NuxtLink>
               <NuxtLink
                 v-if="isAdmin"
@@ -360,40 +458,67 @@ async function confirmLogout() {
                 class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
                 @click="onMobileNavLink"
               >
-                <VIcon name="bi-gear" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.adminPanel") }}
+                <VIcon
+                  name="bi-gear"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Πίνακας διαχείρισης
               </NuxtLink>
               <button
                 type="button"
                 class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
-                @click="logoutDialogOpen = true; closeMobileMenu()"
+                @click="
+                  logoutDialogOpen = true;
+                  closeMobileMenu();
+                "
               >
-                <VIcon name="bi-box-arrow-right" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.logout") }}
+                <VIcon
+                  name="bi-box-arrow-right"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Αποσύνδεση
               </button>
             </template>
             <template v-else>
               <button
                 type="button"
                 class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
-                @click="openLogin(); closeMobileMenu()"
+                @click="
+                  openLogin();
+                  closeMobileMenu();
+                "
               >
-                <VIcon name="bi-person-circle" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.login") }}
+                <VIcon
+                  name="bi-person-circle"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Σύνδεση
               </button>
               <button
                 type="button"
                 class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
-                @click="openRegister(); closeMobileMenu()"
+                @click="
+                  openRegister();
+                  closeMobileMenu();
+                "
               >
-                <VIcon name="bi-person-plus" class="size-5 shrink-0" aria-hidden="true" />
-                {{ t("nav.register") }}
+                <VIcon
+                  name="bi-person-plus"
+                  class="size-5 shrink-0"
+                  aria-hidden="true"
+                />
+                Εγγραφή
               </button>
             </template>
           </ClientOnly>
         </nav>
 
-        <div class="flex shrink-0 items-center gap-3 border-t border-border px-4 py-4 sm:hidden">
+        <div
+          class="flex shrink-0 items-center gap-3 border-t border-border px-4 py-4 sm:hidden"
+        >
           <LayoutThemeLanguageControls />
         </div>
       </div>

@@ -29,7 +29,6 @@ const open = ref(false)
 const debounceMs = 300
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
-const { t } = useI18n()
 
 async function search() {
   const q = query.value.trim()
@@ -45,7 +44,7 @@ async function search() {
     open.value = true
   } catch {
     results.value = []
-    toast.error(t('search.error'))
+    toast.error('Αποτυχία αναζήτησης')
   } finally {
     loading.value = false
   }
@@ -66,7 +65,7 @@ function onFocus() {
   }
 }
 
-const placeholder = computed(() => t('search.placeholder'))
+const placeholder = computed(() => 'Αναζήτηση κεφαλαίων ή υλικού...')
 
 let registeredInput: HTMLInputElement | null = null
 
@@ -108,7 +107,7 @@ onUnmounted(() => {
           v-model="query"
           type="search"
           :placeholder="placeholder"
-          :aria-label="t('search.placeholder')"
+          aria-label="Αναζήτηση κεφαλαίων ή υλικού..."
           class="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none border-none"
           :class="props.size === 'lg' ? 'h-12 text-base' : 'h-9 text-[13.5px]'"
           @focus="onFocus"
@@ -117,7 +116,7 @@ onUnmounted(() => {
           v-if="props.hotkey"
           class="hidden lg:inline-flex shrink-0 rounded-full border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground pointer-events-none"
         >
-          {{ t('search.shortcut') }}
+          Ctrl K
         </kbd>
       </div>
       </div>
@@ -128,9 +127,9 @@ onUnmounted(() => {
       :side-offset="4"
     >
       <p v-if="loading" class="px-4 py-2 text-sm text-muted-foreground">
-        {{ t('search.loading') }}
+        Γίνεται αναζήτηση...
       </p>
-      <div role="listbox" :aria-label="t('search.placeholder')">
+      <div role="listbox" aria-label="Αναζήτηση κεφαλαίων ή υλικού...">
         <NuxtLink
           v-for="r in results"
           :key="`${r.type}-${r.id}`"
@@ -140,7 +139,7 @@ onUnmounted(() => {
           @click="close"
         >
           <span class="text-muted-foreground text-xs">
-            {{ r.type === 'chapter' ? t('search.type.chapter') : t('search.type.lesson') }}:
+            {{ r.type === 'chapter' ? 'Κεφάλαιο' : 'Υλικό' }}:
           </span>
           {{ r.title }}
         </NuxtLink>
@@ -149,7 +148,7 @@ onUnmounted(() => {
         v-if="!loading && results.length === 0 && query.trim()"
         class="px-4 py-3 text-sm text-muted-foreground text-center"
       >
-        {{ t('search.noResults') }}
+        Δεν βρέθηκαν αποτελέσματα
       </p>
     </UiPopoverContent>
   </UiPopover>

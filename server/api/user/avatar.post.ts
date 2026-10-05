@@ -32,18 +32,18 @@ export default defineEventHandler(async (event) => {
 
   const formData = await readMultipartFormData(event);
   if (!formData?.length) {
-    throw createError({ statusCode: 400, message: "No file uploaded" });
+    throw createError({ statusCode: 400, message: "Δεν επιλέχθηκε αρχείο" });
   }
 
   const file = formData.find((f) => f.name === "file" && f.data);
   if (!file?.data || !file.filename) {
-    throw createError({ statusCode: 400, message: "Invalid file" });
+    throw createError({ statusCode: 400, message: "Μη έγκυρο αρχείο" });
   }
 
   if (!ALLOWED_TYPES.includes(file.type || "")) {
     throw createError({
       statusCode: 400,
-      message: "Only JPEG, PNG, and WebP images allowed",
+      message: "Επιτρέπονται μόνο εικόνες JPEG, PNG και WebP",
     });
   }
 
@@ -53,11 +53,11 @@ export default defineEventHandler(async (event) => {
   const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
   const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
   if (!isJpeg && !isPng && !isWebp) {
-    throw createError({ statusCode: 400, message: "Invalid image file" })
+    throw createError({ statusCode: 400, message: "Μη έγκυρη εικόνα" })
   }
 
   if (file.data.length > MAX_SIZE) {
-    throw createError({ statusCode: 400, message: "File too large (max 2MB)" });
+    throw createError({ statusCode: 400, message: "Η εικόνα πρέπει να είναι μικρότερη από 2 MB" });
   }
 
   const supabase = serverSupabaseService();
@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
 
   if (uploadError) {
     console.error('[user/avatar.post] Upload failed:', uploadError.message)
-    throw createError({ statusCode: 500, message: 'File upload failed' });
+    throw createError({ statusCode: 500, message: 'Η μεταφόρτωση απέτυχε' });
   }
 
   const { data: urlData } = supabase.storage
@@ -110,7 +110,7 @@ export default defineEventHandler(async (event) => {
 
   if (updateError) {
     console.error('[user/avatar.post] DB update failed:', updateError.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' });
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' });
   }
 
   return { avatar_url };

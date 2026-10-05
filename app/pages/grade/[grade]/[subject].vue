@@ -6,7 +6,6 @@ import type { Grade, Subject, Chapter } from '~/types/database'
 const route = useRoute()
 const gradeId = route.params.grade as string
 const subjectId = route.params.subject as string
-const { t } = useI18n()
 
 const grade = ref<Grade | null>(null)
 const subject = ref<Subject | null>(null)
@@ -31,7 +30,7 @@ const chapters = computed(() =>
 useHead(() => ({
   title: subject.value
     ? `${subject.value.name} - ${grade.value?.name}`
-    : t('subject.title'),
+    : 'Μάθημα',
 }))
 </script>
 
@@ -44,11 +43,11 @@ useHead(() => ({
       <VIcon name="bi-arrow-left" class="size-3.5" aria-hidden="true" />
       {{ grade?.name }}
     </NuxtLink>
-    <LayoutPageIntro class="mt-4" :title="subject?.name ?? t('subject.title')" />
+    <LayoutPageIntro class="mt-4" :title="subject?.name ?? 'Μάθημα'" />
 
     <div v-if="chapters.length > 0" class="mt-8">
       <h2 class="font-heading text-xl font-semibold mb-4">
-        {{ t('subject.chaptersSection') }}
+        Κεφάλαια
       </h2>
       <div class="grid gap-4 sm:grid-cols-2">
         <NuxtLink
@@ -82,7 +81,7 @@ useHead(() => ({
       v-else
       class="text-muted-foreground mt-8"
     >
-      {{ t('subject.noCoursesYet') }}
+      Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα.
     </p>
   </div>
 </template>

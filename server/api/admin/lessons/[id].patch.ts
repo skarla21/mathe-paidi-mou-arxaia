@@ -5,7 +5,7 @@ import { placementRowsForUpdate } from '../../../utils/placementOrder'
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
-  if (!id) throw createError({ statusCode: 400, message: 'Missing id parameter' })
+  if (!id) throw createError({ statusCode: 400, message: 'Λείπει το αναγνωριστικό' })
   const supabase = serverSupabaseService()
   const body = await readBody<{
     title?: string; content?: string; is_free?: boolean; price?: number
@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
     const result = await supabase.from('lessons').update(updates).eq('id', id).select().single()
     if (result.error) {
       console.error('[admin/lessons/[id].patch]', result.error.message)
-      throw createError({ statusCode: 500, message: 'Database operation failed' })
+      throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
     }
     data = result.data
   }
@@ -35,12 +35,12 @@ export default defineEventHandler(async (event) => {
   // Update placements if provided
   if (body.placements !== undefined) {
     if (!body.placements?.length) {
-      throw createError({ statusCode: 400, message: 'At least one placement is required' })
+      throw createError({ statusCode: 400, message: 'Χρειάζεται τουλάχιστον μία ανάθεση' })
     }
     for (const p of body.placements) {
       const count = [p.subject_id, p.chapter_id, p.category_id].filter(Boolean).length
       if (count !== 1) {
-        throw createError({ statusCode: 400, message: 'Each placement must have exactly one of subject_id, chapter_id, or category_id' })
+        throw createError({ statusCode: 400, message: 'Κάθε ανάθεση πρέπει να αφορά ακριβώς ένα μάθημα, κεφάλαιο ή κατηγορία' })
       }
     }
     const { data: previous, error: prevErr } = await supabase
@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
       .eq('lesson_id', id)
     if (prevErr) {
       console.error('[admin/lessons/[id].patch] load placements', prevErr.message)
-      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+      throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
     }
 
     const placementRows = await placementRowsForUpdate(supabase, id, body.placements, previous ?? [])
@@ -57,7 +57,7 @@ export default defineEventHandler(async (event) => {
     const { error: delErr } = await supabase.from('lesson_placements').delete().eq('lesson_id', id)
     if (delErr) {
       console.error('[admin/lessons/[id].patch] delete placements', delErr.message)
-      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+      throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
     }
     const { error: insErr } = await supabase.from('lesson_placements').insert(placementRows)
     if (insErr) {
@@ -67,14 +67,14 @@ export default defineEventHandler(async (event) => {
         if (restoreErr) console.error('[admin/lessons/[id].patch] restore placements', restoreErr.message)
       }
       if (insErr.code === '23505') {
-        throw createError({ statusCode: 409, message: 'Duplicate placement: lesson already exists in that subject, chapter, or category' })
+        throw createError({ statusCode: 409, message: 'Αυτό το υλικό υπάρχει ήδη σε αυτό το μάθημα, κεφάλαιο ή κατηγορία' })
       }
-      throw createError({ statusCode: 500, message: 'Failed to update placements' })
+      throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
     }
   }
 
   if (!data && !body.placements) {
-    throw createError({ statusCode: 400, message: 'Nothing to update' })
+    throw createError({ statusCode: 400, message: 'Δεν υπάρχει κάτι για ενημέρωση' })
   }
 
   return data ?? { ok: true }

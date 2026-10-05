@@ -11,13 +11,12 @@ definePageMeta({
   middleware: 'guest-only',
 })
 
-const { t } = useI18n()
 const { fetchSession } = useCurrentUser()
 const { openForgot } = useAuthModal()
 const { signInWithGoogle } = useGoogleSignIn()
 
 useHead(() => ({
-  title: t('auth.login.title'),
+  title: 'Σύνδεση',
 }))
 
 const email = ref('')
@@ -56,10 +55,10 @@ async function onSubmit() {
       const urlParams = new URLSearchParams(redirectUrl.split('?')[1] ?? '')
       const errorCode = urlParams.get('error') ?? ''
       const errorMap: Record<string, string> = {
-        CredentialsSignin: t('auth.login.error.invalidCredentials'),
-        OAuthAccountNotLinked: t('auth.login.error.oauthNotLinked'),
+        CredentialsSignin: 'Λάθος email ή κωδικός',
+        OAuthAccountNotLinked: 'Αυτό το email χρησιμοποιείται με διαφορετικό τρόπο σύνδεσης',
       }
-      toast.error(errorMap[errorCode] ?? t('auth.login.error.generic'))
+      toast.error(errorMap[errorCode] ?? 'Η σύνδεση δεν ήταν δυνατή')
       return
     }
 
@@ -67,8 +66,8 @@ async function onSubmit() {
     pendingToast.value = 'login'
     await navigateTo('/')
   } catch (e: unknown) {
-    const error = e as { data?: { message?: string }; message?: string }
-    toast.error(error?.data?.message ?? error?.message ?? t('auth.login.error.generic'))
+    const error = e as { data?: { message?: string } }
+    toast.error(error.data?.message || 'Η σύνδεση δεν ήταν δυνατή')
   } finally {
     loading.value = false
   }
@@ -82,27 +81,27 @@ async function onSubmit() {
     >
       <div
         class="absolute inset-0 rounded-3xl bg-cover bg-center bg-no-repeat"
-        :style="{ backgroundImage: `url('/imgs/login_bg.jpg')`, opacity: 0.2 }"
+        :style="{ backgroundImage: 'url(\'/imgs/login_bg.jpg\')', opacity: 0.2 }"
         aria-hidden="true"
       />
       <div class="relative z-10 rounded-3xl max-w-sm mx-auto">
         <UiCardHeader class="space-y-1 pb-4">
           <h1 class="text-2xl font-bold font-heading">
-            {{ t('auth.login.title') }}
+            Σύνδεση
           </h1>
           <p class="text-muted-foreground text-sm">
-            {{ t('auth.login.subtitle') }}
+            Συνδέσου για να συνεχίσεις στα μαθήματά σου.
           </p>
         </UiCardHeader>
         <UiCardContent class="space-y-4 pt-0">
           <form class="space-y-4" @submit.prevent="onSubmit">
             <div class="space-y-2">
-              <UiLabel for="email">{{ t('auth.login.email') }}</UiLabel>
+              <UiLabel for="email">Email</UiLabel>
               <UiInput id="email" v-model="email" type="email" required />
             </div>
 
             <div class="space-y-2">
-              <UiLabel for="password">{{ t('auth.login.password') }}</UiLabel>
+              <UiLabel for="password">Κωδικός πρόσβασης</UiLabel>
               <UiInput
                 id="password"
                 v-model="password"
@@ -114,13 +113,13 @@ async function onSubmit() {
                 class="text-xs text-primary font-medium hover:underline cursor-pointer"
                 @click="openForgot"
               >
-                {{ t('auth.forgotPassword.link') }}
+                Ξέχασες τον κωδικό;
               </button>
             </div>
 
             <UiButton type="submit" class="w-full" :disabled="loading">
-              <span v-if="!loading">{{ t('auth.login.submit') }}</span>
-              <span v-else>{{ t('auth.login.submitting') }}</span>
+              <span v-if="!loading">Σύνδεση</span>
+              <span v-else>Γίνεται σύνδεση...</span>
             </UiButton>
           </form>
 
@@ -153,17 +152,17 @@ async function onSubmit() {
                   d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                 />
               </svg>
-              {{ t('auth.login.google') }}
+              Σύνδεση με Google
             </UiButton>
           </div>
 
           <p class="text-center text-sm text-muted-foreground">
-            {{ t('auth.login.noAccount') }}
+            Δεν έχεις λογαριασμό;
             <NuxtLink
               to="/register"
               class="text-primary font-medium hover:underline"
             >
-              {{ t('auth.login.registerLink') }}
+              Εγγραφή
             </NuxtLink>
           </p>
 
@@ -171,7 +170,7 @@ async function onSubmit() {
             to="/"
             class="flex items-center justify-center gap-1 text-sm text-primary hover:underline"
           >
-            <VIcon name="bi-arrow-right" class="size-4 rotate-180" aria-hidden="true" /> {{ t('auth.back') }}
+            <VIcon name="bi-arrow-right" class="size-4 rotate-180" aria-hidden="true" /> Πίσω
           </NuxtLink>
         </UiCardContent>
       </div>

@@ -41,7 +41,7 @@ Skills provide **design principles, workflows, and quality standards**. Agents p
 | Icons         | oh-vue-icons, Bootstrap icon set — `<VIcon name="bi-*" />` |
 | Toasts        | vue-sonner — `toast.*()`                                   |
 | Email         | Resend (contact form, verification, password reset)        |
-| i18n          | Custom `useI18n()` composable — NOT Nuxt i18n module       |
+| Language      | Greek only. No locale files, no language toggle            |
 | Theme         | Custom `useTheme()` composable — class on `<html>`         |
 
 ---
@@ -58,10 +58,9 @@ app/
     search/      # GlobalSearch.vue
     lesson/      # PdfViewer.vue
     ui/          # shadcn components (Button, Card, Input, …)
-  composables/   # useCurrentUser, useI18n, useTheme, useGsapReveal
+  composables/   # useCurrentUser, useTheme, useGsapReveal
   layouts/       # default.vue, admin.vue
   middleware/    # auth.ts, admin.ts, guest-only.ts
-  locales/       # en.json, el.json  ← client-side translations
   plugins/       # oh-vue-icons.ts
   lib/           # utils.ts (cn = clsx + tailwind-merge)
   assets/css/    # main.css (Tailwind @theme vars + custom utilities)
@@ -72,7 +71,6 @@ server/
   utils/         # supabaseServer, authOptions, requireAuth, requireAdmin, access
 supabase/        # schema.sql
 types/           # auth.d.ts (Session augment: id + isAdmin), nitro.d.ts (H3EventContext)
-public/locales/  # en.json, el.json (server-side copies)
 ```
 
 ---
@@ -99,16 +97,14 @@ Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_`
 
 ## Critical Rules — DO / DON'T
 
-### i18n
+### Language
 
-- **DO** `const { t } = useI18n()` — use `t('key')` for every user-visible string
-- **DO** add new keys to BOTH `app/locales/en.json` AND `app/locales/el.json`
-- **DON'T** hardcode any string in templates or script setup
-- **DON'T** use Nuxt i18n module — the project has a custom composable
+- **DO** write every user-visible string in Greek, directly in the template, script, or server route
+- **DON'T** add locale files, a language toggle, or an i18n library
 
 ### Notifications
 
-- **DO** `import { toast } from 'vue-sonner'` → `toast.success(t('...'))`, `toast.error(t('...'))`
+- **DO** `import { toast } from 'vue-sonner'` → `toast.success('...')`, `toast.error('...')` with Greek text
 - **DON'T** use `alert()`, `confirm()`, or `window.prompt()` — ever
 
 ### Tailwind / CSS

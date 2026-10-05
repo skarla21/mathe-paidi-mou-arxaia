@@ -46,7 +46,6 @@ const props = defineProps<{
   } | null
 }>()
 const emit = defineEmits<{ close: []; saved: [] }>()
-const { t } = useI18n()
 const adminFetch = useAdminFetch()
 
 const title = ref('')
@@ -205,7 +204,7 @@ watch(() => props.open, async (val) => {
       }]
     }
   } catch {
-    toast.error(t('common.error'))
+    toast.error('Κάτι πήγε στραβά')
   }
 })
 
@@ -216,12 +215,15 @@ const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 async function uploadFile(file: File) {
   if (uploading.value) return
   if (!ALLOWED_MIMES.includes(file.type as (typeof ALLOWED_MIMES)[number])) {
-    toast.error(t('admin.uploads.fileTypeError'))
+    toast.error('Επιτρέπονται μόνο αρχεία PDF, JPG και PNG')
     return
   }
-  const maxSize = file.type === 'application/pdf' ? MAX_PDF_BYTES : MAX_IMAGE_BYTES
+  const isPdf = file.type === 'application/pdf'
+  const maxSize = isPdf ? MAX_PDF_BYTES : MAX_IMAGE_BYTES
   if (file.size > maxSize) {
-    toast.error(t('admin.uploads.tooLarge'))
+    toast.error(isPdf
+      ? 'Το αρχείο πρέπει να είναι μικρότερο από 50MB'
+      : 'Η εικόνα πρέπει να είναι μικρότερη από 20MB')
     return
   }
   uploading.value = true
@@ -236,9 +238,9 @@ async function uploadFile(file: File) {
     contentUrl.value = res.url
     fileName.value = file.name
     uploadProgress.value = 100
-    toast.success(t('admin.uploads.uploadSuccess'))
+    toast.success('Το αρχείο μεταφορτώθηκε επιτυχώς')
   } catch {
-    toast.error(t('admin.uploads.uploadError'))
+    toast.error('Η μεταφόρτωση απέτυχε')
   } finally {
     clearInterval(interval)
     uploading.value = false
@@ -303,7 +305,7 @@ async function onSubmit() {
     emit('close')
   } catch (e: unknown) {
     const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? t('common.error'))
+    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
     loading.value = false
   }
@@ -316,25 +318,25 @@ async function onSubmit() {
       <UiDialogOverlay />
       <UiDialogContent class="max-w-5xl max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ props.lesson ? t('admin.modal.edit') : t('admin.modal.create') }} — {{ t('admin.lessons') }}</UiDialogTitle>
-          <UiDialogDescription class="sr-only">{{ t('admin.modal.lessonDescription') }}</UiDialogDescription>
+          <UiDialogTitle>{{ props.lesson ? 'Επεξεργασία' : 'Δημιουργία' }} — Υλικό</UiDialogTitle>
+          <UiDialogDescription class="sr-only">Δημιουργία ή επεξεργασία υλικού και ανάθεσή του σε κεφάλαιο, μάθημα ή κατηγορία.</UiDialogDescription>
         </UiDialogHeader>
         <form class="space-y-6" @submit.prevent="onSubmit">
 
           <!-- Basic Info -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.sectionContent') }}</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Περιεχόμενο</p>
             <div class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.title') }}</UiLabel>
+              <UiLabel>Τίτλος</UiLabel>
               <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
-              <p v-if="titleMissing" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.title') }) }}</p>
+              <p v-if="titleMissing" class="text-xs text-destructive">Το πεδίο «Τίτλος» είναι υποχρεωτικό</p>
             </div>
             <div class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.description') }}</UiLabel>
+              <UiLabel>Περιγραφή</UiLabel>
               <UiTextarea v-model="content" :rows="3" />
             </div>
             <div class="space-y-1.5">
-              <UiLabel>{{ t('admin.field.contentFile') }}</UiLabel>
+              <UiLabel>Αρχείο</UiLabel>
               <div
                 class="rounded-lg border-2 border-dashed p-4 text-center transition-colors"
                 :class="dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
@@ -344,8 +346,8 @@ async function onSubmit() {
               >
                 <div class="flex flex-col items-center gap-2">
                   <VIcon name="bi-cloud-arrow-up" class="size-8 text-muted-foreground" />
-                  <p class="text-sm font-medium">{{ t('admin.uploads.dragDrop') }}</p>
-                  <p class="text-xs text-muted-foreground">{{ t('admin.uploads.maxSize') }}</p>
+                  <p class="text-sm font-medium">Σύρε και άφησε PDF ή εικόνα εδώ, ή κάνε κλικ για επιλογή</p>
+                  <p class="text-xs text-muted-foreground">PDF μέγ. 50MB, εικόνες μέγ. 20MB</p>
                   <UiButton
                     type="button"
                     variant="outline"
@@ -353,7 +355,7 @@ async function onSubmit() {
                     :disabled="uploading"
                     @click="fileInput?.click()"
                   >
-                    {{ t('admin.uploads.selectFile') }}
+                    Επιλογή αρχείου
                   </UiButton>
                   <input
                     ref="fileInput"
@@ -365,23 +367,23 @@ async function onSubmit() {
                 </div>
                 <UiProgress v-if="uploading" :model-value="uploadProgress" class="mt-3 h-2" />
                 <div v-else-if="contentUrl" class="mt-3 flex items-center justify-center gap-2">
-                  <span class="truncate text-xs text-muted-foreground max-w-md">{{ fileName || t('admin.lessonModal.fileAttached') }}</span>
+                  <span class="truncate text-xs text-muted-foreground max-w-md">{{ fileName || 'Επισυνάφθηκε αρχείο' }}</span>
                   <UiButton type="button" variant="ghost" size="sm" @click="clearContent">
-                    {{ t('admin.lessonModal.removeFile') }}
+                    Αφαίρεση αρχείου
                   </UiButton>
                 </div>
-                <p v-else class="mt-2 text-xs text-muted-foreground">{{ t('admin.lessonModal.noFile') }}</p>
+                <p v-else class="mt-2 text-xs text-muted-foreground">Δεν έχει επιλεγεί αρχείο</p>
               </div>
             </div>
           </fieldset>
 
           <!-- Pricing -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.price') }}</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Τιμή</p>
             <div class="flex flex-wrap items-center gap-4">
               <div class="flex items-center gap-2">
                 <Checkbox id="lesson-free" v-model="isFree" />
-                <UiLabel for="lesson-free">{{ t('admin.field.isFree') }}</UiLabel>
+                <UiLabel for="lesson-free">Δωρεάν</UiLabel>
               </div>
               <div class="relative min-w-[120px] max-w-[140px] flex-1">
                 <UiInput
@@ -395,14 +397,14 @@ async function onSubmit() {
                 <span
                   class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                   aria-hidden="true"
-                >{{ t('admin.field.currencySymbol') }}</span>
+                >€</span>
               </div>
             </div>
           </fieldset>
 
           <!-- Placements -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{{ t('admin.field.placements') }}</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Τοποθετήσεις</p>
 
             <div class="space-y-3">
             <div
@@ -411,7 +413,7 @@ async function onSubmit() {
               class="flex items-end gap-3 rounded-lg border border-border p-3"
             >
               <div class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.placementType') }}</UiLabel>
+                <UiLabel>Τύπος</UiLabel>
                 <Select
                   :model-value="row.type"
                   @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'subject' | 'chapter' | 'category')"
@@ -420,104 +422,104 @@ async function onSubmit() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="subject">{{ t('admin.placementSubject') }}</SelectItem>
-                    <SelectItem value="chapter">{{ t('admin.placementChapter') }}</SelectItem>
-                    <SelectItem value="category">{{ t('admin.placementCategory') }}</SelectItem>
+                    <SelectItem value="subject">Μάθημα</SelectItem>
+                    <SelectItem value="chapter">Κεφάλαιο</SelectItem>
+                    <SelectItem value="category">Κατηγορία</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <template v-if="row.type === 'subject'">
                 <div class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                  <UiLabel>Τάξη</UiLabel>
                   <Select
                     :model-value="row.gradeId"
                     @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
                   >
                     <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
-                      <SelectValue :placeholder="t('admin.selectGrade')" />
+                      <SelectValue placeholder="Επιλογή τάξης…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
+                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">Το πεδίο «Τάξη» είναι υποχρεωτικό</p>
                 </div>
                 <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                  <UiLabel>Μάθημα</UiLabel>
                   <Select
                     :model-value="row.subjectId"
                     @update:model-value="(v) => (row.subjectId = String(v))"
                   >
                     <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
-                      <SelectValue :placeholder="t('admin.selectSubject')" />
+                      <SelectValue placeholder="Επιλογή μαθήματος…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.subject') }) }}</p>
+                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">Το πεδίο «Μάθημα» είναι υποχρεωτικό</p>
                 </div>
               </template>
 
               <!-- Chapter cascade -->
               <template v-else-if="row.type === 'chapter'">
                 <div class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>{{ t('admin.field.grade') }}</UiLabel>
+                  <UiLabel>Τάξη</UiLabel>
                   <Select
                     :model-value="row.gradeId"
                     @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
                   >
                     <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
-                      <SelectValue :placeholder="t('admin.selectGrade')" />
+                      <SelectValue placeholder="Επιλογή τάξης…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.grade') }) }}</p>
+                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">Το πεδίο «Τάξη» είναι υποχρεωτικό</p>
                 </div>
                 <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>{{ t('admin.field.subject') }}</UiLabel>
+                  <UiLabel>Μάθημα</UiLabel>
                   <Select
                     :model-value="row.subjectId"
                     @update:model-value="(v) => onPlacementSubjectChange(row, String(v))"
                   >
                     <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
-                      <SelectValue :placeholder="t('admin.selectSubject')" />
+                      <SelectValue placeholder="Επιλογή μαθήματος…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.subject') }) }}</p>
+                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">Το πεδίο «Μάθημα» είναι υποχρεωτικό</p>
                 </div>
                 <div v-if="row.subjectId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>{{ t('admin.field.chapter') }}</UiLabel>
+                  <UiLabel>Κεφάλαιο</UiLabel>
                   <Select v-model="row.chapterId">
                     <SelectTrigger :aria-invalid="placementGap(row) === 'chapter' || undefined">
-                      <SelectValue :placeholder="t('admin.selectChapter')" />
+                      <SelectValue placeholder="Επιλογή κεφαλαίου…" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem v-for="c in chaptersForSubject(row.subjectId)" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p v-if="placementGap(row) === 'chapter'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.chapter') }) }}</p>
+                  <p v-if="placementGap(row) === 'chapter'" class="text-xs text-destructive">Το πεδίο «Κεφάλαιο» είναι υποχρεωτικό</p>
                 </div>
               </template>
 
               <!-- Category -->
               <div v-else class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>{{ t('admin.field.category') }}</UiLabel>
+                <UiLabel>Κατηγορία</UiLabel>
                 <Select v-model="row.categoryId">
                   <SelectTrigger :aria-invalid="placementGap(row) === 'category' || undefined">
-                    <SelectValue :placeholder="t('admin.selectCategory')" />
+                    <SelectValue placeholder="Επιλογή κατηγορίας…" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
                   </SelectContent>
                 </Select>
-                <p v-if="placementGap(row) === 'category'" class="text-xs text-destructive">{{ t('admin.fieldRequired', { field: t('admin.field.category') }) }}</p>
+                <p v-if="placementGap(row) === 'category'" class="text-xs text-destructive">Το πεδίο «Κατηγορία» είναι υποχρεωτικό</p>
               </div>
               <UiButton
                 v-if="placements.length > 1"
@@ -525,7 +527,7 @@ async function onSubmit() {
                 variant="ghost"
                 size="sm"
                 class="mb-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                :aria-label="t('admin.removePlacement')"
+                aria-label="Αφαίρεση τοποθέτησης"
                 @click="removePlacement(row.key)"
               >
                 <VIcon name="bi-trash" class="size-4" />
@@ -535,13 +537,13 @@ async function onSubmit() {
 
             <UiButton type="button" variant="outline" size="sm" class="gap-1.5" @click="addPlacement">
               <VIcon name="bi-plus-circle" class="size-4" />
-              {{ t('admin.addPlacement') }}
+              Προσθήκη τοποθέτησης
             </UiButton>
           </fieldset>
 
           <UiDialogFooter>
-            <UiButton type="button" variant="cancel" @click="emit('close')">{{ t('admin.modal.cancel') }}</UiButton>
-            <UiButton type="submit" :disabled="loading">{{ loading ? t('common.loading') : t('admin.modal.save') }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
+            <UiButton type="submit" :disabled="loading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
           </UiDialogFooter>
         </form>
       </UiDialogContent>

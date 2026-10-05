@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<Body>(event).catch(() => ({} as Body))
 
   if (!body || typeof body !== 'object') {
-    throw createError({ statusCode: 400, message: 'Invalid body' })
+    throw createError({ statusCode: 400, message: 'Μη έγκυρα στοιχεία' })
   }
 
   const supabase = serverSupabaseService()
@@ -24,10 +24,10 @@ export default defineEventHandler(async (event) => {
   // Password change
   if (body.currentPassword !== undefined || body.newPassword !== undefined) {
     if (!body.currentPassword || !body.newPassword) {
-      throw createError({ statusCode: 400, message: 'Both currentPassword and newPassword are required' })
+      throw createError({ statusCode: 400, message: 'Απαιτούνται ο τρέχων και ο νέος κωδικός' })
     }
     if (typeof body.newPassword !== 'string' || body.newPassword.length < PASSWORD_MIN_LENGTH) {
-      throw createError({ statusCode: 400, message: 'New password must be at least 8 characters' })
+      throw createError({ statusCode: 400, message: 'Ο κωδικός πρέπει να έχει τουλάχιστον 8 χαρακτήρες' })
     }
 
     const { data: user, error: fetchError } = await supabase
@@ -37,22 +37,22 @@ export default defineEventHandler(async (event) => {
       .single()
 
     if (fetchError || !user) {
-      throw createError({ statusCode: 500, message: 'Failed to fetch user' })
+      throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
     }
     if (!user.password_hash) {
-      throw createError({ statusCode: 400, message: 'This account uses Google login and has no password' })
+      throw createError({ statusCode: 400, message: 'Αυτός ο λογαριασμός συνδέεται με Google και δεν έχει κωδικό' })
     }
 
     const valid = await verifyPassword(body.currentPassword, user.password_hash)
     if (!valid) {
-      throw createError({ statusCode: 400, message: 'Current password is incorrect' })
+      throw createError({ statusCode: 400, message: 'Λάθος τρέχων κωδικός' })
     }
 
     updates.password_hash = await hashPassword(body.newPassword)
   }
 
   if (Object.keys(updates).length === 0) {
-    throw createError({ statusCode: 400, message: 'No valid fields to update' })
+    throw createError({ statusCode: 400, message: 'Δεν υπάρχει κάτι για ενημέρωση' })
   }
 
   const { data, error } = await supabase
@@ -64,7 +64,7 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     console.error('[user/profile.patch]', error.message)
-    throw createError({ statusCode: 500, message: 'Database operation failed' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
 
   return data

@@ -54,7 +54,7 @@ Admin middleware is a placeholder (allows all). Wire Auth.js and set `event.cont
 
 ## i18n & theme
 
-- Locales: `public/locales/el.json`, `public/locales/en.json`. Use `useI18n().t(key)` and `setLocale('el'|'en')`.
+- The interface is Greek only. There is no language toggle.
 - Theme: `useTheme().toggle()` and `init()` in layout; light/dark stored in localStorage.
 
 ## Deploy (Vercel)

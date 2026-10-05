@@ -6,7 +6,11 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: process.env.NODE_ENV !== "production" },
   srcDir: "app",
-  app: {},
+  app: {
+    head: {
+      htmlAttrs: { lang: "el" },
+    },
+  },
   css: [resolve(__dirname, "app/assets/css/main.css")],
   modules: ["@nuxt/eslint"],
   vite: {

@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
     name: 'reset-password',
     maxRequests: 5,
     windowMs: 15 * 60 * 1000,
-    message: 'auth.resetPassword.rateLimited',
+    message: 'Πάρα πολλές αιτήσεις. Παρακαλώ δοκίμασε ξανά αργότερα.',
   })
 
   const body = await readBody<{ token?: string; newPassword?: string }>(event)
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
   if (!token || !newPassword || newPassword.length < PASSWORD_MIN_LENGTH) {
     throw createError({
       statusCode: 400,
-      message: 'auth.resetPassword.missingFields',
+      message: 'Απαιτούνται σύνδεσμος και κωδικός (τουλάχιστον 8 χαρακτήρες).',
     })
   }
 
@@ -32,16 +32,16 @@ export default defineEventHandler(async (event) => {
 
   if (lookupError) {
     console.error('[reset-password]', lookupError.message)
-    throw createError({ statusCode: 500, message: 'auth.resetPassword.error' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
 
   if (active === false) {
-    throw createError({ statusCode: 400, message: 'auth.resetPassword.invalidLink' })
+    throw createError({ statusCode: 400, message: 'Αυτός ο σύνδεσμος δεν είναι έγκυρος ή έχει λήξει.' })
   }
 
   if (active !== true) {
     console.error('[reset-password]', 'password_reset_token_active returned no boolean')
-    throw createError({ statusCode: 500, message: 'auth.resetPassword.error' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
 
   const passwordHash = await hashPassword(newPassword)
@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     console.error('[reset-password]', error.message)
-    throw createError({ statusCode: 500, message: 'auth.resetPassword.error' })
+    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
 
   if (consumed === true) {
@@ -61,9 +61,9 @@ export default defineEventHandler(async (event) => {
   }
 
   if (consumed === false) {
-    throw createError({ statusCode: 400, message: 'auth.resetPassword.invalidLink' })
+    throw createError({ statusCode: 400, message: 'Αυτός ο σύνδεσμος δεν είναι έγκυρος ή έχει λήξει.' })
   }
 
   console.error('[reset-password]', 'consume_password_reset returned no boolean')
-  throw createError({ statusCode: 500, message: 'auth.resetPassword.error' })
+  throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
 })

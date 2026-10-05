@@ -16,7 +16,6 @@ interface Lesson {
 
 const route = useRoute()
 const categoryId = route.params.categoryId as string
-const { t } = useI18n()
 
 const category = ref<Category | null>(null)
 const lessons = ref<Lesson[]>([])
@@ -27,7 +26,7 @@ const { data: lessonsData } = await useFetch('/api/lessons', { query: { category
 category.value = categoryData.value as Category | null
 lessons.value = (lessonsData.value as unknown as Lesson[]) ?? []
 
-useHead(() => ({ title: category.value ? category.value.name : t('category.title') }))
+useHead(() => ({ title: category.value ? category.value.name : 'Κατηγορία' }))
 
 onMounted(() => {
   if (import.meta.client) {
@@ -53,9 +52,9 @@ onMounted(() => {
     </div>
     <template v-else>
       <div id="category-title">
-        <LayoutPageIntro :eyebrow="t('nav.categories')" :title="category.name" :lead="category.description ?? undefined" />
+        <LayoutPageIntro eyebrow="Κατηγορίες" :title="category.name" :lead="category.description ?? undefined" />
       </div>
-      <h2 id="category-lessons" class="font-heading text-xl font-semibold mt-8">{{ t('category.lessons') }}</h2>
+      <h2 id="category-lessons" class="font-heading text-xl font-semibold mt-8">Υλικό</h2>
       <div class="space-y-3 mt-4">
         <NuxtLink
           v-for="l in lessons"
@@ -68,7 +67,7 @@ onMounted(() => {
           </UiCard>
         </NuxtLink>
       </div>
-      <p v-if="lessons.length === 0" class="text-muted-foreground mt-4">{{ t('category.noLessonsYet') }}</p>
+      <p v-if="lessons.length === 0" class="text-muted-foreground mt-4">Δεν υπάρχει ακόμη υλικό.</p>
     </template>
   </div>
 </template>
