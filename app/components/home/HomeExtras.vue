@@ -65,7 +65,7 @@ try {
           </span>
           <h3 class="font-heading text-xl font-bold">{{ category.name }}</h3>
           <p v-if="category.description" class="mt-2 text-sm text-muted-foreground">{{ category.description }}</p>
-          <NuxtLink :to="`/category/${category.id}`" class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-laurel">
+          <NuxtLink :to="`/category/${category.slug}`" class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-laurel">
             Άνοιγμα κατηγορίας
             <VIcon name="bi-arrow-right" class="size-3.5" aria-hidden="true" />
           </NuxtLink>

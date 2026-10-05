@@ -25,9 +25,7 @@ const route = useRoute()
 const notesActive = computed(() =>
   route.path === '/notes'
   || route.path.startsWith('/grade/')
-  || route.path.startsWith('/chapter/')
-  || route.path.startsWith('/category/')
-  || route.path.startsWith('/lesson/'),
+  || route.path.startsWith('/category/'),
 )
 
 const open = ref(false)
@@ -44,6 +42,8 @@ let closeTimer: ReturnType<typeof setTimeout> | null = null
 const activeSubjects = computed(() =>
   activeGradeId.value ? subjectsForGrade(activeGradeId.value) : [],
 )
+const activeGrade = computed(() => grades.value.find((grade) => grade.id === activeGradeId.value) ?? null)
+const activeSubject = computed(() => activeSubjects.value.find((subject) => subject.id === activeSubjectId.value) ?? null)
 const activeChapters = computed(() =>
   activeSubjectId.value ? chaptersForSubject(activeSubjectId.value) : [],
 )
@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-for="grade in grades"
             :key="grade.id"
-            :to="`/grade/${grade.id}`"
+            :to="`/grade/${grade.slug}`"
             class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-laurel"
             :class="activeGradeId === grade.id && 'bg-card text-foreground shadow-sm'"
             @mouseenter="selectGrade(grade.id)"
@@ -214,10 +214,10 @@ onBeforeUnmount(() => {
           <span class="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Μαθήματα
           </span>
+          <template v-for="subject in activeSubjects" :key="subject.id">
           <NuxtLink
-            v-for="subject in activeSubjects"
-            :key="subject.id"
-            :to="`/grade/${activeGradeId}/${subject.id}`"
+            v-if="activeGrade?.slug && subject.slug"
+            :to="`/grade/${activeGrade.slug}/${subject.slug}`"
             class="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
             :class="activeSubjectId === subject.id && 'bg-card shadow-sm'"
             @mouseenter="selectSubject(subject.id)"
@@ -226,6 +226,7 @@ onBeforeUnmount(() => {
           >
             {{ subject.name }}
           </NuxtLink>
+          </template>
           <p v-if="activeGradeId && activeSubjects.length === 0" class="px-3 py-2 text-sm text-muted-foreground">
             Δεν υπάρχουν ακόμη μαθήματα σε αυτή την τάξη.
           </p>
@@ -237,15 +238,16 @@ onBeforeUnmount(() => {
           <p v-if="activeSubjectId && isChaptersLoading(activeSubjectId)" class="px-3 py-2 text-sm text-muted-foreground">
             Φόρτωση...
           </p>
+          <template v-for="chapter in activeChapters" :key="chapter.id">
           <NuxtLink
-            v-for="chapter in activeChapters"
-            :key="chapter.id"
-            :to="`/chapter/${chapter.id}`"
+            v-if="activeGrade?.slug && activeSubject?.slug && chapter.slug"
+            :to="`/grade/${activeGrade.slug}/${activeSubject.slug}/${chapter.slug}`"
             class="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-secondary"
             @click="onNavigate"
           >
             {{ chapter.title }}
           </NuxtLink>
+          </template>
           <p
             v-if="activeSubjectId && !isChaptersLoading(activeSubjectId) && chaptersFailed(activeSubjectId)"
             class="px-3 py-2 text-sm text-muted-foreground"
@@ -307,7 +309,8 @@ onBeforeUnmount(() => {
         </button>
         <div v-if="mobileGradeId === grade.id" class="ml-2 flex flex-col gap-1 pb-2">
           <NuxtLink
-            :to="`/grade/${grade.id}`"
+            v-if="grade.slug"
+            :to="`/grade/${grade.slug}`"
             class="rounded-lg px-2 py-1.5 text-sm text-primary hover:bg-secondary"
             @click="onNavigate"
           >
@@ -325,7 +328,8 @@ onBeforeUnmount(() => {
             </button>
             <div v-if="mobileSubjectId === subject.id" class="ml-2 flex flex-col">
               <NuxtLink
-                :to="`/grade/${grade.id}/${subject.id}`"
+                v-if="grade.slug && subject.slug"
+                :to="`/grade/${grade.slug}/${subject.slug}`"
                 class="rounded-lg px-2 py-1.5 text-sm text-primary hover:bg-secondary"
                 @click="onNavigate"
               >
@@ -337,15 +341,16 @@ onBeforeUnmount(() => {
               <p v-else-if="!isChaptersLoading(subject.id) && chaptersFailed(subject.id)" class="px-2 py-1 text-xs text-muted-foreground">
                 Κάτι πήγε στραβά
               </p>
+              <template v-for="chapter in chaptersForSubject(subject.id)" :key="chapter.id">
               <NuxtLink
-                v-for="chapter in chaptersForSubject(subject.id)"
-                :key="chapter.id"
-                :to="`/chapter/${chapter.id}`"
+                v-if="grade.slug && subject.slug && chapter.slug"
+                :to="`/grade/${grade.slug}/${subject.slug}/${chapter.slug}`"
                 class="rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
                 @click="onNavigate"
               >
                 {{ chapter.title }}
               </NuxtLink>
+              </template>
             </div>
           </div>
         </div>

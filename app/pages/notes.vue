@@ -4,6 +4,7 @@ import UiSkeleton from '~/components/ui/Skeleton.vue'
 
 interface Category {
   id: string
+  slug: string
   name: string
   description?: string | null
   order: number
@@ -47,7 +48,7 @@ onMounted(() => {
       <NuxtLink
         v-for="cat in categories"
         :key="cat.id"
-        :to="`/category/${cat.id}`"
+        :to="`/category/${cat.slug}`"
         class="block group"
       >
         <UiCard class="bobble-card rounded-3xl border-border/80 p-5 shadow-sm transition-shadow hover:shadow-md">

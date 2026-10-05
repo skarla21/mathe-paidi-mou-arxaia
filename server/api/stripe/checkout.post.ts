@@ -1,5 +1,6 @@
 import Stripe from 'stripe'
 import { requireAuth } from '../../utils/requireAuth'
+import { canonicalLessonPaths } from '../../utils/contentPath'
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event)
@@ -25,11 +26,13 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Lesson has no price' })
   }
   const origin = getRequestURL(event).origin
+  const paths = await canonicalLessonPaths(supabase, [lessonId])
+  const lessonPath = paths.get(lessonId) ?? `/lesson/${lessonId}`
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     line_items: [{ price_data: { currency: 'eur', unit_amount: price, product_data: { name: lesson.title } }, quantity: 1 }],
-    success_url: `${origin}/lesson/${lessonId}?success=1`,
-    cancel_url: `${origin}/lesson/${lessonId}?cancel=1`,
+    success_url: `${origin}${lessonPath}?success=1`,
+    cancel_url: `${origin}${lessonPath}?cancel=1`,
     client_reference_id: userId,
     metadata: { lessonId, userId },
   })

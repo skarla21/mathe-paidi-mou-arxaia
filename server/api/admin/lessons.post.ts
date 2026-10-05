@@ -1,6 +1,8 @@
 import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
 import { placementRowsForCreate } from '../../utils/placementOrder'
+import { nextLessonSlug } from '../../utils/contentSlug'
+import { isLessonSlugConflict, isUniqueViolation } from '../../utils/uniqueViolation'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -21,31 +23,38 @@ export default defineEventHandler(async (event) => {
     }
   }
   const supabase = serverSupabaseService()
+  const title = body.title.trim()
+  let placementErr: { code?: string; message?: string } | null = null
 
-  // Insert lesson (no parent columns)
-  const { data, error } = await supabase.from('lessons').insert({
-    title: body.title.trim(),
-    content: body.content ?? null,
-    is_free: body.is_free ?? true,
-    price: body.is_free ? 0 : (body.price ?? 0),
-    content_url: body.content_url ?? null,
-  }).select().single()
-  if (error) {
-    console.error('[admin/lessons.post]', error.message)
-    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
-  }
-
-  const placementRows = await placementRowsForCreate(supabase, data.id, body.placements)
-  const { error: placementErr } = await supabase.from('lesson_placements').insert(placementRows)
-  if (placementErr) {
-    console.error('[admin/lessons.post] placements', placementErr.message)
-    // Clean up the lesson if placements fail
-    await supabase.from('lessons').delete().eq('id', data.id)
-    if (placementErr.code === '23505') {
-      throw createError({ statusCode: 409, message: 'Αυτό το υλικό υπάρχει ήδη σε αυτό το μάθημα, κεφάλαιο ή κατηγορία' })
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const slug = await nextLessonSlug(supabase, title, body.placements)
+    const { data, error } = await supabase.from('lessons').insert({
+      title,
+      slug,
+      content: body.content ?? null,
+      is_free: body.is_free ?? true,
+      price: body.is_free ? 0 : (body.price ?? 0),
+      content_url: body.content_url ?? null,
+    }).select().single()
+    if (error || !data) {
+      if (isUniqueViolation(error) && attempt < 2) continue
+      console.error('[admin/lessons.post]', error?.message)
+      throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
     }
-    throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
+
+    const placementRows = await placementRowsForCreate(supabase, data.id, body.placements)
+    const placed = await supabase.from('lesson_placements').insert(placementRows)
+    if (!placed.error) return data
+
+    placementErr = placed.error
+    console.error('[admin/lessons.post] placements', placed.error.message)
+    await supabase.from('lessons').delete().eq('id', data.id)
+    if (isLessonSlugConflict(placed.error) && attempt < 2) continue
+    break
   }
 
-  return data
+  if (placementErr && placementErr.code === '23505' && !isLessonSlugConflict(placementErr)) {
+    throw createError({ statusCode: 409, message: 'Αυτό το υλικό υπάρχει ήδη σε αυτό το μάθημα, κεφάλαιο ή κατηγορία' })
+  }
+  throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
 })

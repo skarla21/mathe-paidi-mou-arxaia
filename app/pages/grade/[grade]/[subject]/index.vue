@@ -4,40 +4,41 @@ import UiCardContent from '~/components/ui/CardContent.vue'
 import type { Grade, Subject, Chapter } from '~/types/database'
 
 const route = useRoute()
-const gradeId = route.params.grade as string
-const subjectId = route.params.subject as string
+const gradeSlug = route.params.grade as string
+const subjectSlug = route.params.subject as string
 
-const grade = ref<Grade | null>(null)
-const subject = ref<Subject | null>(null)
-
-const { data: gradesData } = await useFetch('/api/grades')
-const { data: subjectsData } = await useFetch('/api/subjects', {
-  query: { grade_id: gradeId },
+const { data: gradesData, error: gradesError } = await useFetch<Grade[]>('/api/grades')
+throwIfMissing(gradesError.value, false)
+const grade = gradesData.value?.find((g) => g.slug === gradeSlug)
+throwIfMissing(null, !grade)
+const { data: subjectsData, error: subjectsError } = await useFetch<Subject[]>('/api/subjects', {
+  query: { grade_id: grade!.id },
 })
+throwIfMissing(subjectsError.value, false)
+const subject = subjectsData.value?.find((s) => s.slug === subjectSlug)
+throwIfMissing(null, !subject)
 const { data: chaptersData } = await useFetch<Chapter[]>('/api/chapters', {
-  query: { subject_id: subjectId },
+  query: { subject_id: subject!.id },
 })
-
-grade.value =
-  (gradesData.value as Grade[] | null)?.find((g) => g.id === gradeId) ?? null
-subject.value =
-  (subjectsData.value as Subject[] | null)?.find((s) => s.id === subjectId) ?? null
+type SubjectLesson = { id: string; slug: string; title: string; is_free: boolean }
+const { data: subjectLessonsData } = await useFetch<SubjectLesson[]>('/api/lessons', {
+  query: { subject_id: subject!.id },
+})
+const subjectLessons = computed(() => subjectLessonsData.value ?? [])
 
 const chapters = computed(() =>
   (chaptersData.value ?? []).slice().sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)),
 )
 
 useHead(() => ({
-  title: subject.value
-    ? `${subject.value.name} - ${grade.value?.name}`
-    : 'Μάθημα',
+  title: subject ? `${subject.name} - ${grade?.name}` : 'Μάθημα',
 }))
 </script>
 
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <NuxtLink
-      :to="`/grade/${gradeId}`"
+      :to="`/grade/${grade?.slug}`"
       class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
     >
       <VIcon name="bi-arrow-left" class="size-3.5" aria-hidden="true" />
@@ -53,7 +54,7 @@ useHead(() => ({
         <NuxtLink
           v-for="chapter in chapters"
           :key="chapter.id"
-          :to="`/chapter/${chapter.id}`"
+          :to="`/grade/${grade?.slug}/${subject?.slug}/${chapter.slug}`"
           class="block"
         >
           <UiCard class="bobble-card flex items-center justify-between rounded-3xl p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -77,8 +78,22 @@ useHead(() => ({
       </div>
     </div>
 
+    <div v-if="subjectLessons.length" class="mt-8">
+      <h2 class="font-heading text-xl font-semibold mb-4">Υλικό</h2>
+      <div class="space-y-3">
+        <NuxtLink
+          v-for="lesson in subjectLessons"
+          :key="lesson.id"
+          :to="`/grade/${grade?.slug}/${subject?.slug}/lesson/${lesson.slug}`"
+          class="block rounded-3xl border border-border bg-card px-4 py-3 font-medium shadow-sm hover:bg-secondary"
+        >
+          {{ lesson.title }}
+        </NuxtLink>
+      </div>
+    </div>
+
     <p
-      v-else
+      v-if="chapters.length === 0 && subjectLessons.length === 0"
       class="text-muted-foreground mt-8"
     >
       Δεν υπάρχουν ακόμη κεφάλαια σε αυτό το μάθημα.

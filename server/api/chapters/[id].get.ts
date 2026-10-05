@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   // Fetch lessons through lesson_placements
   const { data: placements, error: plErr } = await supabase
     .from('lesson_placements')
-    .select('order, lessons(id, title, is_free, price, content_url, created_at)')
+    .select('order, lessons(id, slug, title, is_free, price, created_at)')
     .eq('chapter_id', id)
     .order('order', { ascending: true })
   if (plErr) {

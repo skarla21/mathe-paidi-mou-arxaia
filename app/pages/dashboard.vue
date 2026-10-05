@@ -10,7 +10,7 @@ definePageMeta({ middleware: 'auth' })
 useHead(() => ({ title: 'Πίνακας' }))
 
 const { data: purchasesData, pending } = await useFetch<
-  { id: string; title: string; is_free: boolean; price: number }[]
+  { id: string; title: string; is_free: boolean; price: number; url: string | null }[]
 >('/api/user/purchases')
 
 const lessons = computed(() => purchasesData.value ?? [])
@@ -61,7 +61,7 @@ onMounted(() => {
         <NuxtLink
           v-for="c in lessons"
           :key="c.id"
-          :to="`/lesson/${c.id}`"
+          :to="c.url || `/lesson/${c.id}`"
           class="block group"
         >
           <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">

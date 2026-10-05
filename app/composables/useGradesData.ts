@@ -4,12 +4,14 @@
 
 interface Grade {
   id: string
+  slug: string
   name: string
   order: number
 }
 
 interface Subject {
   id: string
+  slug: string
   name: string
   grade_id: string
 }

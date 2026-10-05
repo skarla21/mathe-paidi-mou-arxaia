@@ -6,44 +6,49 @@ import UiCardContent from '~/components/ui/CardContent.vue'
 
 interface Chapter {
   id: string
+  slug: string
   title: string
   subject_id: string
 }
 
 interface Subject {
   id: string
+  slug: string
   name: string
   grade_id: string
 }
 
 interface Grade {
   id: string
+  slug: string
   name: string
   description?: string | null
   order?: number
 }
 
 const route = useRoute()
-const gradeId = route.params.grade as string
+const gradeSlug = route.params.grade as string
 
 const subjects = ref<Subject[]>([])
 const chapters = ref<Chapter[]>([])
 
-const { data: gradeData } = await useFetch('/api/grades')
-const gradeFromList = computed(() => (gradeData.value as Grade[])?.find((g) => g.id === gradeId))
+const { data: gradeData, error: gradesError } = await useFetch<Grade[]>('/api/grades')
+throwIfMissing(gradesError.value, false)
+const gradeFromList = gradeData.value?.find((g) => g.slug === gradeSlug)
+throwIfMissing(null, !gradeFromList)
+const gradeId = gradeFromList!.id
 
-const { data: subjectsData } = await useFetch('/api/subjects', { query: { grade_id: gradeId } })
-subjects.value = (subjectsData.value as Subject[]) ?? []
-
-const { data: chaptersData } = await useFetch('/api/chapters', { query: { grade_id: gradeId } })
-chapters.value = (chaptersData.value as Chapter[]) ?? []
+const { data: subjectsData } = await useFetch<Subject[]>('/api/subjects', { query: { grade_id: gradeId } })
+subjects.value = subjectsData.value ?? []
+const { data: chaptersData } = await useFetch<Chapter[]>('/api/chapters', { query: { grade_id: gradeId } })
+chapters.value = chaptersData.value ?? []
 
 function chaptersForSubject(subjectId: string) {
   return chapters.value.filter((c) => c.subject_id === subjectId)
 }
 
 useHead(() => ({
-  title: gradeFromList.value ? `${gradeFromList.value.name} - Τάξεις` : 'Τάξη',
+  title: gradeFromList ? `${gradeFromList.name} - Τάξεις` : 'Τάξη',
 }))
 
 onMounted(() => {
@@ -73,7 +78,7 @@ onMounted(() => {
           <NuxtLink
             v-for="c in chaptersForSubject(subj.id)"
             :key="c.id"
-            :to="`/chapter/${c.id}`"
+            :to="`/grade/${gradeFromList?.slug}/${subj.slug}/${c.slug}`"
             class="block"
           >
             <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">

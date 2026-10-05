@@ -1,6 +1,8 @@
 import { serverSupabaseService } from "../../utils/supabaseServer";
 import { requireAdmin } from "../../utils/requireAdmin";
-import { safeStorageName } from "../../utils/safeStorageName";
+import { randomUUID } from "node:crypto";
+import { storedFileName } from "../../utils/safeStorageName";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_PDF_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -27,6 +29,33 @@ function validateMagicBytes(data: Buffer, mimeType: string): boolean {
 }
 
 const IMAGE_TYPES = ["image/jpeg", "image/png"] as const;
+
+function isNameTaken(error: { message?: string; status?: number; statusCode?: string | number }): boolean {
+  const status = Number(error.status ?? error.statusCode);
+  if (status === 409) return true;
+  return /already exists|duplicate/i.test(error.message ?? "");
+}
+
+async function uploadUnique(
+  supabase: SupabaseClient,
+  folder: string,
+  filename: string,
+  mimeType: string,
+  data: Buffer,
+) {
+  let lastError: unknown = new Error("Could not allocate a storage name");
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const path = `${folder}/${storedFileName(filename, mimeType, randomUUID().slice(0, 8))}`;
+    const { data: upload, error } = await supabase.storage.from("uploads").upload(path, data, {
+      contentType: mimeType,
+      upsert: false,
+    });
+    if (!error && upload) return upload;
+    lastError = error ?? lastError;
+    if (!error || !isNameTaken(error)) throw error ?? lastError;
+  }
+  throw lastError;
+}
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -74,18 +103,25 @@ export default defineEventHandler(async (event) => {
     });
   }
   const supabase = serverSupabaseService();
-  const safeName = safeStorageName(file.filename);
-  const path = isImage
-    ? `entity-images/${entity}-${Date.now()}-${safeName}`
-    : `lesson-content/${Date.now()}-${safeName}`;
-  const { data: upload, error: uploadError } = await supabase.storage
-    .from("uploads")
-    .upload(path, file.data, {
-      contentType: mimeType || "application/pdf",
-      upsert: false,
-    });
-  if (uploadError) {
-    console.error("[admin/upload] storage", uploadError.message);
+  const folder = isImage ? "entity-images" : "lesson-content";
+  const entityPrefix = entity.replace(/[\\/]/g, "").replace(/[^A-Za-z0-9-]/g, "") || "item";
+  const filename = isImage ? `${entityPrefix}-${file.filename}` : file.filename;
+  let upload;
+  try {
+    upload = await uploadUnique(
+      supabase,
+      folder,
+      filename,
+      mimeType || "application/pdf",
+      file.data,
+    );
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : typeof error === "object" && error && "message" in error
+        ? String(error.message)
+        : "Upload failed";
+    console.error("[admin/upload] storage", message);
     throw createError({ statusCode: 500, message: "Κάτι πήγε στραβά" });
   }
   const { data: urlData } = supabase.storage

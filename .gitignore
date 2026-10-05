@@ -28,3 +28,6 @@ logs
 
 # Visual brainstorming companion
 .superpowers/
+
+# Supabase CLI local state
+supabase/.temp/

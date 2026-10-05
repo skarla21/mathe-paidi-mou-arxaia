@@ -2,6 +2,8 @@ import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
 import { placementRowsForUpdate } from '../../../utils/placementOrder'
 import { removeUnusedLessonContent } from '../../../utils/lessonStorage'
+import { stableLessonSlug } from '../../../utils/contentSlug'
+import { isLessonSlugConflict, isUniqueViolation } from '../../../utils/uniqueViolation'
 
 type PlacementInput = {
   subject_id?: string | null
@@ -75,7 +77,18 @@ export default defineEventHandler(async (event) => {
   }
 
   if (body.placements !== undefined) {
+    let originalSlug = ''
+    let appliedSlug = ''
     try {
+      const { data: existingLesson, error: lessonLookupError } = await supabase
+        .from('lessons')
+        .select('slug')
+        .eq('id', id)
+        .maybeSingle()
+      if (lessonLookupError || !existingLesson) throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+      originalSlug = existingLesson.slug ?? ''
+      appliedSlug = originalSlug
+
       const { data: previous, error: prevErr } = await supabase
         .from('lesson_placements')
         .select('lesson_id, subject_id, chapter_id, category_id, order')
@@ -85,26 +98,52 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
       }
 
-      const placementRows = await placementRowsForUpdate(supabase, id, body.placements, previous ?? [])
+      let placed = false
+      for (let attempt = 0; attempt < 3 && !placed; attempt += 1) {
+        const slug = await stableLessonSlug(supabase, originalSlug, body.placements, id)
+        if (slug !== originalSlug) {
+          const { error: slugError } = await supabase.from('lessons').update({ slug }).eq('id', id)
+          if (slugError) {
+            if ((isLessonSlugConflict(slugError) || isUniqueViolation(slugError)) && attempt < 2) continue
+            console.error('[admin/lessons/[id].patch] slug', slugError.message)
+            throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+          }
+          appliedSlug = slug
+        }
 
-      const { error: delErr } = await supabase.from('lesson_placements').delete().eq('lesson_id', id)
-      if (delErr) {
-        console.error('[admin/lessons/[id].patch] delete placements', delErr.message)
-        throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
-      }
-      const { error: insErr } = await supabase.from('lesson_placements').insert(placementRows)
-      if (insErr) {
+        const placementRows = await placementRowsForUpdate(supabase, id, body.placements, previous ?? [])
+        const { error: delErr } = await supabase.from('lesson_placements').delete().eq('lesson_id', id)
+        if (delErr) {
+          console.error('[admin/lessons/[id].patch] delete placements', delErr.message)
+          throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
+        }
+        const { error: insErr } = await supabase.from('lesson_placements').insert(placementRows)
+        if (!insErr) {
+          placed = true
+          break
+        }
         console.error('[admin/lessons/[id].patch] insert placements', insErr.message)
         if (previous?.length) {
           const { error: restoreErr } = await supabase.from('lesson_placements').insert(previous)
           if (restoreErr) console.error('[admin/lessons/[id].patch] restore placements', restoreErr.message)
         }
+        if (appliedSlug !== originalSlug) {
+          const { error: restoreSlugErr } = await supabase.from('lessons').update({ slug: originalSlug || null }).eq('id', id)
+          if (restoreSlugErr) console.error('[admin/lessons/[id].patch] restore slug', restoreSlugErr.message)
+          else appliedSlug = originalSlug
+        }
+        if (isLessonSlugConflict(insErr) && attempt < 2) continue
         if (insErr.code === '23505') {
           throw createError({ statusCode: 409, message: 'Αυτό το υλικό υπάρχει ήδη σε αυτό το μάθημα, κεφάλαιο ή κατηγορία' })
         }
         throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
       }
+      if (!placed) throw createError({ statusCode: 500, message: 'Η ανάθεση δεν αποθηκεύτηκε' })
     } catch (err) {
+      if (appliedSlug !== originalSlug) {
+        const { error: restoreSlugErr } = await supabase.from('lessons').update({ slug: originalSlug || null }).eq('id', id)
+        if (restoreSlugErr) console.error('[admin/lessons/[id].patch] restore slug', restoreSlugErr.message)
+      }
       if (replaceContent) {
         const { error: restoreContentErr } = await supabase
           .from('lessons')

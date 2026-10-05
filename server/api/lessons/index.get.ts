@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
   const supabase = serverSupabaseAnon()
   let q = supabase
     .from('lesson_placements')
-    .select('order, lessons(id, title, is_free, price, content_url, created_at)')
+    .select('order, lessons(id, slug, title, is_free, price, created_at)')
   if (subjectId) q = q.eq('subject_id', subjectId)
   if (chapterId) q = q.eq('chapter_id', chapterId)
   if (categoryId) q = q.eq('category_id', categoryId)

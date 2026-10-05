@@ -9,15 +9,15 @@ export default defineEventHandler(async (event) => {
   const { data: category, error: catErr } = await supabase
     .from('categories')
     .select('*')
-    .eq('id', id)
-    .single()
+    .eq('slug', id)
+    .maybeSingle()
   if (catErr || !category) throw createError({ statusCode: 404, message: 'Category not found' })
 
   // Fetch lessons through lesson_placements
   const { data: placements, error: plErr } = await supabase
     .from('lesson_placements')
-    .select('order, lessons(id, title, is_free, price, content_url, created_at)')
-    .eq('category_id', id)
+    .select('order, lessons(id, slug, title, is_free, price, created_at)')
+    .eq('category_id', category.id)
     .order('order', { ascending: true })
   if (plErr) {
     console.error('[categories/[id].get]', plErr.message)

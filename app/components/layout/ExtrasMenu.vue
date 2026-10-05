@@ -85,7 +85,7 @@ onBeforeUnmount(clearCloseTimer)
         <NuxtLink
           v-for="category in categories"
           :key="category.id"
-          :to="`/category/${category.id}`"
+          :to="`/category/${category.slug}`"
           class="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-secondary"
           @click="onNavigate"
         >
@@ -140,7 +140,7 @@ onBeforeUnmount(clearCloseTimer)
       <NuxtLink
         v-for="category in categories"
         :key="category.id"
-        :to="`/category/${category.id}`"
+        :to="`/category/${category.slug}`"
         class="rounded-lg px-2 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
         @click="onNavigate"
       >

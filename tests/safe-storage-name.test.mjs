@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { safeStorageName } from '../server/utils/safeStorageName.ts'
+import { extensionForMime, safeStorageName, storedFileName } from '../server/utils/safeStorageName.ts'
 
 function publicPath(name) {
   const url = new URL(encodeURI(`https://proj.supabase.co/storage/v1/object/public/uploads/lesson-content/1-${name}`))
@@ -19,8 +19,20 @@ describe('safeStorageName', () => {
     assert.equal(name.endsWith('.pdf'), true)
   })
 
-  it('uses an ascii fallback when the name has no latin letters or digits', () => {
-    assert.equal(safeStorageName('Αρχαία.pdf'), 'file.pdf')
+  it('turns a Greek file name into an ELOT slug', () => {
+    assert.equal(safeStorageName('Αρχαία Ελληνικά.pdf'), 'archaia-ellinika.pdf')
+  })
+
+  it('turns an English file name into kebab case', () => {
+    assert.equal(safeStorageName('Ancient Greek Grammar.pdf'), 'ancient-greek-grammar.pdf')
+  })
+
+  it('uses the mime type when the file name has no extension', () => {
+    assert.equal(extensionForMime('image/jpeg'), 'jpg')
+    assert.equal(extensionForMime('image/png'), 'png')
+    assert.equal(extensionForMime('application/pdf'), 'pdf')
+    assert.equal(storedFileName('photo', 'image/jpeg', 'abcd1234'), 'photo-abcd1234.jpg')
+    assert.equal(storedFileName('notes.pdf', 'application/pdf', 'abcd1234'), 'notes-abcd1234.pdf')
   })
 
   it('collapses slash traversal into a single file name', () => {

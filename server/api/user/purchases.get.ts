@@ -1,5 +1,6 @@
 import { requireAuth } from '../../utils/requireAuth'
 import { serverSupabaseService } from '../../utils/supabaseServer'
+import { canonicalLessonPaths } from '../../utils/contentPath'
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event)
@@ -16,5 +17,9 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 500, message: 'Database operation failed' })
   }
 
-  return (data ?? []).map((p: Record<string, unknown>) => p.lessons).filter(Boolean)
+  const lessons = (data ?? [])
+    .map((p: Record<string, unknown>) => p.lessons as { id: string; title: string; is_free: boolean; price: number } | null)
+    .filter((lesson): lesson is { id: string; title: string; is_free: boolean; price: number } => Boolean(lesson))
+  const paths = await canonicalLessonPaths(supabase, lessons.map((lesson) => lesson.id))
+  return lessons.map((lesson) => ({ ...lesson, url: paths.get(lesson.id) ?? null }))
 })

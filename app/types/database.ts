@@ -3,12 +3,14 @@
 export interface Grade {
   id: string
   name: string
+  slug: string
   order: number
 }
 
 export interface Subject {
   id: string
   name: string
+  slug: string
   grade_id: string
   image_url?: string | null
   order: number
@@ -19,6 +21,7 @@ export interface Subject {
 export interface Category {
   id: string
   name: string
+  slug: string
   description: string | null
   image_url?: string | null
   order: number
@@ -28,6 +31,7 @@ export interface Category {
 export interface Chapter {
   id: string
   title: string
+  slug: string
   description: string | null
   grade_id: string
   subject_id: string
@@ -54,6 +58,7 @@ export interface LessonPlacement {
 export interface Lesson {
   id: string
   title: string
+  slug: string
   content: string | null
   is_free: boolean
   price: number

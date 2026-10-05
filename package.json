@@ -1,6 +1,9 @@
 {
   "name": "mathe-paidi-mou-arxaia",
   "type": "module",
+  "imports": {
+    "#shared/utils/slugify.mjs": "./shared/utils/slugify.mjs"
+  },
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {

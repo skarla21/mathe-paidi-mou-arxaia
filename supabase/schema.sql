@@ -45,6 +45,7 @@ create index if not exists password_reset_tokens_expires_at_idx on public.passwo
 create table if not exists public.grades (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  slug text,
   "order" int not null default 0
 );
 create index if not exists grades_order_idx on public.grades("order");
@@ -53,6 +54,7 @@ create index if not exists grades_order_idx on public.grades("order");
 create table if not exists public.subjects (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  slug text,
   grade_id uuid not null references public.grades(id) on delete cascade,
   image_url text,
   "order" int not null default 0
@@ -64,6 +66,7 @@ create index if not exists subjects_order_idx on public.subjects("order");
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
+  slug text,
   description text,
   image_url text,
   "order" int not null default 0,
@@ -75,6 +78,7 @@ create index if not exists categories_order_idx on public.categories("order");
 create table if not exists public.chapters (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  slug text,
   description text,
   grade_id uuid not null references public.grades(id) on delete cascade,
   subject_id uuid not null references public.subjects(id) on delete cascade,
@@ -91,6 +95,7 @@ create index if not exists chapters_title_idx on public.chapters(title);
 create table if not exists public.lessons (
   id uuid primary key default gen_random_uuid(),
   title text not null,
+  slug text,
   content text,
   is_free boolean not null default true,
   price int not null default 0,
@@ -672,6 +677,86 @@ create trigger lesson_ratings_set_updated_at
 create trigger lesson_comments_set_updated_at
   before update on public.lesson_comments
   for each row execute function public.set_updated_at();
+
+-- Slugs for public URLs. Existing databases already have these tables.
+alter table public.grades add column if not exists slug text;
+alter table public.subjects add column if not exists slug text;
+alter table public.chapters add column if not exists slug text;
+alter table public.categories add column if not exists slug text;
+alter table public.lessons add column if not exists slug text;
+create unique index if not exists grades_slug_key on public.grades (slug);
+create unique index if not exists subjects_grade_slug_key on public.subjects (grade_id, slug);
+create unique index if not exists chapters_subject_slug_key on public.chapters (subject_id, slug);
+create unique index if not exists categories_slug_key on public.categories (slug);
+
+create or replace function public.assert_lesson_slug_available()
+returns trigger
+language plpgsql
+as $$
+declare
+  conflict boolean;
+  lesson_slug text;
+begin
+  if tg_table_name = 'lessons' then
+    if tg_op = 'UPDATE' and new.slug is not distinct from old.slug then
+      return new;
+    end if;
+    if new.slug is null or new.slug = '' then
+      return new;
+    end if;
+    select exists (
+      select 1
+      from public.lesson_placements mine
+      join public.lesson_placements other
+        on other.lesson_id <> new.id
+       and (
+         (mine.chapter_id is not null and other.chapter_id = mine.chapter_id)
+         or (mine.subject_id is not null and other.subject_id = mine.subject_id)
+         or (mine.category_id is not null and other.category_id = mine.category_id)
+       )
+      join public.lessons other_lesson on other_lesson.id = other.lesson_id
+      where mine.lesson_id = new.id
+        and other_lesson.slug = new.slug
+    ) into conflict;
+    if conflict then
+      raise exception 'lesson slug taken' using errcode = '23505';
+    end if;
+    return new;
+  end if;
+
+  select lessons.slug into lesson_slug from public.lessons where lessons.id = new.lesson_id;
+  if lesson_slug is null or lesson_slug = '' then
+    return new;
+  end if;
+  select exists (
+    select 1
+    from public.lesson_placements other
+    join public.lessons other_lesson on other_lesson.id = other.lesson_id
+    where other.lesson_id <> new.lesson_id
+      and other_lesson.slug = lesson_slug
+      and (
+        (new.chapter_id is not null and other.chapter_id = new.chapter_id)
+        or (new.subject_id is not null and other.subject_id = new.subject_id)
+        or (new.category_id is not null and other.category_id = new.category_id)
+      )
+  ) into conflict;
+  if conflict then
+    raise exception 'lesson slug taken' using errcode = '23505';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists lessons_slug_available on public.lessons;
+create trigger lessons_slug_available
+  before update of slug on public.lessons
+  for each row execute function public.assert_lesson_slug_available();
+
+drop trigger if exists lesson_placements_slug_available on public.lesson_placements;
+create trigger lesson_placements_slug_available
+  before insert or update of lesson_id, subject_id, chapter_id, category_id
+  on public.lesson_placements
+  for each row execute function public.assert_lesson_slug_available();
 
 create trigger articles_set_updated_at
   before update on public.articles

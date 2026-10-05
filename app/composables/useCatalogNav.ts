@@ -1,5 +1,6 @@
 interface ChapterLink {
   id: string
+  slug: string
   title: string
   subject_id: string
   order: number
@@ -7,6 +8,7 @@ interface ChapterLink {
 
 interface CategoryLink {
   id: string
+  slug: string
   name: string
   description: string | null
   image_url: string | null
