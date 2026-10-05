@@ -65,7 +65,7 @@ function onFocus() {
   }
 }
 
-const placeholder = computed(() => 'Αναζήτηση κεφαλαίων ή υλικού...')
+const placeholder = computed(() => 'Αναζήτηση υλικού...')
 
 let registeredInput: HTMLInputElement | null = null
 
@@ -107,7 +107,7 @@ onUnmounted(() => {
           v-model="query"
           type="search"
           :placeholder="placeholder"
-          aria-label="Αναζήτηση κεφαλαίων ή υλικού..."
+          aria-label="Αναζήτηση υλικού..."
           class="w-full bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none border-none"
           :class="props.size === 'lg' ? 'h-12 text-base' : 'h-9 text-[13.5px]'"
           @focus="onFocus"
@@ -129,7 +129,7 @@ onUnmounted(() => {
       <p v-if="loading" class="px-4 py-2 text-sm text-muted-foreground">
         Γίνεται αναζήτηση...
       </p>
-      <div role="listbox" aria-label="Αναζήτηση κεφαλαίων ή υλικού...">
+      <div role="listbox" aria-label="Αναζήτηση υλικού...">
         <NuxtLink
           v-for="r in results"
           :key="`${r.type}-${r.id}`"

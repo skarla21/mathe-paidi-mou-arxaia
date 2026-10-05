@@ -1,25 +1,26 @@
+import { foldGreekSearch, searchLikePattern } from '#shared/utils/foldGreekSearch.mjs'
 import { serverSupabaseAnon } from '../utils/supabaseServer'
 import { canonicalLessonPaths, publicSearchResults, SEARCH_CANDIDATE_LIMIT } from '../utils/contentPath'
 
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const q = (query.q as string)?.trim()
-  if (!q || q.length < 2) {
+  if (!q || foldGreekSearch(q).length < 2) {
     return []
   }
   const supabase = serverSupabaseAnon()
-  const pattern = `%${q}%`
+  const pattern = searchLikePattern(q)
   const [chaptersRes, lessonsRes] = await Promise.all([
     supabase
       .from('chapters')
       .select('id, title, slug, subjects(slug, grades(slug))')
-      .ilike('title', pattern)
+      .like('title_folded', pattern)
       .order('title')
       .limit(SEARCH_CANDIDATE_LIMIT),
     supabase
       .from('lessons')
       .select('id, title')
-      .ilike('title', pattern)
+      .like('title_folded', pattern)
       .order('title')
       .limit(SEARCH_CANDIDATE_LIMIT),
   ])
