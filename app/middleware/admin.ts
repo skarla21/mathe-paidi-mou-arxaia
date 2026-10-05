@@ -1,11 +1,10 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const authResponse = await $fetch('/api/auth/session', {
-    method: 'GET',
-    credentials: 'include',
-  }).catch(() => null)
+  const requestFetch = useRequestFetch()
+  const authResponse = await requestFetch<{ user?: { isAdmin?: boolean } }>(
+    '/api/auth/session',
+  ).catch(() => null)
 
-  const user = (authResponse as { user?: { isAdmin?: boolean } } | null)?.user
-  const isAdmin = user?.isAdmin === true
+  const isAdmin = authResponse?.user?.isAdmin === true
 
   if (!isAdmin) {
     return navigateTo('/')

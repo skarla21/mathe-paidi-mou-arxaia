@@ -29,6 +29,7 @@ const kindLabels: Record<AdminNotificationKind, string> = {
 
 const loading = ref(false)
 const prefsLoading = ref(false)
+const prefsOpen = ref(false)
 const items = ref<AdminNotificationItem[]>([])
 const unreadCount = ref(0)
 
@@ -86,7 +87,10 @@ async function loadList() {
 watch(
   () => props.open,
   async (open) => {
-    if (!open) return
+    if (!open) {
+      prefsOpen.value = false
+      return
+    }
     await Promise.all([loadPrefs(), loadList()])
   },
 )
@@ -173,7 +177,7 @@ function togglePref(
   <UiDialog :open="props.open" @update:open="(v: boolean) => !v && emit('close')">
     <UiDialogPortal>
       <UiDialogOverlay />
-      <UiDialogContent class="max-w-lg max-h-[90vh] overflow-y-auto">
+      <UiDialogContent class="flex max-h-[min(85vh,40rem)] max-w-lg flex-col overflow-y-auto">
         <UiDialogHeader>
           <UiDialogTitle>Ειδοποιήσεις</UiDialogTitle>
           <UiDialogDescription class="sr-only">
@@ -181,71 +185,89 @@ function togglePref(
           </UiDialogDescription>
         </UiDialogHeader>
 
-        <div class="space-y-4">
-          <div class="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
-            <p class="text-sm font-medium font-heading">Εμφάνιση στην εφαρμογή</p>
-            <div v-if="prefsLoading" class="text-xs text-muted-foreground">Φόρτωση...</div>
-            <template v-else>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Αγορές</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_purchase"
-                  @update:model-value="(v: boolean) => togglePref('notify_purchase', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Λήψεις</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_download"
-                  @update:model-value="(v: boolean) => togglePref('notify_download', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Αξιολογήσεις</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_rating"
-                  @update:model-value="(v: boolean) => togglePref('notify_rating', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Σχόλια</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_comment"
-                  @update:model-value="(v: boolean) => togglePref('notify_comment', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Φόρμα επικοινωνίας</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_contact"
-                  @update:model-value="(v: boolean) => togglePref('notify_contact', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Προτιμήσεις σε άρθρα</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_article_like"
-                  @update:model-value="(v: boolean) => togglePref('notify_article_like', v)"
-                />
-              </div>
-              <div class="flex items-center justify-between gap-3">
-                <UiLabel class="text-sm">Σχόλια σε άρθρα</UiLabel>
-                <Switch
-                  class="cursor-pointer"
-                  :model-value="prefs.notify_article_comment"
-                  @update:model-value="(v: boolean) => togglePref('notify_article_comment', v)"
-                />
-              </div>
-            </template>
+        <div class="flex flex-col gap-4">
+          <div class="rounded-lg border border-border bg-muted/30">
+            <button
+              type="button"
+              class="flex w-full cursor-pointer items-center justify-between gap-3 p-4 text-left"
+              :aria-expanded="prefsOpen"
+              aria-controls="admin-notification-prefs"
+              @click="prefsOpen = !prefsOpen"
+            >
+              <span class="font-heading text-sm font-medium">Εμφάνιση στην εφαρμογή</span>
+              <VIcon
+                :name="prefsOpen ? 'bi-chevron-down' : 'bi-chevron-right'"
+                class="size-4 shrink-0 text-muted-foreground"
+              />
+            </button>
+            <div
+              v-show="prefsOpen"
+              id="admin-notification-prefs"
+              class="space-y-3 px-4 pb-4"
+            >
+              <div v-if="prefsLoading" class="text-xs text-muted-foreground">Φόρτωση...</div>
+              <template v-else>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Αγορές</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_purchase"
+                    @update:model-value="(v: boolean) => togglePref('notify_purchase', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Λήψεις</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_download"
+                    @update:model-value="(v: boolean) => togglePref('notify_download', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Αξιολογήσεις</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_rating"
+                    @update:model-value="(v: boolean) => togglePref('notify_rating', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Σχόλια</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_comment"
+                    @update:model-value="(v: boolean) => togglePref('notify_comment', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Φόρμα επικοινωνίας</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_contact"
+                    @update:model-value="(v: boolean) => togglePref('notify_contact', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Προτιμήσεις σε άρθρα</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_article_like"
+                    @update:model-value="(v: boolean) => togglePref('notify_article_like', v)"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <UiLabel class="text-sm">Σχόλια σε άρθρα</UiLabel>
+                  <Switch
+                    class="cursor-pointer"
+                    :model-value="prefs.notify_article_comment"
+                    @update:model-value="(v: boolean) => togglePref('notify_article_comment', v)"
+                  />
+                </div>
+              </template>
+            </div>
           </div>
 
-          <div class="flex justify-between items-center gap-2">
+          <div class="flex items-center justify-between gap-2">
             <span class="text-xs text-muted-foreground">
               {{ `${unreadCount} μη αναγνωσμένα` }}
             </span>
@@ -266,7 +288,7 @@ function togglePref(
           <p v-else-if="!items.length" class="py-8 text-center text-sm text-muted-foreground">
             Δεν υπάρχουν ειδοποιήσεις ακόμα.
           </p>
-          <ul v-else class="space-y-2 max-h-[40vh] overflow-y-auto pr-1">
+          <ul v-else class="space-y-2 pr-1">
             <li
               v-for="item in items"
               :key="item.id"

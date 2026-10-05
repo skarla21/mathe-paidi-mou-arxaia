@@ -1,13 +1,10 @@
 export default defineNuxtRouteMiddleware(async () => {
-  const authResponse = await $fetch('/api/auth/session', {
-    method: 'GET',
-    credentials: 'include',
-  }).catch(() => null)
+  const requestFetch = useRequestFetch()
+  const authResponse = await requestFetch<{ user?: { id?: string } }>(
+    '/api/auth/session',
+  ).catch(() => null)
 
-  const user = (authResponse as { user?: { id?: string } } | null)?.user
-
-  if (user?.id) {
+  if (authResponse?.user?.id) {
     return navigateTo('/')
   }
 })
-

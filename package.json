@@ -11,7 +11,8 @@
     "postinstall": "nuxt prepare",
     "typecheck": "nuxt typecheck",
     "lint:fix": "eslint . --fix",
-    "check": "pnpm run typecheck && pnpm run lint:fix"
+    "check": "pnpm run typecheck && pnpm run lint:fix",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@auth/core": "^0.37.2",

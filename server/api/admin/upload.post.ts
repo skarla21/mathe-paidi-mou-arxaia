@@ -1,5 +1,6 @@
 import { serverSupabaseService } from "../../utils/supabaseServer";
 import { requireAdmin } from "../../utils/requireAdmin";
+import { safeStorageName } from "../../utils/safeStorageName";
 
 const MAX_PDF_SIZE = 50 * 1024 * 1024; // 50MB
 const MAX_IMAGE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -26,17 +27,6 @@ function validateMagicBytes(data: Buffer, mimeType: string): boolean {
 }
 
 const IMAGE_TYPES = ["image/jpeg", "image/png"] as const;
-
-function safeStorageName(filename: string): string {
-  const cleaned = filename
-    .normalize("NFC")
-    .replace(/[^\p{L}\p{N}._ -]/gu, "_")
-    .replace(/\.{2,}/g, ".")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 180);
-  return cleaned || "file";
-}
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event);
@@ -95,7 +85,8 @@ export default defineEventHandler(async (event) => {
       upsert: false,
     });
   if (uploadError) {
-    throw createError({ statusCode: 500, message: uploadError.message });
+    console.error("[admin/upload] storage", uploadError.message);
+    throw createError({ statusCode: 500, message: "Κάτι πήγε στραβά" });
   }
   const { data: urlData } = supabase.storage
     .from("uploads")

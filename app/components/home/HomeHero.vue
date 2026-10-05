@@ -133,7 +133,7 @@ function scrollTo(id: string) {
               src="/imgs/mathe_arxaia_logo.jpg"
               alt=""
               class="size-24 rounded-full object-cover shadow-lg ring-4 ring-card"
-            />
+            >
           </div>
           <div
             class="mb-2 inline-flex items-center gap-1.5 rounded-full bg-amethyst-fixed px-3 py-1 text-[11px] font-bold text-amethyst-fixed-foreground"

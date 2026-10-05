@@ -7,6 +7,11 @@ import LayoutAppFooter from '~/components/layout/AppFooter.vue'
 const theme = useTheme()
 const route = useRoute()
 const hideLayoutFooter = computed(() => !!route.meta['hideLayoutFooter'])
+const { ensure, ensureCategories } = useCatalogNav()
+
+// Header and footer read this shared state. Load it before they render so
+// the server markup matches the payload the client hydrates.
+await Promise.all([ensure(), ensureCategories()])
 
 onMounted(() => {
   theme.init()

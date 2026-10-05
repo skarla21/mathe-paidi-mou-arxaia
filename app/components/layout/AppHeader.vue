@@ -93,7 +93,7 @@ async function confirmLogout() {
             src="/imgs/mathe_arxaia_logo.jpg"
             alt=""
             class="size-full object-cover"
-          />
+          >
         </span>
         <span
           class="font-brand text-base font-bold leading-tight tracking-tight sm:text-lg group-hover/logo:text-primary transition-colors"
@@ -173,7 +173,7 @@ async function confirmLogout() {
                   :src="session.user.avatar_url"
                   :alt="session.user.name ?? ''"
                   class="size-full object-cover"
-                />
+                >
                 <span
                   v-else
                   class="flex size-full items-center justify-center rounded-full bg-muted text-muted-foreground"
@@ -198,7 +198,7 @@ async function confirmLogout() {
                     :src="session.user.avatar_url"
                     :alt="session.user.name ?? ''"
                     class="size-full object-cover"
-                  />
+                  >
                   <VIcon
                     v-else
                     name="bi-person-fill"
@@ -334,7 +334,7 @@ async function confirmLogout() {
                 src="/imgs/mathe_arxaia_logo.jpg"
                 alt=""
                 class="size-full object-cover"
-              />
+              >
             </span>
             <span class="font-brand text-lg font-bold leading-tight"
               >Μάθε Παιδί Μου Αρχαία!</span
@@ -407,7 +407,7 @@ async function confirmLogout() {
                     :src="session.user.avatar_url"
                     :alt="session.user.name ?? ''"
                     class="size-full object-cover"
-                  />
+                  >
                   <VIcon
                     v-else
                     name="bi-person-fill"
