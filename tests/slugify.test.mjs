@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
+import { readdirSync, readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
-import { chapterSlug, slugifyGreek, stableSlug, uniqueSlug } from '../shared/utils/slugify.mjs'
+import { chapterSlug, gradeSlug, RESERVED_GRADE_SLUGS, slugifyGreek, stableSlug, uniqueSlug } from '../shared/utils/slugify.mjs'
 
 describe('slugifyGreek', () => {
   it('spells the steady grade names with ELOT 743', () => {
@@ -48,5 +49,32 @@ describe('chapterSlug', () => {
     assert.equal(chapterSlug('lesson', []), 'lesson-2')
     assert.equal(chapterSlug('lesson', ['lesson-2']), 'lesson-3')
     assert.equal(chapterSlug('eisagogi', []), 'eisagogi')
+  })
+})
+
+describe('gradeSlug', () => {
+  it('never uses a reserved top-level route', () => {
+    assert.equal(gradeSlug('login', []), 'login-2')
+    assert.equal(gradeSlug('grade', []), 'grade-2')
+    assert.equal(gradeSlug('a-gymnasiou', []), 'a-gymnasiou')
+  })
+
+  it('reserves every static top-level page', () => {
+    const pageNames = readdirSync(new URL('../app/pages', import.meta.url))
+      .filter((name) => !name.startsWith('[') && name !== 'index.vue')
+      .map((name) => name.replace(/\.vue$/, ''))
+    for (const name of pageNames) {
+      assert.equal(gradeSlug(name, []), `${name}-2`, name)
+    }
+    assert.equal(gradeSlug('api', []), 'api-2')
+  })
+
+  it('keeps the database rule aligned with the reserved list', () => {
+    const migration = readFileSync(new URL('../supabase/migrations/20261005180000_reserved_grade_slugs.sql', import.meta.url), 'utf8')
+    const schema = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8')
+    for (const slug of RESERVED_GRADE_SLUGS) {
+      assert.match(migration, new RegExp(`'${slug}'`))
+      assert.match(schema, new RegExp(`'${slug}'`))
+    }
   })
 })

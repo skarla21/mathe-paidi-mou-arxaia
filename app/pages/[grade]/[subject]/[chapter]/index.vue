@@ -61,7 +61,7 @@ onMounted(() => {
       <NuxtLink
         v-for="l in lessons"
         :key="l.id"
-        :to="`/grade/${tree?.grade.slug}/${tree?.subject.slug}/${chapter.slug}/${l.slug}`"
+        :to="`/${tree?.grade.slug}/${tree?.subject.slug}/${chapter.slug}/${l.slug}`"
       >
         <UiCard class="flex cursor-pointer items-center justify-between rounded-3xl p-4 shadow-sm transition-colors hover:bg-secondary">
           <span class="font-medium text-foreground">{{ l.title }}</span>

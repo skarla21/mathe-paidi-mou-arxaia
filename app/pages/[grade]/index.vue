@@ -78,7 +78,7 @@ onMounted(() => {
           <NuxtLink
             v-for="c in chaptersForSubject(subj.id)"
             :key="c.id"
-            :to="`/grade/${gradeFromList?.slug}/${subj.slug}/${c.slug}`"
+            :to="`/${gradeFromList?.slug}/${subj.slug}/${c.slug}`"
             class="block"
           >
             <UiCard class="bobble-card rounded-3xl border-border/80 shadow-sm transition-shadow hover:shadow-md">

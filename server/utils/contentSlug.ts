@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { chapterSlug, slugifyGreek, stableSlug, uniqueSlug } from '#shared/utils/slugify.mjs'
+import { chapterSlug, gradeSlug, slugifyGreek, stableSlug, uniqueSlug } from '#shared/utils/slugify.mjs'
 
 type PlacementRef = {
   subject_id?: string | null
@@ -23,7 +23,7 @@ export async function nextGradeSlug(
 ): Promise<string> {
   const { data, error } = await supabase.from('grades').select('id, slug')
   if (error) throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
-  return uniqueSlug(slugifyGreek(name) || 'grade', takenSlugs(data, exceptId))
+  return gradeSlug(slugifyGreek(name) || 'grade', takenSlugs(data, exceptId))
 }
 
 export async function nextSubjectSlug(

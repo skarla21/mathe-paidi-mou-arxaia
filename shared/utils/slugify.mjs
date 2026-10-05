@@ -105,6 +105,28 @@ export function stableSlug(current, taken) {
 
 const RESERVED_CHAPTER_SLUGS = ['lesson']
 
+export const RESERVED_GRADE_SLUGS = [
+  'about',
+  'admin',
+  'api',
+  'articles',
+  'category',
+  'chapter',
+  'course',
+  'dashboard',
+  'grade',
+  'lesson',
+  'login',
+  'notes',
+  'profile',
+  'register',
+  'reset-password',
+]
+
+export function gradeSlug(base, taken) {
+  return uniqueSlug(base || 'grade', [...taken, ...RESERVED_GRADE_SLUGS])
+}
+
 export function chapterSlug(base, taken) {
   return uniqueSlug(base || 'chapter', [...taken, ...RESERVED_CHAPTER_SLUGS])
 }

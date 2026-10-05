@@ -15,7 +15,7 @@ describe('lessonPathFromPlacement', () => {
       subjects: { slug: 'archaia', grades: { slug: 'a-lykeiou' } },
       categories: { slug: 'extra' },
     })
-    assert.equal(path, '/grade/a-lykeiou/archaia/enotita/keimeno')
+    assert.equal(path, '/a-lykeiou/archaia/enotita/keimeno')
   })
 
   it('uses the subject lesson route when there is no chapter', () => {
@@ -30,7 +30,7 @@ describe('lessonPathFromPlacement', () => {
       subjects: { slug: 'archaia', grades: { slug: 'a-lykeiou' } },
       categories: null,
     })
-    assert.equal(path, '/grade/a-lykeiou/archaia/lesson/keimeno')
+    assert.equal(path, '/a-lykeiou/archaia/lesson/keimeno')
   })
 
   it('uses the category route when that is the only placement', () => {
@@ -67,7 +67,7 @@ describe('chapterPublicPath', () => {
   it('builds the nested grade path', () => {
     assert.equal(
       chapterPublicPath({ slug: 'enotita', subjects: { slug: 'archaia', grades: { slug: 'a-lykeiou' } } }),
-      '/grade/a-lykeiou/archaia/enotita',
+      '/a-lykeiou/archaia/enotita',
     )
   })
 

@@ -38,7 +38,7 @@ onMounted(() => {
         <h2 class="font-heading text-base font-semibold text-foreground">Τάξεις</h2>
         <ul class="space-y-2 text-sm text-muted-foreground">
           <li v-for="grade in grades" :key="grade.id">
-            <NuxtLink :to="`/grade/${grade.slug}`" class="transition-colors hover:text-primary">
+            <NuxtLink :to="`/${grade.slug}`" class="transition-colors hover:text-primary">
               {{ grade.name }}
             </NuxtLink>
           </li>

@@ -38,7 +38,7 @@ useHead(() => ({
 <template>
   <div class="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-12">
     <NuxtLink
-      :to="`/grade/${grade?.slug}`"
+      :to="`/${grade?.slug}`"
       class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
     >
       <VIcon name="bi-arrow-left" class="size-3.5" aria-hidden="true" />
@@ -54,7 +54,7 @@ useHead(() => ({
         <NuxtLink
           v-for="chapter in chapters"
           :key="chapter.id"
-          :to="`/grade/${grade?.slug}/${subject?.slug}/${chapter.slug}`"
+          :to="`/${grade?.slug}/${subject?.slug}/${chapter.slug}`"
           class="block"
         >
           <UiCard class="bobble-card flex items-center justify-between rounded-3xl p-4 shadow-sm transition-shadow hover:shadow-md">
@@ -84,7 +84,7 @@ useHead(() => ({
         <NuxtLink
           v-for="lesson in subjectLessons"
           :key="lesson.id"
-          :to="`/grade/${grade?.slug}/${subject?.slug}/lesson/${lesson.slug}`"
+          :to="`/${grade?.slug}/${subject?.slug}/lesson/${lesson.slug}`"
           class="block rounded-3xl border border-border bg-card px-4 py-3 font-medium shadow-sm hover:bg-secondary"
         >
           {{ lesson.title }}

@@ -58,7 +58,7 @@ await ensure()
           </p>
         </div>
         <NuxtLink
-          :to="`/grade/${grade.slug}`"
+          :to="`/${grade.slug}`"
           class="mt-5 inline-flex items-center justify-center gap-1 rounded-full bg-muted py-2.5 text-sm font-bold text-foreground transition-colors"
           :class="palette(index).button"
         >

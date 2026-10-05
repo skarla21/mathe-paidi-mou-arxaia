@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { notesMenuActive } from '~/utils/notesMenuActive'
+
 const props = withDefaults(defineProps<{
   variant?: 'desktop' | 'mobile'
 }>(), {
@@ -22,11 +24,12 @@ const {
 } = useCatalogNav()
 
 const route = useRoute()
-const notesActive = computed(() =>
-  route.path === '/notes'
-  || route.path.startsWith('/grade/')
-  || route.path.startsWith('/category/'),
-)
+const notesActive = computed(() => notesMenuActive({
+  path: route.path,
+  gradeSlugs: grades.value.map((grade) => grade.slug),
+  catalogFailed: failed.value,
+  gradeParam: route.params.grade,
+}))
 
 const open = ref(false)
 const panelShift = ref(0)
@@ -190,7 +193,7 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-for="grade in grades"
             :key="grade.id"
-            :to="`/grade/${grade.slug}`"
+            :to="`/${grade.slug}`"
             class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-laurel"
             :class="activeGradeId === grade.id && 'bg-card text-foreground shadow-sm'"
             @mouseenter="selectGrade(grade.id)"
@@ -217,7 +220,7 @@ onBeforeUnmount(() => {
           <template v-for="subject in activeSubjects" :key="subject.id">
           <NuxtLink
             v-if="activeGrade?.slug && subject.slug"
-            :to="`/grade/${activeGrade.slug}/${subject.slug}`"
+            :to="`/${activeGrade.slug}/${subject.slug}`"
             class="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
             :class="activeSubjectId === subject.id && 'bg-card shadow-sm'"
             @mouseenter="selectSubject(subject.id)"
@@ -241,7 +244,7 @@ onBeforeUnmount(() => {
           <template v-for="chapter in activeChapters" :key="chapter.id">
           <NuxtLink
             v-if="activeGrade?.slug && activeSubject?.slug && chapter.slug"
-            :to="`/grade/${activeGrade.slug}/${activeSubject.slug}/${chapter.slug}`"
+            :to="`/${activeGrade.slug}/${activeSubject.slug}/${chapter.slug}`"
             class="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-secondary"
             @click="onNavigate"
           >
@@ -310,7 +313,7 @@ onBeforeUnmount(() => {
         <div v-if="mobileGradeId === grade.id" class="ml-2 flex flex-col gap-1 pb-2">
           <NuxtLink
             v-if="grade.slug"
-            :to="`/grade/${grade.slug}`"
+            :to="`/${grade.slug}`"
             class="rounded-lg px-2 py-1.5 text-sm text-primary hover:bg-secondary"
             @click="onNavigate"
           >
@@ -329,7 +332,7 @@ onBeforeUnmount(() => {
             <div v-if="mobileSubjectId === subject.id" class="ml-2 flex flex-col">
               <NuxtLink
                 v-if="grade.slug && subject.slug"
-                :to="`/grade/${grade.slug}/${subject.slug}`"
+                :to="`/${grade.slug}/${subject.slug}`"
                 class="rounded-lg px-2 py-1.5 text-sm text-primary hover:bg-secondary"
                 @click="onNavigate"
               >
@@ -344,7 +347,7 @@ onBeforeUnmount(() => {
               <template v-for="chapter in chaptersForSubject(subject.id)" :key="chapter.id">
               <NuxtLink
                 v-if="grade.slug && subject.slug && chapter.slug"
-                :to="`/grade/${grade.slug}/${subject.slug}/${chapter.slug}`"
+                :to="`/${grade.slug}/${subject.slug}/${chapter.slug}`"
                 class="rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
                 @click="onNavigate"
               >

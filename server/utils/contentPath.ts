@@ -31,14 +31,14 @@ export function lessonPathFromPlacement(row: PlacementRow): string | null {
     const subject = one(chapter?.subjects ?? null)
     const grade = one(subject?.grades ?? null)
     if (chapter?.slug && subject?.slug && grade?.slug) {
-      return `/grade/${grade.slug}/${subject.slug}/${chapter.slug}/${lesson.slug}`
+      return `/${grade.slug}/${subject.slug}/${chapter.slug}/${lesson.slug}`
     }
   }
   if (row.subject_id) {
     const subject = one(row.subjects)
     const grade = one(subject?.grades ?? null)
     if (subject?.slug && grade?.slug) {
-      return `/grade/${grade.slug}/${subject.slug}/lesson/${lesson.slug}`
+      return `/${grade.slug}/${subject.slug}/lesson/${lesson.slug}`
     }
   }
   if (row.category_id) {
@@ -103,5 +103,5 @@ export function chapterPublicPath(row: {
   const subject = one(row.subjects)
   const grade = one(subject?.grades ?? null)
   if (!row.slug || !subject?.slug || !grade?.slug) return null
-  return `/grade/${grade.slug}/${subject.slug}/${row.slug}`
+  return `/${grade.slug}/${subject.slug}/${row.slug}`
 }
