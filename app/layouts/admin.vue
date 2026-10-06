@@ -26,6 +26,7 @@ async function fetchUnreadCount() {
 
 onMounted(() => {
   fetchUnreadCount()
+  void adminFetch('/api/admin/uploads/reap', { method: 'POST' }).catch(() => {})
   if (import.meta.client) {
     const id = window.setInterval(fetchUnreadCount, 60_000)
     onUnmounted(() => clearInterval(id))

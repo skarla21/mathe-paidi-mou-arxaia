@@ -29,7 +29,6 @@ const title = ref('')
 const description = ref('')
 const gradeId = ref('')
 const subjectId = ref('')
-const imageUrl = ref('')
 const grades = ref<{ id: string; name: string }[]>([])
 const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
 const loading = ref(false)
@@ -39,27 +38,37 @@ const initializing = ref(false)
 const filteredSubjects = computed(() =>
   gradeId.value ? subjects.value.filter(s => s.grade_id === gradeId.value) : [],
 )
-const uploading = ref(false)
-const uploadProgress = ref(0)
 const dragActive = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
-
-const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png'] as const
-const MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const {
+  imageUrl,
+  uploading,
+  progress: uploadProgress,
+  statusLabel: uploadStatusLabel,
+  resetImage,
+  closeImage,
+  keepImage,
+  releaseUnsaved,
+  uploadImage,
+  clearImage,
+} = useAdminImageDraft('chapter')
 
 const titleMissing = computed(() => attempted.value && !title.value.trim())
 const gradeMissing = computed(() => attempted.value && !gradeId.value)
 const subjectMissing = computed(() => attempted.value && !!gradeId.value && !subjectId.value)
 
 watch(() => props.open, async (val) => {
-  if (!val) return
+  if (!val) {
+    closeImage(loading.value)
+    return
+  }
   attempted.value = false
   initializing.value = true
   title.value = props.chapter?.title ?? ''
   description.value = props.chapter?.description ?? ''
   gradeId.value = ''
   subjectId.value = props.chapter?.subject_id ?? ''
-  imageUrl.value = props.chapter?.image_url ?? ''
+  resetImage(props.chapter?.image_url)
   try {
     const [gr, sub] = await Promise.all([
       adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
@@ -85,49 +94,16 @@ watch(gradeId, () => {
   subjectId.value = ''
 })
 
-async function uploadImage(file: File) {
-  if (uploading.value) return
-  if (!ALLOWED_IMAGE_MIMES.includes(file.type as (typeof ALLOWED_IMAGE_MIMES)[number])) {
-    toast.error('Επιτρέπονται μόνο εικόνες JPEG και PNG')
-    return
-  }
-  if (file.size > MAX_IMAGE_BYTES) {
-    toast.error('Η εικόνα πρέπει να είναι μικρότερη από 20MB')
-    return
-  }
-  uploading.value = true
-  uploadProgress.value = 0
-  const interval = setInterval(() => {
-    if (uploadProgress.value < 90) uploadProgress.value += 10
-  }, 200)
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('target', 'image')
-    formData.append('entity', 'chapter')
-    const res = await adminFetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
-    imageUrl.value = res.url
-    uploadProgress.value = 100
-    toast.success('Το αρχείο μεταφορτώθηκε επιτυχώς')
-  } catch {
-    toast.error('Η μεταφόρτωση απέτυχε')
-  } finally {
-    clearInterval(interval)
-    uploading.value = false
-    uploadProgress.value = 0
-  }
-}
-
 function onFileSelect(e: Event) {
   const input = e.target as HTMLInputElement
-  if (input.files?.[0]) uploadImage(input.files[0])
+  if (input.files?.[0]) void uploadImage(input.files[0], loading.value)
   input.value = ''
 }
 
 function onDrop(e: DragEvent) {
   e.preventDefault()
   dragActive.value = false
-  if (e.dataTransfer?.files?.[0]) uploadImage(e.dataTransfer.files[0])
+  if (e.dataTransfer?.files?.[0]) void uploadImage(e.dataTransfer.files[0], loading.value)
 }
 
 function onDragOver(e: DragEvent) {
@@ -139,11 +115,8 @@ function onDragLeave() {
   dragActive.value = false
 }
 
-function clearImage() {
-  imageUrl.value = ''
-}
-
 async function onSubmit() {
+  if (uploading.value) return
   attempted.value = true
   if (titleMissing.value || !gradeId.value || !subjectId.value) return
   loading.value = true
@@ -158,9 +131,11 @@ async function onSubmit() {
     } else {
       await adminFetch('/api/admin/chapters', { method: 'POST', body })
     }
+    keepImage()
     emit('saved')
     emit('close')
   } catch (e: unknown) {
+    if (!props.open) releaseUnsaved()
     const err = e as { data?: { message?: string } }
     toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
   } finally {
@@ -229,7 +204,7 @@ async function onSubmit() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  :disabled="uploading"
+                  :disabled="loading || uploading"
                   @click="fileInput?.click()"
                 >
                   Επιλογή αρχείου
@@ -243,6 +218,7 @@ async function onSubmit() {
                 >
               </div>
               <UiProgress v-if="uploading" :model-value="uploadProgress" class="mt-3 h-2" />
+              <p v-if="uploading" class="mt-2 text-xs text-muted-foreground" aria-live="polite">{{ uploadStatusLabel }}</p>
               <div v-else-if="imageUrl" class="mt-3 flex items-center justify-center gap-2">
                 <img :src="imageUrl" alt="" class="h-16 w-16 rounded-md object-cover border border-border" >
                 <UiButton type="button" variant="ghost" size="sm" @click="clearImage">
@@ -255,7 +231,7 @@ async function onSubmit() {
           </div>
           <UiDialogFooter>
             <UiButton type="button" variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
-            <UiButton type="submit" :disabled="loading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
+            <UiButton type="submit" :disabled="loading || uploading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
           </UiDialogFooter>
         </form>
       </UiDialogContent>

@@ -3,7 +3,9 @@
   "type": "module",
   "imports": {
     "#shared/utils/slugify.mjs": "./shared/utils/slugify.mjs",
-    "#shared/utils/foldGreekSearch.mjs": "./shared/utils/foldGreekSearch.mjs"
+    "#shared/utils/foldGreekSearch.mjs": "./shared/utils/foldGreekSearch.mjs",
+    "#shared/utils/uploadProgress.mjs": "./shared/utils/uploadProgress.mjs",
+    "#shared/utils/lessonAttachment.mjs": "./shared/utils/lessonAttachment.mjs"
   },
   "private": true,
   "packageManager": "pnpm@9.15.0",
@@ -16,7 +18,7 @@
     "typecheck": "nuxt typecheck",
     "lint:fix": "eslint . --fix",
     "check": "pnpm run typecheck && pnpm run lint:fix",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --import ./tests/register-ts-extension.mjs --test tests/*.test.mjs"
   },
   "dependencies": {
     "@auth/core": "^0.37.2",

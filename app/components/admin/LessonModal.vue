@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import { toast } from "vue-sonner";
+import {
+  attachmentAfterRemove,
+  canStartUpload,
+} from "#shared/utils/lessonAttachment.mjs";
 import UiDialog from "~/components/ui/dialog/Dialog.vue";
 import UiDialogPortal from "~/components/ui/dialog/DialogPortal.vue";
 import UiDialogOverlay from "~/components/ui/dialog/DialogOverlay.vue";
@@ -57,6 +61,13 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ close: []; saved: [] }>();
 const adminFetch = useAdminFetch();
+const {
+  uploading,
+  progress: uploadProgress,
+  statusLabel: uploadStatusLabel,
+  upload: uploadAdminFile,
+  abort: abortUpload,
+} = useAdminFileUpload();
 
 const title = ref("");
 const content = ref("");
@@ -64,6 +75,11 @@ const isFree = ref(true);
 const price = ref(0);
 const contentUrl = ref("");
 const fileName = ref("");
+const savedContentUrl = ref("");
+const pendingName = ref("");
+const uploadBusy = ref(false);
+const sessionUrls = new Set<string>();
+let uploadGeneration = 0;
 
 let placementKey = 0;
 const placements = ref<PlacementRow[]>([]);
@@ -76,8 +92,6 @@ const subjects = ref<{ id: string; name: string; grade_id: string }[]>([]);
 const categories = ref<{ id: string; name: string }[]>([]);
 const loading = ref(false);
 const attempted = ref(false);
-const uploading = ref(false);
-const uploadProgress = ref(0);
 const dragActive = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -196,25 +210,42 @@ function fileExtension(value: string): string {
   return dot >= 0 ? base.slice(dot + 1).toLowerCase() : "";
 }
 
+const shownName = computed(() => pendingName.value || fileName.value);
+
 const attachedKind = computed(() => {
-  const ext = fileExtension(fileName.value) || fileExtension(contentUrl.value);
+  const ext = fileExtension(shownName.value) || fileExtension(contentUrl.value);
   if (ext === "pdf") return "PDF";
   if (ext === "png") return "PNG";
   if (ext === "jpg" || ext === "jpeg") return "JPG";
   return "";
 });
 
+const hasAttachment = computed(
+  () => Boolean(contentUrl.value) || Boolean(shownName.value),
+);
+
 watch(
   () => props.open,
   async (val) => {
-    if (!val) return;
+    if (!val) {
+      if (!loading.value) {
+        abortUpload();
+        void discardSessionUrls();
+      }
+      return;
+    }
     attempted.value = false;
 
     title.value = props.lesson?.title ?? "";
     content.value = props.lesson?.content ?? "";
     isFree.value = props.lesson?.is_free ?? true;
     price.value = props.lesson?.price ?? 0;
-    contentUrl.value = props.lesson?.content_url ?? "";
+    uploadGeneration += 1;
+    pendingName.value = "";
+    uploadBusy.value = false;
+    sessionUrls.clear();
+    savedContentUrl.value = props.lesson?.content_url ?? "";
+    contentUrl.value = savedContentUrl.value;
     fileName.value = contentUrl.value ? fileLabelFromUrl(contentUrl.value) : "";
     placements.value = [];
 
@@ -284,61 +315,67 @@ watch(
   },
 );
 
-const ALLOWED_MIMES = ["application/pdf", "image/jpeg", "image/png"] as const;
-const MAX_PDF_BYTES = 50 * 1024 * 1024;
-const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
-
-async function uploadFile(file: File) {
-  if (uploading.value) return;
-  if (!ALLOWED_MIMES.includes(file.type as (typeof ALLOWED_MIMES)[number])) {
-    toast.error("Επιτρέπονται μόνο αρχεία PDF, JPG και PNG");
-    return;
-  }
-  const isPdf = file.type === "application/pdf";
-  const maxSize = isPdf ? MAX_PDF_BYTES : MAX_IMAGE_BYTES;
-  if (file.size > maxSize) {
-    toast.error(
-      isPdf
-        ? "Το αρχείο πρέπει να είναι μικρότερο από 50MB"
-        : "Η εικόνα πρέπει να είναι μικρότερη από 20MB",
-    );
-    return;
-  }
-  uploading.value = true;
-  uploadProgress.value = 0;
-  const interval = setInterval(() => {
-    if (uploadProgress.value < 90) uploadProgress.value += 10;
-  }, 200);
+async function discardUrl(url: string) {
+  if (!url || url === savedContentUrl.value) return;
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await adminFetch<{ url: string }>("/api/admin/upload", {
+    await adminFetch("/api/admin/lesson-content/discard", {
       method: "POST",
-      body: formData,
+      body: { url },
     });
+  } catch {
+    // The next admin lessons load reaps this file once it is older than 15 minutes.
+  }
+}
+
+async function discardSessionUrls() {
+  const urls = [...sessionUrls];
+  sessionUrls.clear();
+  await Promise.all(urls.map((url) => discardUrl(url)));
+}
+
+async function beginUpload(file: File) {
+  if (!canStartUpload({ loading: loading.value, uploading: uploading.value || uploadBusy.value })) return;
+  const generation = ++uploadGeneration;
+  const previousUrl = contentUrl.value;
+  uploadBusy.value = true;
+  pendingName.value = file.name;
+  try {
+    const res = await uploadAdminFile(file, { kind: "lesson" });
+    if (generation !== uploadGeneration) {
+      if (res?.url) await discardUrl(res.url);
+      return;
+    }
+    if (!res?.url) return;
+    if (!props.open || loading.value) {
+      await discardUrl(res.url);
+      return;
+    }
     contentUrl.value = res.url;
     fileName.value = file.name;
-    uploadProgress.value = 100;
-    toast.success("Το αρχείο μεταφορτώθηκε επιτυχώς");
-  } catch {
-    toast.error("Η μεταφόρτωση απέτυχε");
+    if (previousUrl && previousUrl !== savedContentUrl.value && previousUrl !== res.url) {
+      sessionUrls.delete(previousUrl);
+      void discardUrl(previousUrl);
+    }
+    if (res.url !== savedContentUrl.value) sessionUrls.add(res.url);
   } finally {
-    clearInterval(interval);
-    uploading.value = false;
-    uploadProgress.value = 0;
+    if (generation === uploadGeneration) {
+      uploadBusy.value = false;
+      pendingName.value = "";
+    }
   }
 }
 
 function onFileSelect(e: Event) {
   const input = e.target as HTMLInputElement;
-  if (input.files?.[0]) uploadFile(input.files[0]);
+  if (input.files?.[0]) void beginUpload(input.files[0]);
   input.value = "";
 }
 
 function onDrop(e: DragEvent) {
   e.preventDefault();
   dragActive.value = false;
-  if (e.dataTransfer?.files?.[0]) uploadFile(e.dataTransfer.files[0]);
+  if (!canStartUpload({ loading: loading.value, uploading: uploading.value || uploadBusy.value })) return;
+  if (e.dataTransfer?.files?.[0]) void beginUpload(e.dataTransfer.files[0]);
 }
 
 function onDragOver(e: DragEvent) {
@@ -351,11 +388,31 @@ function onDragLeave() {
 }
 
 function clearContent() {
-  contentUrl.value = "";
-  fileName.value = "";
+  if (loading.value) return;
+  const cancelling = uploading.value || uploadBusy.value;
+  if (cancelling) {
+    uploadGeneration += 1;
+    pendingName.value = "";
+    uploadBusy.value = false;
+    abortUpload();
+  }
+  const next = attachmentAfterRemove({
+    uploading: cancelling,
+    url: contentUrl.value,
+    name: fileName.value,
+  });
+  const current = contentUrl.value;
+  contentUrl.value = next.url;
+  fileName.value = next.name;
+  if (cancelling) return;
+  if (current && current !== savedContentUrl.value) {
+    sessionUrls.delete(current);
+    void discardUrl(current);
+  }
 }
 
 async function onSubmit() {
+  if (uploading.value || uploadBusy.value) return;
   attempted.value = true;
   const placementPayload = placements.value
     .map((p) => ({
@@ -391,9 +448,11 @@ async function onSubmit() {
     } else {
       await adminFetch("/api/admin/lessons", { method: "POST", body });
     }
+    sessionUrls.clear();
     emit("saved");
     emit("close");
   } catch (e: unknown) {
+    if (!props.open) await discardSessionUrls();
     const err = e as { data?: { message?: string } };
     toast.error(err?.data?.message ?? "Κάτι πήγε στραβά");
   } finally {
@@ -457,7 +516,7 @@ async function onSubmit() {
                 @dragleave="onDragLeave"
               >
                 <div
-                  v-if="contentUrl && !uploading"
+                  v-if="hasAttachment"
                   class="relative mb-4 rounded-xl border border-primary/30 bg-background p-4 text-left"
                 >
                   <div class="flex items-center gap-3 pe-14">
@@ -469,9 +528,9 @@ async function onSubmit() {
                     </span>
                     <p
                       class="min-w-0 truncate text-sm font-medium text-foreground"
-                      :title="fileName || undefined"
+                      :title="shownName || undefined"
                     >
-                      {{ fileName || "Επισυνάφθηκε αρχείο" }}
+                      {{ shownName || "Επισυνάφθηκε αρχείο" }}
                     </p>
                   </div>
                   <UiButton
@@ -479,7 +538,8 @@ async function onSubmit() {
                     variant="ghost"
                     size="icon"
                     class="absolute inset-e-2 top-1/2 size-10 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground [&_svg]:size-8"
-                    aria-label="Αφαίρεση αρχείου"
+                    :aria-label="uploading || uploadBusy ? 'Ακύρωση μεταφόρτωσης' : 'Αφαίρεση αρχείου'"
+                    :disabled="loading"
                     @click.stop="clearContent"
                   >
                     <VIcon name="bi-x" class="size-8" aria-hidden="true" />
@@ -492,7 +552,7 @@ async function onSubmit() {
                   />
                   <p class="text-sm font-medium">
                     {{
-                      contentUrl
+                      hasAttachment
                         ? "Σύρε νέο PDF ή εικόνα για αντικατάσταση, ή κάνε κλικ για επιλογή"
                         : "Σύρε και άφησε PDF ή εικόνα εδώ, ή κάνε κλικ για επιλογή"
                     }}
@@ -504,7 +564,7 @@ async function onSubmit() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    :disabled="uploading"
+                    :disabled="loading || uploading || uploadBusy"
                     @click="fileInput?.click()"
                   >
                     Επιλογή αρχείου
@@ -515,7 +575,7 @@ async function onSubmit() {
                     accept="application/pdf,image/jpeg,image/png"
                     class="hidden"
                     @change="onFileSelect"
-                  />
+                  >
                 </div>
                 <UiProgress
                   v-if="uploading"
@@ -523,7 +583,14 @@ async function onSubmit() {
                   class="mt-3 h-2"
                 />
                 <p
-                  v-else-if="!contentUrl"
+                  v-if="uploading"
+                  class="mt-2 text-xs text-muted-foreground"
+                  aria-live="polite"
+                >
+                  {{ uploadStatusLabel }}
+                </p>
+                <p
+                  v-else-if="!hasAttachment"
                   class="mt-2 text-xs text-muted-foreground"
                 >
                   Δεν έχει επιλεγεί αρχείο
@@ -827,7 +894,7 @@ async function onSubmit() {
             >
             <UiButton
               type="submit"
-              :disabled="loading || duplicatePlacementKeys.size > 0"
+              :disabled="loading || uploading || uploadBusy || duplicatePlacementKeys.size > 0"
               >{{ loading ? "Φόρτωση..." : "Αποθήκευση" }}</UiButton
             >
           </UiDialogFooter>

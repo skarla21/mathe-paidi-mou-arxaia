@@ -35,6 +35,11 @@ describe('safeStorageName', () => {
     assert.equal(storedFileName('notes.pdf', 'application/pdf', 'abcd1234'), 'notes-abcd1234.pdf')
   })
 
+  it('stores the extension from the mime type when the file name disagrees', () => {
+    assert.equal(storedFileName('cover.png', 'application/pdf', 'abcd1234'), 'cover-abcd1234.pdf')
+    assert.equal(storedFileName('notes.pdf', 'image/jpeg', 'abcd1234'), 'notes-abcd1234.jpg')
+  })
+
   it('collapses slash traversal into a single file name', () => {
     const name = safeStorageName('../../secret.pdf')
     assert.equal(name.includes('/'), false)

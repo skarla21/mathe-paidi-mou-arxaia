@@ -24,7 +24,7 @@ export function storedFileName(filename: string, mimeType: string, suffix: strin
   const dot = safe.lastIndexOf('.')
   const hasExt = dot > 0
   const stem = (hasExt ? safe.slice(0, dot) : safe) || 'file'
-  const ext = hasExt ? safe.slice(dot + 1) : extensionForMime(mimeType)
+  const ext = extensionForMime(mimeType)
   const id = suffix.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) || 'file'
   return `${stem}-${id}.${ext}`
 }
