@@ -1,292 +1,379 @@
 <script setup lang="ts">
-import { toast } from 'vue-sonner'
-import UiDialog from '~/components/ui/dialog/Dialog.vue'
-import UiDialogPortal from '~/components/ui/dialog/DialogPortal.vue'
-import UiDialogOverlay from '~/components/ui/dialog/DialogOverlay.vue'
-import UiDialogContent from '~/components/ui/dialog/DialogContent.vue'
-import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
-import UiDialogFooter from '~/components/ui/dialog/DialogFooter.vue'
-import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
-import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
-import UiButton from '~/components/ui/Button.vue'
-import UiInput from '~/components/ui/Input.vue'
-import UiLabel from '~/components/ui/Label.vue'
-import UiTextarea from '~/components/ui/Textarea.vue'
-import UiProgress from '~/components/ui/Progress.vue'
-import { Checkbox } from '~/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
+import { toast } from "vue-sonner";
+import UiDialog from "~/components/ui/dialog/Dialog.vue";
+import UiDialogPortal from "~/components/ui/dialog/DialogPortal.vue";
+import UiDialogOverlay from "~/components/ui/dialog/DialogOverlay.vue";
+import UiDialogContent from "~/components/ui/dialog/DialogContent.vue";
+import UiDialogHeader from "~/components/ui/dialog/DialogHeader.vue";
+import UiDialogFooter from "~/components/ui/dialog/DialogFooter.vue";
+import UiDialogTitle from "~/components/ui/dialog/DialogTitle.vue";
+import UiDialogDescription from "~/components/ui/dialog/DialogDescription.vue";
+import UiButton from "~/components/ui/Button.vue";
+import UiInput from "~/components/ui/Input.vue";
+import UiLabel from "~/components/ui/Label.vue";
+import UiTextarea from "~/components/ui/Textarea.vue";
+import UiProgress from "~/components/ui/Progress.vue";
+import { Checkbox } from "~/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 interface PlacementRow {
-  key: number
-  type: 'subject' | 'chapter' | 'category'
-  gradeId: string
-  subjectId: string
-  chapterId: string
-  categoryId: string
+  key: number;
+  type: "subject" | "chapter" | "category";
+  gradeId: string;
+  subjectId: string;
+  chapterId: string;
+  categoryId: string;
 }
 
 const props = defineProps<{
-  open: boolean
+  open: boolean;
   lesson: {
-    id: string
-    title: string
-    content: string | null
-    is_free: boolean
-    content_url: string | null
-    price: number
+    id: string;
+    title: string;
+    content: string | null;
+    is_free: boolean;
+    content_url: string | null;
+    price: number;
     placements?: Array<{
-      id: string
-      subject_id: string | null
-      chapter_id: string | null
-      category_id: string | null
-      subjects?: { name: string; grade_id?: string } | null
-      chapters?: { title: string; grade_id?: string; subject_id?: string } | null
-      categories?: { name: string } | null
-    }>
-  } | null
-}>()
-const emit = defineEmits<{ close: []; saved: [] }>()
-const adminFetch = useAdminFetch()
+      id: string;
+      subject_id: string | null;
+      chapter_id: string | null;
+      category_id: string | null;
+      subjects?: { name: string; grade_id?: string } | null;
+      chapters?: {
+        title: string;
+        grade_id?: string;
+        subject_id?: string;
+      } | null;
+      categories?: { name: string } | null;
+    }>;
+  } | null;
+}>();
+const emit = defineEmits<{ close: []; saved: [] }>();
+const adminFetch = useAdminFetch();
 
-const title = ref('')
-const content = ref('')
-const isFree = ref(true)
-const price = ref(0)
-const contentUrl = ref('')
-const fileName = ref('')
+const title = ref("");
+const content = ref("");
+const isFree = ref(true);
+const price = ref(0);
+const contentUrl = ref("");
+const fileName = ref("");
 
-let placementKey = 0
-const placements = ref<PlacementRow[]>([])
+let placementKey = 0;
+const placements = ref<PlacementRow[]>([]);
 
-const grades = ref<{ id: string; name: string }[]>([])
-const chapters = ref<{ id: string; title: string; subject_id: string; grade_id: string }[]>([])
-const subjects = ref<{ id: string; name: string; grade_id: string }[]>([])
-const categories = ref<{ id: string; name: string }[]>([])
-const loading = ref(false)
-const attempted = ref(false)
-const uploading = ref(false)
-const uploadProgress = ref(0)
-const dragActive = ref(false)
-const fileInput = ref<HTMLInputElement | null>(null)
+const grades = ref<{ id: string; name: string }[]>([]);
+const chapters = ref<
+  { id: string; title: string; subject_id: string; grade_id: string }[]
+>([]);
+const subjects = ref<{ id: string; name: string; grade_id: string }[]>([]);
+const categories = ref<{ id: string; name: string }[]>([]);
+const loading = ref(false);
+const attempted = ref(false);
+const uploading = ref(false);
+const uploadProgress = ref(0);
+const dragActive = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 function fileLabelFromUrl(url: string): string {
   try {
-    const segment = decodeURIComponent(new URL(url).pathname.split('/').filter(Boolean).pop() || '')
-    const name = segment.replace(/^\d{10,}-/, '') || segment
-    const stem = name.replace(/\.[^.]+$/, '')
+    const segment = decodeURIComponent(
+      new URL(url).pathname.split("/").filter(Boolean).pop() || "",
+    );
+    const name = segment.replace(/^\d{10,}-/, "") || segment;
+    const stem = name.replace(/\.[^.]+$/, "");
     // Older uploads replaced Greek (and any non-ASCII) with underscores.
-    if (!/[\p{L}\p{N}]/u.test(stem)) return ''
-    return name
+    if (!/[\p{L}\p{N}]/u.test(stem)) return "";
+    return name;
   } catch {
-    return ''
+    return "";
   }
 }
 
 function subjectsForGrade(gradeId: string) {
-  return subjects.value.filter(s => s.grade_id === gradeId)
+  return subjects.value.filter((s) => s.grade_id === gradeId);
 }
 
 function chaptersForSubject(subjectId: string) {
-  return chapters.value.filter(c => c.subject_id === subjectId)
+  return chapters.value.filter((c) => c.subject_id === subjectId);
 }
 
 function addPlacement() {
   placements.value.push({
     key: placementKey++,
-    type: 'chapter',
-    gradeId: '',
-    subjectId: '',
-    chapterId: '',
-    categoryId: '',
-  })
+    type: "chapter",
+    gradeId: "",
+    subjectId: "",
+    chapterId: "",
+    categoryId: "",
+  });
 }
 
 function removePlacement(key: number) {
-  if (placements.value.length <= 1) return
-  placements.value = placements.value.filter(p => p.key !== key)
+  if (placements.value.length <= 1) return;
+  placements.value = placements.value.filter((p) => p.key !== key);
 }
 
-function onPlacementTypeChange(row: PlacementRow, newType: 'subject' | 'chapter' | 'category') {
-  row.type = newType
-  row.gradeId = ''
-  row.subjectId = ''
-  row.chapterId = ''
-  row.categoryId = ''
+function onPlacementTypeChange(
+  row: PlacementRow,
+  newType: "subject" | "chapter" | "category",
+) {
+  row.type = newType;
+  row.gradeId = "";
+  row.subjectId = "";
+  row.chapterId = "";
+  row.categoryId = "";
 }
 
 function onPlacementGradeChange(row: PlacementRow, newGradeId: string) {
-  row.gradeId = newGradeId
-  row.subjectId = ''
-  row.chapterId = ''
+  row.gradeId = newGradeId;
+  row.subjectId = "";
+  row.chapterId = "";
 }
 
 function onPlacementSubjectChange(row: PlacementRow, newSubjectId: string) {
-  row.subjectId = newSubjectId
-  row.chapterId = ''
+  row.subjectId = newSubjectId;
+  row.chapterId = "";
 }
 
-function rowGap(row: PlacementRow): 'grade' | 'subject' | 'chapter' | 'category' | null {
-  if (row.type === 'category') return row.categoryId ? null : 'category'
-  if (!row.gradeId) return 'grade'
-  if (!row.subjectId) return 'subject'
-  if (row.type === 'chapter' && !row.chapterId) return 'chapter'
-  return null
+function rowGap(
+  row: PlacementRow,
+): "grade" | "subject" | "chapter" | "category" | null {
+  if (row.type === "category") return row.categoryId ? null : "category";
+  if (!row.gradeId) return "grade";
+  if (!row.subjectId) return "subject";
+  if (row.type === "chapter" && !row.chapterId) return "chapter";
+  return null;
 }
 
-function placementGap(row: PlacementRow): 'grade' | 'subject' | 'chapter' | 'category' | null {
-  if (!attempted.value) return null
-  if (placements.value.some(candidate => !rowGap(candidate))) return null
-  return rowGap(row)
+function placementGap(
+  row: PlacementRow,
+): "grade" | "subject" | "chapter" | "category" | null {
+  if (!attempted.value) return null;
+  if (placements.value.some((candidate) => !rowGap(candidate))) return null;
+  return rowGap(row);
 }
 
-const titleMissing = computed(() => attempted.value && !title.value.trim())
-
-watch(() => props.open, async (val) => {
-  if (!val) return
-  attempted.value = false
-
-  title.value = props.lesson?.title ?? ''
-  content.value = props.lesson?.content ?? ''
-  isFree.value = props.lesson?.is_free ?? true
-  price.value = props.lesson?.price ?? 0
-  contentUrl.value = props.lesson?.content_url ?? ''
-  fileName.value = contentUrl.value ? fileLabelFromUrl(contentUrl.value) : ''
-  placements.value = []
-
-  try {
-    const [gr, ch, sub, cat] = await Promise.all([
-      adminFetch<{ id: string; name: string }[]>('/api/admin/grades'),
-      adminFetch<{ id: string; title: string; subject_id: string; grade_id: string }[]>('/api/admin/chapters'),
-      adminFetch<{ id: string; name: string; grade_id: string }[]>('/api/admin/subjects'),
-      adminFetch<{ id: string; name: string }[]>('/api/admin/categories'),
-    ])
-    grades.value = gr
-    chapters.value = ch
-    subjects.value = sub
-    categories.value = cat
-
-    if (props.lesson?.placements && props.lesson.placements.length > 0) {
-      placements.value = props.lesson.placements.map(p => {
-        const row: PlacementRow = {
-          key: placementKey++,
-          type: p.chapter_id ? 'chapter' : p.subject_id ? 'subject' : 'category',
-          gradeId: '',
-          subjectId: '',
-          chapterId: '',
-          categoryId: '',
-        }
-        if (p.subject_id) {
-          const subFound = subjects.value.find(s => s.id === p.subject_id)
-          if (subFound) {
-            row.gradeId = subFound.grade_id
-            row.subjectId = subFound.id
-          }
-        } else if (p.chapter_id) {
-          const chFound = chapters.value.find(c => c.id === p.chapter_id)
-          if (chFound) {
-            row.gradeId = chFound.grade_id
-            row.subjectId = chFound.subject_id
-            row.chapterId = chFound.id
-          }
-        } else if (p.category_id) {
-          row.categoryId = p.category_id
-        }
-        return row
-      })
-    } else {
-      placements.value = [{
-        key: placementKey++,
-        type: 'chapter',
-        gradeId: '',
-        subjectId: '',
-        chapterId: '',
-        categoryId: '',
-      }]
-    }
-  } catch {
-    toast.error('Κάτι πήγε στραβά')
+function placementLocation(row: PlacementRow): string | null {
+  if (row.type === "category") {
+    return row.categoryId ? `category:${row.categoryId}` : null;
   }
-})
+  if (row.type === "subject") {
+    return row.subjectId ? `subject:${row.subjectId}` : null;
+  }
+  return row.chapterId ? `chapter:${row.chapterId}` : null;
+}
 
-const ALLOWED_MIMES = ['application/pdf', 'image/jpeg', 'image/png'] as const
-const MAX_PDF_BYTES = 50 * 1024 * 1024
-const MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const duplicatePlacementKeys = computed(() => {
+  const firstKey = new Map<string, number>();
+  const duplicates = new Set<number>();
+  for (const row of placements.value) {
+    const location = placementLocation(row);
+    if (!location) continue;
+    const existing = firstKey.get(location);
+    if (existing === undefined) {
+      firstKey.set(location, row.key);
+      continue;
+    }
+    duplicates.add(existing);
+    duplicates.add(row.key);
+  }
+  return duplicates;
+});
+
+const titleMissing = computed(() => attempted.value && !title.value.trim());
+
+function fileExtension(value: string): string {
+  const clean = value.split("?")[0]?.split("#")[0] ?? "";
+  const base = clean.split("/").pop() ?? "";
+  const dot = base.lastIndexOf(".");
+  return dot >= 0 ? base.slice(dot + 1).toLowerCase() : "";
+}
+
+const attachedKind = computed(() => {
+  const ext = fileExtension(fileName.value) || fileExtension(contentUrl.value);
+  if (ext === "pdf") return "PDF";
+  if (ext === "png") return "PNG";
+  if (ext === "jpg" || ext === "jpeg") return "JPG";
+  return "";
+});
+
+watch(
+  () => props.open,
+  async (val) => {
+    if (!val) return;
+    attempted.value = false;
+
+    title.value = props.lesson?.title ?? "";
+    content.value = props.lesson?.content ?? "";
+    isFree.value = props.lesson?.is_free ?? true;
+    price.value = props.lesson?.price ?? 0;
+    contentUrl.value = props.lesson?.content_url ?? "";
+    fileName.value = contentUrl.value ? fileLabelFromUrl(contentUrl.value) : "";
+    placements.value = [];
+
+    try {
+      const [gr, ch, sub, cat] = await Promise.all([
+        adminFetch<{ id: string; name: string }[]>("/api/admin/grades"),
+        adminFetch<
+          { id: string; title: string; subject_id: string; grade_id: string }[]
+        >("/api/admin/chapters"),
+        adminFetch<{ id: string; name: string; grade_id: string }[]>(
+          "/api/admin/subjects",
+        ),
+        adminFetch<{ id: string; name: string }[]>("/api/admin/categories"),
+      ]);
+      grades.value = gr;
+      chapters.value = ch;
+      subjects.value = sub;
+      categories.value = cat;
+
+      if (props.lesson?.placements && props.lesson.placements.length > 0) {
+        placements.value = props.lesson.placements.map((p) => {
+          const row: PlacementRow = {
+            key: placementKey++,
+            type: p.chapter_id
+              ? "chapter"
+              : p.subject_id
+                ? "subject"
+                : "category",
+            gradeId: "",
+            subjectId: "",
+            chapterId: "",
+            categoryId: "",
+          };
+          if (p.subject_id) {
+            const subFound = subjects.value.find((s) => s.id === p.subject_id);
+            if (subFound) {
+              row.gradeId = subFound.grade_id;
+              row.subjectId = subFound.id;
+            }
+          } else if (p.chapter_id) {
+            const chFound = chapters.value.find((c) => c.id === p.chapter_id);
+            if (chFound) {
+              row.gradeId = chFound.grade_id;
+              row.subjectId = chFound.subject_id;
+              row.chapterId = chFound.id;
+            }
+          } else if (p.category_id) {
+            row.categoryId = p.category_id;
+          }
+          return row;
+        });
+      } else {
+        placements.value = [
+          {
+            key: placementKey++,
+            type: "chapter",
+            gradeId: "",
+            subjectId: "",
+            chapterId: "",
+            categoryId: "",
+          },
+        ];
+      }
+    } catch {
+      toast.error("Κάτι πήγε στραβά");
+    }
+  },
+);
+
+const ALLOWED_MIMES = ["application/pdf", "image/jpeg", "image/png"] as const;
+const MAX_PDF_BYTES = 50 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 
 async function uploadFile(file: File) {
-  if (uploading.value) return
+  if (uploading.value) return;
   if (!ALLOWED_MIMES.includes(file.type as (typeof ALLOWED_MIMES)[number])) {
-    toast.error('Επιτρέπονται μόνο αρχεία PDF, JPG και PNG')
-    return
+    toast.error("Επιτρέπονται μόνο αρχεία PDF, JPG και PNG");
+    return;
   }
-  const isPdf = file.type === 'application/pdf'
-  const maxSize = isPdf ? MAX_PDF_BYTES : MAX_IMAGE_BYTES
+  const isPdf = file.type === "application/pdf";
+  const maxSize = isPdf ? MAX_PDF_BYTES : MAX_IMAGE_BYTES;
   if (file.size > maxSize) {
-    toast.error(isPdf
-      ? 'Το αρχείο πρέπει να είναι μικρότερο από 50MB'
-      : 'Η εικόνα πρέπει να είναι μικρότερη από 20MB')
-    return
+    toast.error(
+      isPdf
+        ? "Το αρχείο πρέπει να είναι μικρότερο από 50MB"
+        : "Η εικόνα πρέπει να είναι μικρότερη από 20MB",
+    );
+    return;
   }
-  uploading.value = true
-  uploadProgress.value = 0
+  uploading.value = true;
+  uploadProgress.value = 0;
   const interval = setInterval(() => {
-    if (uploadProgress.value < 90) uploadProgress.value += 10
-  }, 200)
+    if (uploadProgress.value < 90) uploadProgress.value += 10;
+  }, 200);
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    const res = await adminFetch<{ url: string }>('/api/admin/upload', { method: 'POST', body: formData })
-    contentUrl.value = res.url
-    fileName.value = file.name
-    uploadProgress.value = 100
-    toast.success('Το αρχείο μεταφορτώθηκε επιτυχώς')
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await adminFetch<{ url: string }>("/api/admin/upload", {
+      method: "POST",
+      body: formData,
+    });
+    contentUrl.value = res.url;
+    fileName.value = file.name;
+    uploadProgress.value = 100;
+    toast.success("Το αρχείο μεταφορτώθηκε επιτυχώς");
   } catch {
-    toast.error('Η μεταφόρτωση απέτυχε')
+    toast.error("Η μεταφόρτωση απέτυχε");
   } finally {
-    clearInterval(interval)
-    uploading.value = false
-    uploadProgress.value = 0
+    clearInterval(interval);
+    uploading.value = false;
+    uploadProgress.value = 0;
   }
 }
 
 function onFileSelect(e: Event) {
-  const input = e.target as HTMLInputElement
-  if (input.files?.[0]) uploadFile(input.files[0])
-  input.value = ''
+  const input = e.target as HTMLInputElement;
+  if (input.files?.[0]) uploadFile(input.files[0]);
+  input.value = "";
 }
 
 function onDrop(e: DragEvent) {
-  e.preventDefault()
-  dragActive.value = false
-  if (e.dataTransfer?.files?.[0]) uploadFile(e.dataTransfer.files[0])
+  e.preventDefault();
+  dragActive.value = false;
+  if (e.dataTransfer?.files?.[0]) uploadFile(e.dataTransfer.files[0]);
 }
 
 function onDragOver(e: DragEvent) {
-  e.preventDefault()
-  dragActive.value = true
+  e.preventDefault();
+  dragActive.value = true;
 }
 
 function onDragLeave() {
-  dragActive.value = false
+  dragActive.value = false;
 }
 
 function clearContent() {
-  contentUrl.value = ''
-  fileName.value = ''
+  contentUrl.value = "";
+  fileName.value = "";
 }
 
 async function onSubmit() {
-  attempted.value = true
+  attempted.value = true;
   const placementPayload = placements.value
-    .map(p => ({
-      subject_id: p.type === 'subject' ? p.subjectId || null : null,
-      chapter_id: p.type === 'chapter' ? p.chapterId || null : null,
-      category_id: p.type === 'category' ? p.categoryId || null : null,
+    .map((p) => ({
+      subject_id: p.type === "subject" ? p.subjectId || null : null,
+      chapter_id: p.type === "chapter" ? p.chapterId || null : null,
+      category_id: p.type === "category" ? p.categoryId || null : null,
     }))
-    .filter(p => p.subject_id || p.chapter_id || p.category_id)
+    .filter((p) => p.subject_id || p.chapter_id || p.category_id);
 
-  if (!title.value.trim() || placementPayload.length === 0) return
+  if (
+    !title.value.trim() ||
+    placementPayload.length === 0 ||
+    duplicatePlacementKeys.value.size > 0
+  ) {
+    return;
+  }
 
-  loading.value = true
+  loading.value = true;
   try {
     const body = {
       title: title.value,
@@ -295,41 +382,62 @@ async function onSubmit() {
       price: isFree.value ? 0 : price.value,
       content_url: contentUrl.value || null,
       placements: placementPayload,
-    }
+    };
     if (props.lesson) {
-      await adminFetch(`/api/admin/lessons/${props.lesson.id}`, { method: 'PATCH', body })
+      await adminFetch(`/api/admin/lessons/${props.lesson.id}`, {
+        method: "PATCH",
+        body,
+      });
     } else {
-      await adminFetch('/api/admin/lessons', { method: 'POST', body })
+      await adminFetch("/api/admin/lessons", { method: "POST", body });
     }
-    emit('saved')
-    emit('close')
+    emit("saved");
+    emit("close");
   } catch (e: unknown) {
-    const err = e as { data?: { message?: string } }
-    toast.error(err?.data?.message ?? 'Κάτι πήγε στραβά')
+    const err = e as { data?: { message?: string } };
+    toast.error(err?.data?.message ?? "Κάτι πήγε στραβά");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 </script>
 
 <template>
-  <UiDialog :open="props.open" @update:open="(v: boolean) => !v && emit('close')">
+  <UiDialog
+    :open="props.open"
+    @update:open="(v: boolean) => !v && emit('close')"
+  >
     <UiDialogPortal>
       <UiDialogOverlay />
       <UiDialogContent class="max-w-5xl max-h-[90vh] overflow-y-auto">
         <UiDialogHeader>
-          <UiDialogTitle>{{ props.lesson ? 'Επεξεργασία' : 'Δημιουργία' }} — Υλικό</UiDialogTitle>
-          <UiDialogDescription class="sr-only">Δημιουργία ή επεξεργασία υλικού και ανάθεσή του σε κεφάλαιο, μάθημα ή κατηγορία.</UiDialogDescription>
+          <UiDialogTitle
+            >{{ props.lesson ? "Επεξεργασία" : "Δημιουργία" }} —
+            Υλικό</UiDialogTitle
+          >
+          <UiDialogDescription class="sr-only"
+            >Δημιουργία ή επεξεργασία υλικού και ανάθεσή του σε κεφάλαιο, μάθημα
+            ή κατηγορία.</UiDialogDescription
+          >
         </UiDialogHeader>
         <form class="space-y-6" @submit.prevent="onSubmit">
-
           <!-- Basic Info -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Περιεχόμενο</p>
+            <p
+              class="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              Περιεχόμενο
+            </p>
             <div class="space-y-1.5">
               <UiLabel>Τίτλος</UiLabel>
-              <UiInput v-model="title" :aria-invalid="titleMissing || undefined" :class="titleMissing ? 'border-destructive' : ''" />
-              <p v-if="titleMissing" class="text-xs text-destructive">Το πεδίο «Τίτλος» είναι υποχρεωτικό</p>
+              <UiInput
+                v-model="title"
+                :aria-invalid="titleMissing || undefined"
+                :class="titleMissing ? 'border-destructive' : ''"
+              />
+              <p v-if="titleMissing" class="text-xs text-destructive">
+                Το πεδίο «Τίτλος» είναι υποχρεωτικό
+              </p>
             </div>
             <div class="space-y-1.5">
               <UiLabel>Περιγραφή</UiLabel>
@@ -339,15 +447,59 @@ async function onSubmit() {
               <UiLabel>Αρχείο</UiLabel>
               <div
                 class="rounded-lg border-2 border-dashed p-4 text-center transition-colors"
-                :class="dragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'"
+                :class="
+                  dragActive
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary/50'
+                "
                 @drop="onDrop"
                 @dragover="onDragOver"
                 @dragleave="onDragLeave"
               >
+                <div
+                  v-if="contentUrl && !uploading"
+                  class="relative mb-4 rounded-xl border border-primary/30 bg-background p-4 text-left"
+                >
+                  <div class="flex items-center gap-3 pe-14">
+                    <span
+                      v-if="attachedKind"
+                      class="inline-flex h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40 px-2 text-xs font-semibold tracking-wide text-foreground"
+                    >
+                      {{ attachedKind }}
+                    </span>
+                    <p
+                      class="min-w-0 truncate text-sm font-medium text-foreground"
+                      :title="fileName || undefined"
+                    >
+                      {{ fileName || "Επισυνάφθηκε αρχείο" }}
+                    </p>
+                  </div>
+                  <UiButton
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    class="absolute inset-e-2 top-1/2 size-10 -translate-y-1/2 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground [&_svg]:size-8"
+                    aria-label="Αφαίρεση αρχείου"
+                    @click.stop="clearContent"
+                  >
+                    <VIcon name="bi-x" class="size-8" aria-hidden="true" />
+                  </UiButton>
+                </div>
                 <div class="flex flex-col items-center gap-2">
-                  <VIcon name="bi-cloud-arrow-up" class="size-8 text-muted-foreground" />
-                  <p class="text-sm font-medium">Σύρε και άφησε PDF ή εικόνα εδώ, ή κάνε κλικ για επιλογή</p>
-                  <p class="text-xs text-muted-foreground">PDF μέγ. 50MB, εικόνες μέγ. 20MB</p>
+                  <VIcon
+                    name="bi-cloud-arrow-up"
+                    class="size-8 text-muted-foreground"
+                  />
+                  <p class="text-sm font-medium">
+                    {{
+                      contentUrl
+                        ? "Σύρε νέο PDF ή εικόνα για αντικατάσταση, ή κάνε κλικ για επιλογή"
+                        : "Σύρε και άφησε PDF ή εικόνα εδώ, ή κάνε κλικ για επιλογή"
+                    }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    PDF μέγ. 50MB, εικόνες μέγ. 20MB
+                  </p>
                   <UiButton
                     type="button"
                     variant="outline"
@@ -363,29 +515,36 @@ async function onSubmit() {
                     accept="application/pdf,image/jpeg,image/png"
                     class="hidden"
                     @change="onFileSelect"
-                  >
+                  />
                 </div>
-                <UiProgress v-if="uploading" :model-value="uploadProgress" class="mt-3 h-2" />
-                <div v-else-if="contentUrl" class="mt-3 flex items-center justify-center gap-2">
-                  <span class="truncate text-xs text-muted-foreground max-w-md">{{ fileName || 'Επισυνάφθηκε αρχείο' }}</span>
-                  <UiButton type="button" variant="ghost" size="sm" @click="clearContent">
-                    Αφαίρεση αρχείου
-                  </UiButton>
-                </div>
-                <p v-else class="mt-2 text-xs text-muted-foreground">Δεν έχει επιλεγεί αρχείο</p>
+                <UiProgress
+                  v-if="uploading"
+                  :model-value="uploadProgress"
+                  class="mt-3 h-2"
+                />
+                <p
+                  v-else-if="!contentUrl"
+                  class="mt-2 text-xs text-muted-foreground"
+                >
+                  Δεν έχει επιλεγεί αρχείο
+                </p>
               </div>
             </div>
           </fieldset>
 
           <!-- Pricing -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Τιμή</p>
+            <p
+              class="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              Τιμή
+            </p>
             <div class="flex flex-wrap items-center gap-4">
               <div class="flex items-center gap-2">
                 <Checkbox id="lesson-free" v-model="isFree" />
                 <UiLabel for="lesson-free">Δωρεάν</UiLabel>
               </div>
-              <div class="relative min-w-[120px] max-w-[140px] flex-1">
+              <div class="relative min-w-30 max-w-35 flex-1">
                 <UiInput
                   v-model.number="price"
                   type="number"
@@ -395,155 +554,282 @@ async function onSubmit() {
                   class="pr-8"
                 />
                 <span
-                  class="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
+                  class="pointer-events-none absolute inset-e-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                   aria-hidden="true"
-                >€</span>
+                  >€</span
+                >
               </div>
             </div>
           </fieldset>
 
           <!-- Placements -->
           <fieldset class="space-y-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Τοποθετήσεις</p>
+            <p
+              class="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+            >
+              Τοποθετήσεις
+            </p>
 
             <div class="space-y-3">
-            <div
-              v-for="row in placements"
-              :key="row.key"
-              class="flex items-end gap-3 rounded-lg border border-border p-3"
-            >
-              <div class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>Τύπος</UiLabel>
-                <Select
-                  :model-value="row.type"
-                  @update:model-value="(v) => onPlacementTypeChange(row, String(v) as 'subject' | 'chapter' | 'category')"
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="subject">Μάθημα</SelectItem>
-                    <SelectItem value="chapter">Κεφάλαιο</SelectItem>
-                    <SelectItem value="category">Κατηγορία</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <template v-if="row.type === 'subject'">
-                <div class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>Τάξη</UiLabel>
-                  <Select
-                    :model-value="row.gradeId"
-                    @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
-                  >
-                    <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
-                      <SelectValue placeholder="Επιλογή τάξης…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">Το πεδίο «Τάξη» είναι υποχρεωτικό</p>
-                </div>
-                <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>Μάθημα</UiLabel>
-                  <Select
-                    :model-value="row.subjectId"
-                    @update:model-value="(v) => (row.subjectId = String(v))"
-                  >
-                    <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
-                      <SelectValue placeholder="Επιλογή μαθήματος…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">Το πεδίο «Μάθημα» είναι υποχρεωτικό</p>
-                </div>
-              </template>
-
-              <!-- Chapter cascade -->
-              <template v-else-if="row.type === 'chapter'">
-                <div class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>Τάξη</UiLabel>
-                  <Select
-                    :model-value="row.gradeId"
-                    @update:model-value="(v) => onPlacementGradeChange(row, String(v))"
-                  >
-                    <SelectTrigger :aria-invalid="placementGap(row) === 'grade' || undefined">
-                      <SelectValue placeholder="Επιλογή τάξης…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="g in grades" :key="g.id" :value="g.id">{{ g.name }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p v-if="placementGap(row) === 'grade'" class="text-xs text-destructive">Το πεδίο «Τάξη» είναι υποχρεωτικό</p>
-                </div>
-                <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>Μάθημα</UiLabel>
-                  <Select
-                    :model-value="row.subjectId"
-                    @update:model-value="(v) => onPlacementSubjectChange(row, String(v))"
-                  >
-                    <SelectTrigger :aria-invalid="placementGap(row) === 'subject' || undefined">
-                      <SelectValue placeholder="Επιλογή μαθήματος…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="s in subjectsForGrade(row.gradeId)" :key="s.id" :value="s.id">{{ s.name }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p v-if="placementGap(row) === 'subject'" class="text-xs text-destructive">Το πεδίο «Μάθημα» είναι υποχρεωτικό</p>
-                </div>
-                <div v-if="row.subjectId" class="min-w-0 flex-1 space-y-1.5">
-                  <UiLabel>Κεφάλαιο</UiLabel>
-                  <Select v-model="row.chapterId">
-                    <SelectTrigger :aria-invalid="placementGap(row) === 'chapter' || undefined">
-                      <SelectValue placeholder="Επιλογή κεφαλαίου…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem v-for="c in chaptersForSubject(row.subjectId)" :key="c.id" :value="c.id">{{ c.title }}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p v-if="placementGap(row) === 'chapter'" class="text-xs text-destructive">Το πεδίο «Κεφάλαιο» είναι υποχρεωτικό</p>
-                </div>
-              </template>
-
-              <!-- Category -->
-              <div v-else class="min-w-0 flex-1 space-y-1.5">
-                <UiLabel>Κατηγορία</UiLabel>
-                <Select v-model="row.categoryId">
-                  <SelectTrigger :aria-invalid="placementGap(row) === 'category' || undefined">
-                    <SelectValue placeholder="Επιλογή κατηγορίας…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p v-if="placementGap(row) === 'category'" class="text-xs text-destructive">Το πεδίο «Κατηγορία» είναι υποχρεωτικό</p>
-              </div>
-              <UiButton
-                v-if="placements.length > 1"
-                type="button"
-                variant="ghost"
-                size="sm"
-                class="mb-0.5 shrink-0 text-muted-foreground hover:text-destructive"
-                aria-label="Αφαίρεση τοποθέτησης"
-                @click="removePlacement(row.key)"
+              <div
+                v-for="row in placements"
+                :key="row.key"
+                class="flex items-end gap-3 rounded-lg border p-3"
+                :class="
+                  duplicatePlacementKeys.has(row.key)
+                    ? 'border-destructive'
+                    : 'border-border'
+                "
               >
-                <VIcon name="bi-trash" class="size-4" />
-              </UiButton>
-            </div>
+                <div class="min-w-0 flex-1 space-y-1.5">
+                  <UiLabel>Τύπος</UiLabel>
+                  <Select
+                    :model-value="row.type"
+                    @update:model-value="
+                      (v) =>
+                        onPlacementTypeChange(
+                          row,
+                          String(v) as 'subject' | 'chapter' | 'category',
+                        )
+                    "
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="subject">Μάθημα</SelectItem>
+                      <SelectItem value="chapter">Κεφάλαιο</SelectItem>
+                      <SelectItem value="category">Κατηγορία</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <template v-if="row.type === 'subject'">
+                  <div class="min-w-0 flex-1 space-y-1.5">
+                    <UiLabel>Τάξη</UiLabel>
+                    <Select
+                      :model-value="row.gradeId"
+                      @update:model-value="
+                        (v) => onPlacementGradeChange(row, String(v))
+                      "
+                    >
+                      <SelectTrigger
+                        :aria-invalid="
+                          placementGap(row) === 'grade' || undefined
+                        "
+                      >
+                        <SelectValue placeholder="Επιλογή τάξης…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="g in grades"
+                          :key="g.id"
+                          :value="g.id"
+                          >{{ g.name }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                    <p
+                      v-if="placementGap(row) === 'grade'"
+                      class="text-xs text-destructive"
+                    >
+                      Το πεδίο «Τάξη» είναι υποχρεωτικό
+                    </p>
+                  </div>
+                  <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
+                    <UiLabel>Μάθημα</UiLabel>
+                    <Select
+                      :model-value="row.subjectId"
+                      @update:model-value="(v) => (row.subjectId = String(v))"
+                    >
+                      <SelectTrigger
+                        :aria-invalid="
+                          placementGap(row) === 'subject' || undefined
+                        "
+                      >
+                        <SelectValue placeholder="Επιλογή μαθήματος…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="s in subjectsForGrade(row.gradeId)"
+                          :key="s.id"
+                          :value="s.id"
+                          >{{ s.name }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                    <p
+                      v-if="placementGap(row) === 'subject'"
+                      class="text-xs text-destructive"
+                    >
+                      Το πεδίο «Μάθημα» είναι υποχρεωτικό
+                    </p>
+                  </div>
+                </template>
+
+                <!-- Chapter cascade -->
+                <template v-else-if="row.type === 'chapter'">
+                  <div class="min-w-0 flex-1 space-y-1.5">
+                    <UiLabel>Τάξη</UiLabel>
+                    <Select
+                      :model-value="row.gradeId"
+                      @update:model-value="
+                        (v) => onPlacementGradeChange(row, String(v))
+                      "
+                    >
+                      <SelectTrigger
+                        :aria-invalid="
+                          placementGap(row) === 'grade' || undefined
+                        "
+                      >
+                        <SelectValue placeholder="Επιλογή τάξης…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="g in grades"
+                          :key="g.id"
+                          :value="g.id"
+                          >{{ g.name }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                    <p
+                      v-if="placementGap(row) === 'grade'"
+                      class="text-xs text-destructive"
+                    >
+                      Το πεδίο «Τάξη» είναι υποχρεωτικό
+                    </p>
+                  </div>
+                  <div v-if="row.gradeId" class="min-w-0 flex-1 space-y-1.5">
+                    <UiLabel>Μάθημα</UiLabel>
+                    <Select
+                      :model-value="row.subjectId"
+                      @update:model-value="
+                        (v) => onPlacementSubjectChange(row, String(v))
+                      "
+                    >
+                      <SelectTrigger
+                        :aria-invalid="
+                          placementGap(row) === 'subject' || undefined
+                        "
+                      >
+                        <SelectValue placeholder="Επιλογή μαθήματος…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="s in subjectsForGrade(row.gradeId)"
+                          :key="s.id"
+                          :value="s.id"
+                          >{{ s.name }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                    <p
+                      v-if="placementGap(row) === 'subject'"
+                      class="text-xs text-destructive"
+                    >
+                      Το πεδίο «Μάθημα» είναι υποχρεωτικό
+                    </p>
+                  </div>
+                  <div v-if="row.subjectId" class="min-w-0 flex-1 space-y-1.5">
+                    <UiLabel>Κεφάλαιο</UiLabel>
+                    <Select v-model="row.chapterId">
+                      <SelectTrigger
+                        :aria-invalid="
+                          placementGap(row) === 'chapter' || undefined
+                        "
+                      >
+                        <SelectValue placeholder="Επιλογή κεφαλαίου…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem
+                          v-for="c in chaptersForSubject(row.subjectId)"
+                          :key="c.id"
+                          :value="c.id"
+                          >{{ c.title }}</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                    <p
+                      v-if="placementGap(row) === 'chapter'"
+                      class="text-xs text-destructive"
+                    >
+                      Το πεδίο «Κεφάλαιο» είναι υποχρεωτικό
+                    </p>
+                  </div>
+                </template>
+
+                <!-- Category -->
+                <div v-else class="min-w-0 flex-1 space-y-1.5">
+                  <UiLabel>Κατηγορία</UiLabel>
+                  <Select v-model="row.categoryId">
+                    <SelectTrigger
+                      :aria-invalid="
+                        placementGap(row) === 'category' || undefined
+                      "
+                    >
+                      <SelectValue placeholder="Επιλογή κατηγορίας…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="cat in categories"
+                        :key="cat.id"
+                        :value="cat.id"
+                        >{{ cat.name }}</SelectItem
+                      >
+                    </SelectContent>
+                  </Select>
+                  <p
+                    v-if="placementGap(row) === 'category'"
+                    class="text-xs text-destructive"
+                  >
+                    Το πεδίο «Κατηγορία» είναι υποχρεωτικό
+                  </p>
+                </div>
+                <UiButton
+                  v-if="placements.length > 1"
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  class="mb-0.5 shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label="Αφαίρεση τοποθέτησης"
+                  @click="removePlacement(row.key)"
+                >
+                  <VIcon name="bi-trash" class="size-4" />
+                </UiButton>
+              </div>
             </div>
 
-            <UiButton type="button" variant="outline" size="sm" class="gap-1.5" @click="addPlacement">
+            <p
+              v-if="duplicatePlacementKeys.size > 0"
+              class="flex items-center gap-2 text-sm text-destructive"
+              role="alert"
+            >
+              <VIcon name="bi-exclamation-circle" class="size-4 shrink-0" />
+              Το υλικό δεν μπορεί να υπάρχει δύο φορές στην ίδια θέση.
+            </p>
+
+            <UiButton
+              type="button"
+              variant="outline"
+              size="sm"
+              class="gap-1.5"
+              @click="addPlacement"
+            >
               <VIcon name="bi-plus-circle" class="size-4" />
               Προσθήκη τοποθέτησης
             </UiButton>
           </fieldset>
 
           <UiDialogFooter>
-            <UiButton type="button" variant="cancel" @click="emit('close')">Ακύρωση</UiButton>
-            <UiButton type="submit" :disabled="loading">{{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}</UiButton>
+            <UiButton type="button" variant="cancel" @click="emit('close')"
+              >Ακύρωση</UiButton
+            >
+            <UiButton
+              type="submit"
+              :disabled="loading || duplicatePlacementKeys.size > 0"
+              >{{ loading ? "Φόρτωση..." : "Αποθήκευση" }}</UiButton
+            >
           </UiDialogFooter>
         </form>
       </UiDialogContent>
