@@ -1,6 +1,7 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
 import { keepSubjectSlug } from '../../../utils/contentSlug'
+import { listEntityImageUrls, releaseReplacedEntityImage } from '../../../utils/entityImageStorage'
 import { withUniqueSlugRetry } from '../../../utils/uniqueViolation'
 
 export default defineEventHandler(async (event) => {
@@ -28,6 +29,12 @@ export default defineEventHandler(async (event) => {
     }
   }
   if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Δεν υπάρχει κάτι για ενημέρωση' })
+  let previousImageUrl: string | null = null
+  if (body.image_url !== undefined) {
+    const urls = await listEntityImageUrls(supabase, 'subjects', 'id', id)
+    if (!urls) throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+    previousImageUrl = urls[0] ?? null
+  }
   const gradeId = movedGradeId
   const saved = gradeId
     ? await withUniqueSlugRetry(3, async () => {
@@ -40,6 +47,9 @@ export default defineEventHandler(async (event) => {
   if (error) {
     console.error('[admin/subjects/[id].patch]', error.message)
     throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+  }
+  if (body.image_url !== undefined) {
+    await releaseReplacedEntityImage(supabase, previousImageUrl, body.image_url || null)
   }
   return data
 })

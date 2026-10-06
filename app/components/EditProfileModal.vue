@@ -10,8 +10,6 @@ import UiDialogDescription from '~/components/ui/dialog/DialogDescription.vue'
 import UiDialogHeader from '~/components/ui/dialog/DialogHeader.vue'
 import UiDialogTitle from '~/components/ui/dialog/DialogTitle.vue'
 import UiDialogClose from '~/components/ui/dialog/DialogClose.vue'
-import UiCard from '~/components/ui/Card.vue'
-import UiCardContent from '~/components/ui/CardContent.vue'
 import UiInput from '~/components/ui/Input.vue'
 import UiPasswordInput from '~/components/ui/PasswordInput.vue'
 import UiLabel from '~/components/ui/Label.vue'
@@ -48,10 +46,12 @@ async function resendVerification() {
   }
 }
 
+const fieldClass = 'h-12 rounded-full border-0 bg-secondary px-5 shadow-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0'
+
 const joinedAt = computed(() => {
   const raw = session.value.user?.created_at
   if (!raw) return ''
-  return new Date(raw).toLocaleDateString(undefined, { year: 'numeric', month: 'long' })
+  return new Date(raw).toLocaleDateString('el-GR', { year: 'numeric', month: 'long' })
 })
 
 // Populate form fields when modal opens or user changes
@@ -160,18 +160,23 @@ async function onSubmit() {
 <template>
   <UiDialog :open="isOpen" @update:open="(v: boolean) => !v && close()">
     <UiDialogPortal>
-      <UiDialogOverlay />
-      <UiDialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <UiDialogOverlay class="bg-foreground/40 backdrop-blur-sm" />
+      <UiDialogContent class="max-h-[90vh] max-w-3xl gap-0 overflow-y-auto border-0 bg-card p-6 shadow-2xl sm:rounded-3xl sm:p-8">
         <UiDialogDescription class="sr-only">Επεξεργασία προφίλ</UiDialogDescription>
         <UiDialogHeader>
-          <div class="flex items-center justify-between mb-4">
-            <UiDialogTitle class="text-xl font-bold font-heading">
-              Επεξεργασία προφίλ
-            </UiDialogTitle>
+          <div class="mb-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <span class="flex size-10 items-center justify-center rounded-full bg-accent text-primary">
+                <VIcon name="bi-pencil" class="size-5" aria-hidden="true" />
+              </span>
+              <UiDialogTitle class="font-heading text-xl text-foreground">
+                Επεξεργασία προφίλ
+              </UiDialogTitle>
+            </div>
             <UiDialogClose as-child>
               <button
                 type="button"
-                class="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                class="flex size-9 items-center justify-center rounded-full bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
                 aria-label="Κλείσιμο"
               >
                 <VIcon name="bi-x" class="size-5" aria-hidden="true" />
@@ -180,129 +185,115 @@ async function onSubmit() {
           </div>
         </UiDialogHeader>
 
-        <UiCard class="border-0 shadow-none p-0">
-          <UiCardContent class="p-0">
-            <form class="flex flex-col sm:flex-row gap-6" @submit.prevent="onSubmit">
+        <form class="flex flex-col gap-8 sm:flex-row sm:gap-10" @submit.prevent="onSubmit">
 
-              <!-- LEFT: avatar + account info -->
-              <div class="flex flex-col gap-4 sm:w-48 shrink-0">
+          <div class="flex shrink-0 flex-col items-center gap-5 sm:w-72">
+            <div class="relative size-32">
+              <button
+                type="button"
+                class="flex size-full items-center justify-center overflow-hidden rounded-full bg-secondary transition cursor-pointer disabled:pointer-events-none disabled:opacity-70"
+                aria-label="Φωτογραφία προφίλ"
+                :disabled="avatarUploading"
+                @click="onAvatarClick"
+              >
+                <img v-if="avatarPreview" :src="avatarPreview" alt="" class="size-full object-cover" >
+                <VIcon v-else name="bi-person" class="size-16 text-muted-foreground" aria-hidden="true" />
+                <span
+                  v-if="avatarUploading"
+                  class="absolute inset-0 z-10 flex items-center justify-center rounded-full bg-black/50 text-white"
+                >
+                  <VIcon name="bi-arrow-repeat" class="size-6 animate-spin" />
+                </span>
+              </button>
+              <span
+                class="pointer-events-none absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-card"
+              >
+                <VIcon name="bi-camera" class="size-4" aria-hidden="true" />
+              </span>
+            </div>
+            <input id="ep-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >
+            <p class="text-center text-sm text-muted-foreground">JPEG, PNG ή WebP, μέγιστο 2MB</p>
 
-                <!-- Avatar -->
-                <div class="flex flex-col items-center gap-3 rounded-lg bg-card p-4">
+            <div class="w-full space-y-3 rounded-2xl bg-secondary p-4 text-sm">
+              <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                <VIcon name="bi-shield" class="size-4 shrink-0" aria-hidden="true" />
+                Τρόπος σύνδεσης
+              </p>
+              <div class="flex items-start gap-2 text-foreground">
+                <VIcon name="bi-envelope" class="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+                <span class="break-all">{{ session.user?.email }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-foreground">
+                <VIcon name="bi-key" class="size-4 shrink-0 text-amethyst" aria-hidden="true" />
+                <span>{{ isCredentials ? 'Email & κωδικός' : 'Λογαριασμός Google' }}</span>
+              </div>
+              <div v-if="joinedAt" class="flex items-center gap-2 text-foreground">
+                <VIcon name="bi-calendar3" class="size-4 shrink-0 text-laurel" aria-hidden="true" />
+                <span>Μέλος από: {{ joinedAt }}</span>
+              </div>
+              <div v-if="isCredentials" class="flex flex-col items-start gap-2 pt-1">
+                <div v-if="emailVerified" class="flex items-center gap-2 text-foreground">
+                  <VIcon name="bi-check-circle-fill" class="size-4 shrink-0 text-laurel" aria-hidden="true" />
+                  <span>Email επαληθεύτηκε</span>
+                </div>
+                <template v-else>
+                  <div class="flex items-center gap-2 rounded-full bg-amber/15 px-3 py-2 text-foreground">
+                    <VIcon name="bi-exclamation-triangle" class="size-4 shrink-0 text-amber" aria-hidden="true" />
+                    <span>Email μη επαληθευμένο</span>
+                  </div>
                   <button
                     type="button"
-                    class="relative flex size-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-muted hover:ring-2 hover:ring-primary/50 transition cursor-pointer disabled:pointer-events-none disabled:opacity-70"
-                    aria-label="Φωτογραφία προφίλ"
-                    :disabled="avatarUploading"
-                    @click="onAvatarClick"
+                    class="text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80 disabled:opacity-50 cursor-pointer"
+                    :disabled="resendVerificationLoading"
+                    @click="resendVerification"
                   >
-                    <img v-if="avatarPreview" :src="avatarPreview" alt="" class="size-full object-cover" >
-                    <svg
-                      v-else
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="44"
-                      height="44"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden="true"
-                      class="text-muted-foreground"
-                    >
-                      <circle cx="12" cy="8" r="4" fill="currentColor" />
-                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="currentColor" />
-                    </svg>
-                    <span
-                      v-if="!avatarUploading"
-                      class="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 hover:opacity-100 transition text-white text-xs font-medium"
-                    >
-                      Φωτογραφία προφίλ
-                    </span>
-                    <span
-                      v-else
-                      class="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 text-white"
-                    >
-                      <VIcon name="bi-arrow-repeat" class="size-6 animate-spin" />
-                    </span>
+                    {{ resendVerificationLoading ? 'Φόρτωση...' : 'Επαναποστολή email επαλήθευσης' }}
                   </button>
-                  <input id="ep-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >
-                  <p class="text-center text-xs text-muted-foreground">JPEG, PNG ή WebP, μέγιστο 2MB</p>
-                </div>
-
-                <!-- Account info (read-only) -->
-                <div class="rounded-lg border bg-muted/40 p-4 space-y-2.5 text-sm">
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
-                    Τρόπος σύνδεσης
-                  </p>
-                  <div class="flex items-start gap-2 text-foreground">
-                    <VIcon name="bi-envelope" class="size-4 shrink-0 mt-0.5 text-muted-foreground" />
-                    <span class="break-all text-xs">{{ session.user?.email }}</span>
-                  </div>
-                  <div class="flex items-center gap-2 text-foreground">
-                    <VIcon name="bi-gear" class="size-4 shrink-0 text-muted-foreground" />
-                    <span class="text-xs">{{ isCredentials ? 'Email & κωδικός' : 'Λογαριασμός Google' }}</span>
-                  </div>
-                  <div v-if="joinedAt" class="flex items-center gap-2 text-foreground">
-                    <VIcon name="bi-journal-bookmark" class="size-4 shrink-0 text-muted-foreground" />
-                    <span class="text-xs">Μέλος από: {{ joinedAt }}</span>
-                  </div>
-                  <div v-if="isCredentials" class="flex flex-col gap-1.5">
-                    <div v-if="emailVerified" class="flex items-center gap-2 text-foreground">
-                      <VIcon name="bi-check-circle-fill" class="size-4 shrink-0 text-green-600 dark:text-green-500" />
-                      <span class="text-xs">Email επαληθεύτηκε</span>
-                    </div>
-                    <template v-else>
-                      <div class="flex items-center gap-2 text-foreground">
-                        <VIcon name="bi-exclamation-circle" class="size-4 shrink-0 text-amber-600 dark:text-amber-500" />
-                        <span class="text-xs">Email μη επαληθευμένο</span>
-                      </div>
-                      <UiButton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        class="h-7 text-xs"
-                        :disabled="resendVerificationLoading"
-                        @click="resendVerification"
-                      >
-                        {{ resendVerificationLoading ? 'Φόρτωση...' : 'Επαναποστολή email επαλήθευσης' }}
-                      </UiButton>
-                    </template>
-                  </div>
-                </div>
-              </div>
-
-              <!-- RIGHT: editable fields -->
-              <div class="flex-1 space-y-6">
-                <div class="space-y-2">
-                  <UiLabel for="ep-name">Όνομα</UiLabel>
-                  <UiInput id="ep-name" v-model="name" type="text" />
-                </div>
-
-                <template v-if="isCredentials">
-                  <div class="border-t pt-6 space-y-4">
-                    <p class="text-sm font-semibold">Αλλαγή κωδικού</p>
-                    <div class="space-y-2">
-                      <UiLabel for="ep-current-password">Τρέχων κωδικός</UiLabel>
-                      <UiPasswordInput id="ep-current-password" v-model="currentPassword" autocomplete="current-password" />
-                    </div>
-                    <div class="space-y-2">
-                      <UiLabel for="ep-new-password">Νέος κωδικός</UiLabel>
-                      <UiPasswordInput id="ep-new-password" v-model="newPassword" autocomplete="new-password" />
-                    </div>
-                    <div class="space-y-2">
-                      <UiLabel for="ep-confirm-password">Επιβεβαίωση νέου κωδικού</UiLabel>
-                      <UiPasswordInput id="ep-confirm-password" v-model="confirmPassword" autocomplete="new-password" />
-                    </div>
-                  </div>
                 </template>
-
-                <UiButton type="submit" class="w-full" :disabled="loading">
-                  {{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}
-                </UiButton>
               </div>
+            </div>
+          </div>
 
-            </form>
-          </UiCardContent>
-        </UiCard>
+          <div class="min-w-0 flex-1 space-y-5">
+            <div class="space-y-2">
+              <UiLabel for="ep-name">Όνομα</UiLabel>
+              <div class="relative">
+                <UiInput id="ep-name" v-model="name" type="text" :class="`${fieldClass} pr-12`" />
+                <VIcon
+                  name="bi-person-badge"
+                  class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
 
+            <template v-if="isCredentials">
+              <div class="space-y-4 border-t border-border pt-5">
+                <p class="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <VIcon name="bi-key" class="size-4 shrink-0 text-primary" aria-hidden="true" />
+                  Αλλαγή κωδικού
+                </p>
+                <div class="space-y-2">
+                  <UiLabel for="ep-current-password">Τρέχων κωδικός</UiLabel>
+                  <UiPasswordInput id="ep-current-password" v-model="currentPassword" autocomplete="current-password" :class="`${fieldClass} pr-12`" />
+                </div>
+                <div class="space-y-2">
+                  <UiLabel for="ep-new-password">Νέος κωδικός</UiLabel>
+                  <UiPasswordInput id="ep-new-password" v-model="newPassword" autocomplete="new-password" :class="`${fieldClass} pr-12`" />
+                </div>
+                <div class="space-y-2">
+                  <UiLabel for="ep-confirm-password">Επιβεβαίωση νέου κωδικού</UiLabel>
+                  <UiPasswordInput id="ep-confirm-password" v-model="confirmPassword" autocomplete="new-password" :class="`${fieldClass} pr-12`" />
+                </div>
+              </div>
+            </template>
+
+            <UiButton type="submit" class="w-full" :disabled="loading">
+              {{ loading ? 'Φόρτωση...' : 'Αποθήκευση' }}
+            </UiButton>
+          </div>
+
+        </form>
       </UiDialogContent>
     </UiDialogPortal>
   </UiDialog>

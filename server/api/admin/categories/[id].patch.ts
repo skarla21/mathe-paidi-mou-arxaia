@@ -1,5 +1,7 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
+import { listEntityImageUrls, releaseReplacedEntityImage } from '../../../utils/entityImageStorage'
+
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const id = getRouterParam(event, 'id')
@@ -12,10 +14,19 @@ export default defineEventHandler(async (event) => {
   if (body.image_url !== undefined) updates.image_url = body.image_url || null
   if (body.order !== undefined) updates.order = body.order
   if (!Object.keys(updates).length) throw createError({ statusCode: 400, message: 'Δεν υπάρχει κάτι για ενημέρωση' })
+  let previousImageUrl: string | null = null
+  if (body.image_url !== undefined) {
+    const urls = await listEntityImageUrls(supabase, 'categories', 'id', id)
+    if (!urls) throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+    previousImageUrl = urls[0] ?? null
+  }
   const { data, error } = await supabase.from('categories').update(updates).eq('id', id).select().single()
   if (error) {
     console.error('[admin/categories/[id].patch]', error.message)
     throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+  }
+  if (body.image_url !== undefined) {
+    await releaseReplacedEntityImage(supabase, previousImageUrl, body.image_url || null)
   }
   return data
 })

@@ -68,8 +68,14 @@ import {
   BiSend,
   BiBook,
   BiPerson,
+  BiPersonBadge,
   BiLock,
   BiUnlock,
+  BiShield,
+  BiKey,
+  BiCalendar3,
+  BiExclamationTriangle,
+  BiCamera,
 } from 'oh-vue-icons/icons/bi'
 
 addIcons(
@@ -141,8 +147,14 @@ addIcons(
   BiSend,
   BiBook,
   BiPerson,
+  BiPersonBadge,
   BiLock,
   BiUnlock,
+  BiShield,
+  BiKey,
+  BiCalendar3,
+  BiExclamationTriangle,
+  BiCamera,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

@@ -124,6 +124,72 @@ export async function removeUnusedEntityImage(
   await removeUnusedEntityImagePath(supabase, classified.path, supabaseUrl)
 }
 
+async function removeEntityImage(
+  supabase: SupabaseClient,
+  imageUrl: string,
+  supabaseUrl?: string,
+): Promise<void> {
+  if (supabaseUrl === undefined) {
+    await removeUnusedEntityImage(supabase, imageUrl)
+    return
+  }
+  await removeUnusedEntityImage(supabase, imageUrl, supabaseUrl)
+}
+
+export async function releaseReplacedEntityImage(
+  supabase: SupabaseClient,
+  previousUrl: string | null | undefined,
+  nextUrl: string | null | undefined,
+  supabaseUrl?: string,
+): Promise<void> {
+  const previous = previousUrl || null
+  const next = nextUrl || null
+  if (!previous || previous === next) return
+  await removeEntityImage(supabase, previous, supabaseUrl)
+}
+
+export async function releaseEntityImages(
+  supabase: SupabaseClient,
+  urls: Array<string | null | undefined>,
+  supabaseUrl?: string,
+): Promise<void> {
+  const unique: string[] = []
+  for (const url of urls) {
+    if (!url || unique.includes(url)) continue
+    unique.push(url)
+  }
+  for (const url of unique) await removeEntityImage(supabase, url, supabaseUrl)
+}
+
+export async function listEntityImageUrls(
+  supabase: SupabaseClient,
+  table: (typeof IMAGE_TABLES)[number],
+  column: 'id' | 'subject_id' | 'grade_id',
+  value: string,
+): Promise<string[] | null> {
+  const urls: string[] = []
+  let from = 0
+  for (;;) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('image_url')
+      .eq(column, value)
+      .order('id')
+      .range(from, from + PAGE_SIZE - 1)
+    if (error) {
+      console.error('[entityImageStorage] list image_url', error.message)
+      return null
+    }
+    const rows = (data ?? []) as ImageRow[]
+    for (const row of rows) {
+      if (row.image_url) urls.push(row.image_url)
+    }
+    if (rows.length < PAGE_SIZE) break
+    from += PAGE_SIZE
+  }
+  return urls
+}
+
 export async function reapOrphanEntityImages(
   supabase: SupabaseClient,
   supabaseUrl = String(useRuntimeConfig().public.supabaseUrl || ''),

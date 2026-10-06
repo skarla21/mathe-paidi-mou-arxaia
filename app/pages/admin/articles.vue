@@ -102,9 +102,9 @@ async function confirmDelete() {
 
     <template v-if="loading">
       <div class="space-y-3">
-        <UiCard v-for="i in 5" :key="i">
+        <UiCard v-for="i in 5" :key="i" class="rounded-2xl border-border">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <UiSkeleton class="size-8 shrink-0" />
+            <UiSkeleton class="size-10 shrink-0 rounded-full" />
             <UiSkeleton class="h-4 flex-1" />
           </UiCardContent>
         </UiCard>
@@ -117,13 +117,13 @@ async function confirmDelete() {
         <p>Δεν υπάρχουν άρθρα ακόμα.</p>
       </div>
       <div v-else class="space-y-3">
-        <UiCard v-for="a in filteredArticles" :key="a.id">
+        <UiCard v-for="a in filteredArticles" :key="a.id" class="rounded-2xl border-border">
           <UiCardContent class="p-4 flex items-center gap-4 flex-wrap">
-            <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
-              <VIcon name="bi-newspaper" class="size-6 text-muted-foreground" />
-            </div>
+            <UiIconWell>
+              <VIcon name="bi-newspaper" class="size-5" aria-hidden="true" />
+            </UiIconWell>
             <div class="min-w-0 flex-1">
-              <p class="font-medium">{{ a.title }}</p>
+              <p class="font-semibold">{{ a.title }}</p>
               <div class="flex items-center gap-2 mt-1 flex-wrap text-xs text-muted-foreground">
                 <UiBadge :variant="a.published ? 'default' : 'secondary'">
                   {{ a.published ? 'Δημοσιευμένο' : 'Πρόχειρο' }}

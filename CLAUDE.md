@@ -112,6 +112,7 @@ Env vars: copy `.env.example`. Prefix `NUXT_PUBLIC_` for client-exposed, `NUXT_`
 - **DO** configure theme tokens in `app/assets/css/main.css` under `@theme inline { … }`
 - **DON'T** create or modify `tailwind.config.js` — Tailwind v4 uses CSS-only config
 - **DO** use semantic tokens: `text-foreground`, `bg-card`, `text-primary`, `text-muted-foreground`
+- **DO** write canonical Tailwind v4 classes. Drop brackets on a bare attribute name (`data-highlighted:`, `data-disabled:`). Keep them when the attribute has a value (`data-[state=open]:`, `data-[slot=select-value]:`). Boolean aria uses the bare variant (`aria-checked:`). Important is a suffix (`flex!`). Theme vars use parentheses (`max-h-(--token)`). Prefer v4 names (`bg-linear-to-r`, `shrink-0`, `grow`).
 
 ### Components
 

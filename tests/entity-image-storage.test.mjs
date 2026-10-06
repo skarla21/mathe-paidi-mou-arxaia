@@ -2,18 +2,30 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
   entityImagePathFromUrl,
+  listEntityImageUrls,
   reapOrphanEntityImages,
+  releaseEntityImages,
+  releaseReplacedEntityImage,
   removeUnusedEntityImage,
 } from '../server/utils/entityImageStorage.ts'
 
 const SUPABASE_URL = 'https://proj.supabase.co'
 const IMAGE_URL = `${SUPABASE_URL}/storage/v1/object/public/uploads/entity-images/category-cover-abcd1234.png`
+const NEXT_URL = `${SUPABASE_URL}/storage/v1/object/public/uploads/entity-images/subject-cover-bbbb2222.png`
 
-function fakeImages(tables, objects, { listError = null } = {}) {
+function fakeImages(tables, objects, { listError = null, queryError = null } = {}) {
   const removed = []
   function queryFor(rows) {
+    let filtered = rows
     const query = {
       select() {
+        return query
+      },
+      eq(column, value) {
+        filtered = rows.filter((row) => {
+          if (typeof row === 'string') return true
+          return row[column] === value
+        })
         return query
       },
       not() {
@@ -23,10 +35,11 @@ function fakeImages(tables, objects, { listError = null } = {}) {
         return query
       },
       range(start, end) {
-        return Promise.resolve({
-          data: rows.slice(start, end + 1).map((image_url) => ({ image_url })),
-          error: null,
-        })
+        if (queryError) return Promise.resolve({ data: null, error: queryError })
+        const page = filtered.slice(start, end + 1).map((row) => (
+          typeof row === 'string' ? { image_url: row } : { image_url: row.image_url ?? null }
+        ))
+        return Promise.resolve({ data: page, error: null })
       },
     }
     return query
@@ -118,5 +131,65 @@ describe('reapOrphanEntityImages', () => {
     )
     await reapOrphanEntityImages(supabase.client, SUPABASE_URL, now)
     assert.deepEqual(supabase.removed, [])
+  })
+})
+
+describe('releaseReplacedEntityImage', () => {
+  it('keeps the file when the saved url did not change', async () => {
+    const supabase = fakeImages({}, [])
+    await releaseReplacedEntityImage(supabase.client, IMAGE_URL, IMAGE_URL, SUPABASE_URL)
+    assert.deepEqual(supabase.removed, [])
+  })
+
+  it('removes the previous file when the saved url changes and nothing else uses it', async () => {
+    const supabase = fakeImages({ categories: [NEXT_URL] }, [])
+    await releaseReplacedEntityImage(supabase.client, IMAGE_URL, '', SUPABASE_URL)
+    assert.deepEqual(supabase.removed, ['entity-images/category-cover-abcd1234.png'])
+  })
+
+  it('keeps the previous file when another record still uses it', async () => {
+    const supabase = fakeImages({ chapters: [IMAGE_URL] }, [])
+    await releaseReplacedEntityImage(supabase.client, IMAGE_URL, NEXT_URL, SUPABASE_URL)
+    assert.deepEqual(supabase.removed, [])
+  })
+})
+
+describe('releaseEntityImages', () => {
+  it('removes each unused image once', async () => {
+    const supabase = fakeImages({}, [])
+    await releaseEntityImages(supabase.client, [IMAGE_URL, IMAGE_URL, null, ''], SUPABASE_URL)
+    assert.deepEqual(supabase.removed, ['entity-images/category-cover-abcd1234.png'])
+  })
+})
+
+describe('listEntityImageUrls', () => {
+  it('reads the image urls for one subject and skips an empty one', async () => {
+    const supabase = fakeImages({
+      chapters: [
+        { subject_id: 'sub-1', image_url: IMAGE_URL },
+        { subject_id: 'sub-1', image_url: null },
+        { subject_id: 'sub-2', image_url: NEXT_URL },
+      ],
+    }, [])
+    const urls = await listEntityImageUrls(supabase.client, 'chapters', 'subject_id', 'sub-1')
+    assert.deepEqual(urls, [IMAGE_URL])
+  })
+
+  it('returns null when the image lookup fails', async () => {
+    const supabase = fakeImages({ categories: [] }, [], { queryError: { message: 'db down' } })
+    const urls = await listEntityImageUrls(supabase.client, 'categories', 'id', 'cat-1')
+    assert.equal(urls, null)
+  })
+
+  it('pages through every image url for that grade', async () => {
+    const rows = Array.from({ length: 1001 }, (_, index) => ({
+      grade_id: 'grade-1',
+      image_url: `${SUPABASE_URL}/storage/v1/object/public/uploads/entity-images/img-${index}.png`,
+    }))
+    const supabase = fakeImages({ subjects: rows }, [])
+    const urls = await listEntityImageUrls(supabase.client, 'subjects', 'grade_id', 'grade-1')
+    assert.equal(urls.length, 1001)
+    assert.equal(urls[0], rows[0].image_url)
+    assert.equal(urls[1000], rows[1000].image_url)
   })
 })

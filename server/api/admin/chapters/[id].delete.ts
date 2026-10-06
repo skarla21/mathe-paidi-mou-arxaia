@@ -1,5 +1,6 @@
 import { serverSupabaseService } from '../../../utils/supabaseServer'
 import { requireAdmin } from '../../../utils/requireAdmin'
+import { listEntityImageUrls, releaseEntityImages } from '../../../utils/entityImageStorage'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -32,10 +33,14 @@ export default defineEventHandler(async (event) => {
     }
   }
 
+  const imageUrls = await listEntityImageUrls(supabase, 'chapters', 'id', id)
+  if (!imageUrls) throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
+
   const { error } = await supabase.from('chapters').delete().eq('id', id)
   if (error) {
     console.error('[admin/chapters/[id].delete]', error.message)
     throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }
+  await releaseEntityImages(supabase, imageUrls)
   return { ok: true }
 })

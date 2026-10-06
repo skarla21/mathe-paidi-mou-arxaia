@@ -167,9 +167,9 @@ function onDrop(e: DragEvent, dropIndex: number) {
     <!-- Skeleton -->
     <template v-if="loading">
       <div class="space-y-3">
-        <UiCard v-for="i in 5" :key="i">
+        <UiCard v-for="i in 5" :key="i" class="rounded-2xl border-border">
           <UiCardContent class="p-4 flex items-center gap-4">
-            <UiSkeleton class="size-8 shrink-0" />
+            <UiSkeleton class="size-10 shrink-0 rounded-full" />
             <UiSkeleton class="h-4 flex-1" />
           </UiCardContent>
         </UiCard>
@@ -186,7 +186,7 @@ function onDrop(e: DragEvent, dropIndex: number) {
         <UiCard
           v-for="(g, index) in displayedGrades"
           :key="g.id"
-          class="transition-opacity"
+          class="rounded-2xl border-border transition-opacity"
           :draggable="canReorder"
           @dragstart="onDragStart($event, index)"
           @dragend="onDragEnd"
@@ -200,11 +200,11 @@ function onDrop(e: DragEvent, dropIndex: number) {
             >
               <VIcon name="bi-grip-vertical" class="size-5" />
             </div>
-            <div class="size-12 rounded bg-muted shrink-0 flex items-center justify-center">
-              <VIcon name="bi-mortarboard" class="size-6 text-muted-foreground" />
-            </div>
+            <UiIconWell>
+              <VIcon name="bi-mortarboard" class="size-5" aria-hidden="true" />
+            </UiIconWell>
             <div class="min-w-0 flex-1">
-              <p class="font-medium">{{ g.name }}</p>
+              <p class="font-semibold">{{ g.name }}</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <UiButton size="sm" variant="outline" @click.stop="openEdit(g)">Επεξεργασία</UiButton>

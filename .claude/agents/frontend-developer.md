@@ -42,6 +42,12 @@ Nuxt 4, Vue 3, TypeScript, Tailwind CSS v4, and shadcn-vue (Radix Vue).
 - Custom utilities: `.font-heading` (Comfortaa), `.font-display` (Titan One),
   `.nav-link-underline`, `.animate-blob`, `.animate-float`, `.draw-border-svg`
 - Use `cn()` from `~/app/lib/utils.ts` for conditional class merging
+- Write canonical Tailwind v4 classes so `suggestCanonicalClasses` stays quiet:
+  - Bare attribute names drop brackets: `data-highlighted:`, `data-disabled:`, `data-placeholder:`, `group-data-open:`
+  - Keep brackets when the attribute has a value: `data-[state=open]:`, `data-[side=bottom]:`, `data-[slot=select-value]:`
+  - Boolean aria uses the bare variant: `aria-checked:`, `aria-selected:` (`aria-[expanded=false]:` stays bracketed)
+  - Important is a suffix (`flex!`), theme vars use parentheses (`max-h-(--token)`), opacity is `bg-black/50`
+  - v4 names: `bg-linear-to-r`, `shrink-0`, `grow`, `wrap-break-word`
 
 ### shadcn-vue components
 

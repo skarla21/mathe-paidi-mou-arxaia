@@ -1,0 +1,41 @@
+---
+description: Write Tailwind v4 classes in the canonical form the editor expects
+alwaysApply: true
+---
+
+# Tailwind canonical classes
+
+Write Tailwind classes in the form Tailwind v4 canonicalizes to. The editor warning `suggestCanonicalClasses` means a shorter equivalent exists.
+
+## Attribute variants
+
+Drop the brackets when they contain only an attribute name:
+
+- `data-[highlighted]:` → `data-highlighted:`
+- `data-[disabled]:` → `data-disabled:`
+- `data-[placeholder]:` → `data-placeholder:`
+- `group-data-[open]:` → `group-data-open:`
+
+The same applies to `peer-data-`, `has-data-`, `in-data-`, and `not-data-`.
+
+Keep the brackets when the attribute has a value:
+
+- `data-[state=open]:`
+- `data-[state=checked]:`
+- `data-[side=bottom]:`
+- `data-[size=default]:`
+- `data-[slot=select-value]:`
+
+A boolean `aria` value of true uses the bare variant: `aria-[checked=true]:` and `aria-[selected="true"]:` → `aria-checked:` and `aria-selected:`. The same applies to `group-aria-` and `peer-aria-`. Keep brackets for other values, such as `aria-[expanded=false]:`.
+
+## Other canonical forms
+
+- Put the important modifier at the end: `flex!`, `hover:bg-red-500!`
+- Read a theme variable with parentheses: `max-h-(--reka-select-content-available-height)`, `bg-(--color)`
+- Write opacity as a number: `bg-black/50`
+- Use the named utility when an arbitrary value matches one: `w-full`, `h-dvh`, `z-10`, `min-w-0`, `bg-white`, `gap-2`, `border`, `leading-none`, `cursor-pointer`
+- Use the v4 names: `bg-linear-to-r`, `shrink-0`, `grow`, `wrap-break-word`, `box-decoration-slice`, `order-0`
+- Use built-in variant shorthands: `has-focus:`, `supports-grid:`, `*:data-[slot=icon]:`
+- In `calc`, do not escape spaces: `w-[calc(100%-1rem)]`
+
+Leave complex arbitrary variants as they are, for example `[&_svg:not([class*='size-'])]:size-4`.

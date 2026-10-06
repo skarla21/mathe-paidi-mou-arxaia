@@ -59,6 +59,7 @@ Quick check: `grep -r "alert(" app/` and `grep -rn '">.*[A-Z].*</' app/pages app
 - [ ] No `tailwind.config.js` created or modified
 - [ ] New icons registered in `app/plugins/oh-vue-icons.ts`, used via `<VIcon name="bi-*" />`
 - [ ] `cn()` from `~/app/lib/utils.ts` used for conditional classes
+- [ ] Tailwind classes are canonical: `data-highlighted:` (brackets only when the attribute has a value, e.g. `data-[state=open]:`), `aria-checked:`, `flex!`, `bg-linear-to-r`, `shrink-0`
 
 ### 6. Database / Server (BLOCKER if service role misused)
 

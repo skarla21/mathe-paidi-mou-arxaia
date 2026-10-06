@@ -186,12 +186,13 @@ async function confirmLogout() {
                 </span>
               </button>
             </UiDropdownMenuTrigger>
-            <UiDropdownMenuContent align="end" class="min-w-52">
-              <div
-                class="flex items-center gap-3 border-b border-border px-3 py-2.5"
-              >
+            <UiDropdownMenuContent
+              align="end"
+              class="w-72 rounded-2xl border-border p-2 shadow-lg"
+            >
+              <div class="flex items-center gap-3 px-2 py-2">
                 <div
-                  class="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
+                  class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground"
                 >
                   <img
                     v-if="session.user.avatar_url"
@@ -202,53 +203,110 @@ async function confirmLogout() {
                   <VIcon
                     v-else
                     name="bi-person-fill"
-                    class="size-4 text-muted-foreground"
+                    class="size-5"
                     aria-hidden="true"
                   />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-medium leading-none">
-                    {{ session.user.name ?? "Χρήστης" }}
-                  </p>
-                  <p class="mt-0.5 truncate text-xs text-muted-foreground">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <p class="min-w-0 truncate text-sm font-semibold leading-none">
+                      {{ session.user.name ?? "Χρήστης" }}
+                    </p>
+                    <span
+                      class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold leading-none"
+                      :class="roleChipClass(isAdmin)"
+                    >
+                      {{ isAdmin ? "ΔΙΑΧΕΙΡΙΣΤΗΣ" : "ΜΑΘΗΤΗΣ" }}
+                    </span>
+                  </div>
+                  <p class="mt-1 truncate text-xs text-muted-foreground">
                     {{ session.user.email }}
                   </p>
                 </div>
               </div>
-              <div class="border-b border-border py-1">
-                <UiDropdownMenuItem @click="openEditProfile">
-                  <span class="flex w-full items-center">
-                    <VIcon name="bi-pencil" class="mr-2 size-4 shrink-0" />
-                    Επεξεργασία προφίλ
+              <UiDropdownMenuItem
+                :class="accountMenuItemClass"
+                @click="openEditProfile"
+              >
+                <span class="flex w-full items-center gap-3">
+                  <UiIconWell>
+                    <VIcon name="bi-pencil" class="size-4" aria-hidden="true" />
+                  </UiIconWell>
+                  <span class="min-w-0 text-left">
+                    <span class="block font-semibold leading-tight">
+                      Επεξεργασία προφίλ
+                    </span>
+                    <span
+                      class="mt-0.5 block text-xs font-normal text-muted-foreground"
+                    >
+                      {{ profileSubtitle(session.user?.provider) }}
+                    </span>
                   </span>
-                </UiDropdownMenuItem>
-                <UiDropdownMenuItem v-if="!isAdmin">
-                  <NuxtLink to="/dashboard" class="flex w-full items-center">
+                </span>
+              </UiDropdownMenuItem>
+              <UiDropdownMenuItem
+                v-if="!isAdmin"
+                :class="accountMenuItemClass"
+              >
+                <NuxtLink to="/dashboard" class="w-full">
+                  <span class="flex w-full items-center gap-3">
+                    <UiIconWell>
+                      <VIcon
+                        name="bi-journal-bookmark"
+                        class="size-4"
+                        aria-hidden="true"
+                      />
+                    </UiIconWell>
+                    <span class="min-w-0 text-left">
+                      <span class="block font-semibold leading-tight">
+                        Το υλικό μου
+                      </span>
+                      <span
+                        class="mt-0.5 block text-xs font-normal text-muted-foreground"
+                      >
+                        {{ studentMaterialSubtitle }}
+                      </span>
+                    </span>
+                  </span>
+                </NuxtLink>
+              </UiDropdownMenuItem>
+              <UiDropdownMenuItem
+                v-if="isAdmin"
+                :class="accountMenuItemClass"
+              >
+                <NuxtLink to="/admin" class="w-full">
+                  <span class="flex w-full items-center gap-3">
+                    <UiIconWell>
+                      <VIcon name="bi-gear" class="size-4" aria-hidden="true" />
+                    </UiIconWell>
+                    <span class="min-w-0 text-left">
+                      <span class="block font-semibold leading-tight">
+                        Πίνακας διαχείρισης
+                      </span>
+                      <span
+                        class="mt-0.5 block text-xs font-normal text-muted-foreground"
+                      >
+                        {{ adminPanelSubtitle }}
+                      </span>
+                    </span>
+                  </span>
+                </NuxtLink>
+              </UiDropdownMenuItem>
+              <UiDropdownMenuItem
+                :class="accountMenuDestructiveClass"
+                @click="logoutDialogOpen = true"
+              >
+                <span class="flex w-full items-center gap-3">
+                  <UiIconWell tone="destructive">
                     <VIcon
-                      name="bi-journal-bookmark"
-                      class="mr-2 size-4 shrink-0"
+                      name="bi-box-arrow-right"
+                      class="size-4"
+                      aria-hidden="true"
                     />
-                    Το υλικό μου
-                  </NuxtLink>
-                </UiDropdownMenuItem>
-              </div>
-              <div v-if="isAdmin" class="border-b border-border py-1">
-                <UiDropdownMenuItem>
-                  <NuxtLink to="/admin" class="flex w-full items-center">
-                    <VIcon name="bi-gear" class="mr-2 size-4 shrink-0" />
-                    Πίνακας διαχείρισης
-                  </NuxtLink>
-                </UiDropdownMenuItem>
-              </div>
-              <div class="py-1">
-                <UiDropdownMenuItem @click="logoutDialogOpen = true">
-                  <VIcon
-                    name="bi-box-arrow-right"
-                    class="mr-2 size-4 shrink-0"
-                  />
-                  Αποσύνδεση
-                </UiDropdownMenuItem>
-              </div>
+                  </UiIconWell>
+                  <span class="font-semibold leading-tight">Αποσύνδεση</span>
+                </span>
+              </UiDropdownMenuItem>
             </UiDropdownMenuContent>
           </UiDropdownMenu>
 
@@ -398,9 +456,9 @@ async function confirmLogout() {
 
           <ClientOnly>
             <template v-if="session.user">
-              <div class="mb-2 flex items-center gap-3 px-3 py-2">
+              <div class="mb-2 flex items-center gap-3 px-2 py-2">
                 <div
-                  class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted"
+                  class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary text-primary-foreground"
                 >
                   <img
                     v-if="session.user.avatar_url"
@@ -411,74 +469,105 @@ async function confirmLogout() {
                   <VIcon
                     v-else
                     name="bi-person-fill"
-                    class="size-5 text-muted-foreground"
+                    class="size-5"
                     aria-hidden="true"
                   />
                 </div>
                 <div class="min-w-0">
-                  <p class="truncate text-sm font-medium">
-                    {{ session.user.name ?? "Χρήστης" }}
-                  </p>
-                  <p class="truncate text-xs text-muted-foreground">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <p class="min-w-0 truncate text-sm font-semibold leading-none">
+                      {{ session.user.name ?? "Χρήστης" }}
+                    </p>
+                    <span
+                      class="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold leading-none"
+                      :class="roleChipClass(isAdmin)"
+                    >
+                      {{ isAdmin ? "ΔΙΑΧΕΙΡΙΣΤΗΣ" : "ΜΑΘΗΤΗΣ" }}
+                    </span>
+                  </div>
+                  <p class="mt-1 truncate text-xs text-muted-foreground">
                     {{ session.user.email }}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+                class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left hover:bg-secondary"
                 @click="
                   openEditProfile();
                   closeMobileMenu();
                 "
               >
-                <VIcon
-                  name="bi-pencil"
-                  class="size-5 shrink-0"
-                  aria-hidden="true"
-                />
-                Επεξεργασία προφίλ
+                <UiIconWell>
+                  <VIcon name="bi-pencil" class="size-4" aria-hidden="true" />
+                </UiIconWell>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold leading-tight">
+                    Επεξεργασία προφίλ
+                  </span>
+                  <span class="mt-0.5 block text-xs text-muted-foreground">
+                    {{ profileSubtitle(session.user?.provider) }}
+                  </span>
+                </span>
               </button>
               <NuxtLink
                 v-if="!isAdmin"
                 to="/dashboard"
-                class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+                class="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-secondary"
                 @click="onMobileNavLink"
               >
-                <VIcon
-                  name="bi-journal-bookmark"
-                  class="size-5 shrink-0"
-                  aria-hidden="true"
-                />
-                Το υλικό μου
+                <UiIconWell>
+                  <VIcon
+                    name="bi-journal-bookmark"
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </UiIconWell>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold leading-tight">
+                    Το υλικό μου
+                  </span>
+                  <span class="mt-0.5 block text-xs text-muted-foreground">
+                    {{ studentMaterialSubtitle }}
+                  </span>
+                </span>
               </NuxtLink>
               <NuxtLink
                 v-if="isAdmin"
                 to="/admin"
-                class="flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+                class="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-secondary"
                 @click="onMobileNavLink"
               >
-                <VIcon
-                  name="bi-gear"
-                  class="size-5 shrink-0"
-                  aria-hidden="true"
-                />
-                Πίνακας διαχείρισης
+                <UiIconWell>
+                  <VIcon name="bi-gear" class="size-4" aria-hidden="true" />
+                </UiIconWell>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold leading-tight">
+                    Πίνακας διαχείρισης
+                  </span>
+                  <span class="mt-0.5 block text-xs text-muted-foreground">
+                    {{ adminPanelSubtitle }}
+                  </span>
+                </span>
               </NuxtLink>
               <button
                 type="button"
-                class="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground"
+                class="flex w-full items-center gap-3 rounded-xl px-2 py-2 text-left text-destructive hover:bg-destructive/10"
                 @click="
                   logoutDialogOpen = true;
                   closeMobileMenu();
                 "
               >
-                <VIcon
-                  name="bi-box-arrow-right"
-                  class="size-5 shrink-0"
-                  aria-hidden="true"
-                />
-                Αποσύνδεση
+                <UiIconWell tone="destructive">
+                  <VIcon
+                    name="bi-box-arrow-right"
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </UiIconWell>
+                <span class="text-sm font-semibold leading-tight">
+                  Αποσύνδεση
+                </span>
               </button>
             </template>
             <template v-else>
