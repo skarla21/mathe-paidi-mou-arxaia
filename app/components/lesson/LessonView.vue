@@ -13,28 +13,49 @@ interface Lesson {
   content_url?: string | null
 }
 
+type LessonFileBlock = 'sign-in' | 'verify-email' | 'purchase' | null
+
 interface LessonResponse extends Lesson {
   can_access: boolean
   can_access_content: boolean
   has_content?: boolean
+  file_block: LessonFileBlock
 }
 
 const props = defineProps<{ lessonId: string }>()
+const route = useRoute()
+const { session } = useCurrentUser()
+const { open: openEditProfile } = useEditProfileModal()
+const { openLogin } = useAuthModal()
 
 const lesson = ref<Lesson | null>(null)
 const canAccess = ref(false)
 const canAccessContent = ref(false)
-const hasContent = ref(false)
+const fileBlock = ref<LessonFileBlock>(null)
 const purchasing = ref(false)
 
-const { data } = await useFetch<LessonResponse>(() => `/api/lessons/${props.lessonId}`)
-if (data.value) {
-  const { can_access, can_access_content, has_content, ...rest } = data.value
+const { data, refresh } = await useFetch<LessonResponse>(() => `/api/lessons/${props.lessonId}`)
+
+function applyLesson(payload: LessonResponse | null) {
+  if (!payload) {
+    lesson.value = null
+    canAccess.value = false
+    canAccessContent.value = false
+    fileBlock.value = null
+    return
+  }
+  const { can_access, can_access_content, has_content: _hasContent, file_block, ...rest } = payload
   lesson.value = rest
   canAccess.value = can_access
   canAccessContent.value = can_access_content
-  hasContent.value = Boolean(has_content)
+  fileBlock.value = file_block
 }
+
+watch(data, (payload) => applyLesson(payload ?? null), { immediate: true })
+
+watch(() => session.value.user?.id ?? null, () => {
+  void refresh()
+})
 
 const safeContent = ref('')
 
@@ -109,30 +130,35 @@ onMounted(() => {
         <LessonContentViewer :src="lesson.content_url" :lesson-id="props.lessonId" />
       </div>
       <div
-        v-else-if="canAccess && !canAccessContent && hasContent"
+        v-else-if="fileBlock === 'sign-in' || fileBlock === 'verify-email'"
         class="mt-8 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-amber/30 bg-amber/10 p-8 text-center"
       >
         <span
           class="flex size-14 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-500"
         >
-          <VIcon name="bi-envelope-exclamation" class="size-7" aria-hidden="true" />
+          <VIcon
+            :name="fileBlock === 'sign-in' ? 'bi-person-circle' : 'bi-envelope-exclamation'"
+            class="size-7"
+            aria-hidden="true"
+          />
         </span>
         <div>
           <h3 class="font-heading text-xl font-bold text-foreground">
-            Επαλήθευσε το email σου για πρόσβαση στο υλικό
+            {{ fileBlock === 'sign-in' ? 'Συνδέσου για πρόσβαση στο υλικό' : 'Επαλήθευσε το email σου για πρόσβαση στο υλικό' }}
           </h3>
           <p class="mt-2 text-sm text-muted-foreground leading-relaxed">
-            Χρειάζεται να επαληθεύσεις το email σου πριν μπορέσεις να δεις ή να κατεβάσεις υλικό.
+            {{ fileBlock === 'sign-in' ? 'Χρειάζεται να συνδεθείς για να δεις ή να κατεβάσεις αυτό το υλικό.' : 'Χρειάζεται να επαληθεύσεις το email σου πριν μπορέσεις να δεις ή να κατεβάσεις υλικό.' }}
           </p>
         </div>
-        <NuxtLink to="/profile/edit">
-          <UiButton variant="outline">
-            Επεξεργασία προφίλ
-          </UiButton>
-        </NuxtLink>
+        <UiButton v-if="fileBlock === 'sign-in'" variant="outline" @click="openLogin(route.fullPath)">
+          Σύνδεση
+        </UiButton>
+        <UiButton v-else variant="outline" @click="openEditProfile">
+          Επεξεργασία προφίλ
+        </UiButton>
       </div>
       <div
-        v-else-if="hasContent && !canAccess"
+        v-else-if="fileBlock === 'purchase'"
         class="mt-8 flex max-w-md flex-col items-center gap-4 rounded-3xl border border-primary/30 bg-flame-fixed/40 p-8 text-center"
       >
         <span

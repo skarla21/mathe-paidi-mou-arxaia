@@ -4,7 +4,7 @@ import { hashToken } from '../../utils/tokenHash'
 export default defineEventHandler(async (event) => {
   const token = getQuery(event).token as string | undefined
   if (!token || typeof token !== 'string') {
-    return sendRedirect(event, '/profile/edit?error=invalid_token', 302)
+    return sendRedirect(event, '/?emailVerification=invalid_token', 302)
   }
 
   const tokenHash = hashToken(token)
@@ -16,17 +16,17 @@ export default defineEventHandler(async (event) => {
 
   if (error) {
     console.error('[verify-email]', error.message)
-    return sendRedirect(event, '/profile/edit?error=unavailable', 302)
+    return sendRedirect(event, '/?emailVerification=unavailable', 302)
   }
 
   if (consumed === true) {
-    return sendRedirect(event, '/profile/edit?verified=1', 302)
+    return sendRedirect(event, '/?emailVerification=ok', 302)
   }
 
   if (consumed === false) {
-    return sendRedirect(event, '/profile/edit?error=expired_token', 302)
+    return sendRedirect(event, '/?emailVerification=expired_token', 302)
   }
 
   console.error('[verify-email]', 'consume_verification_token returned no boolean')
-  return sendRedirect(event, '/profile/edit?error=unavailable', 302)
+  return sendRedirect(event, '/?emailVerification=unavailable', 302)
 })

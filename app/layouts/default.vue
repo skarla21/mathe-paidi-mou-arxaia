@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { acceptEmailVerification, emailVerificationFollowUp } from '#shared/utils/emailVerificationLanding.mjs'
 import 'vue-sonner/style.css'
-import { Toaster } from 'vue-sonner'
+import { toast, Toaster } from 'vue-sonner'
 import LayoutAppHeader from '~/components/layout/AppHeader.vue'
 import LayoutAppFooter from '~/components/layout/AppFooter.vue'
 
@@ -8,13 +9,38 @@ const theme = useTheme()
 const route = useRoute()
 const hideLayoutFooter = computed(() => !!route.meta['hideLayoutFooter'])
 const { ensure, ensureCategories } = useCatalogNav()
+const { session, fetchSession } = useCurrentUser()
+const { open: openEditProfile } = useEditProfileModal()
+const { openLogin } = useAuthModal()
 
 // Header and footer read this shared state. Load it before they render so
 // the server markup matches the payload the client hydrates.
 await Promise.all([ensure(), ensureCategories()])
 
+const handledEmailVerification = useState<string | null>('emailVerification.handled', () => null)
+
+async function consumeEmailVerification() {
+  const status = acceptEmailVerification(route.query.emailVerification, handledEmailVerification.value)
+  if (!status) return
+
+  handledEmailVerification.value = status
+  await fetchSession()
+
+  const query = { ...route.query }
+  delete query.emailVerification
+  await navigateTo({ path: route.path, query }, { replace: true })
+
+  const followUp = emailVerificationFollowUp(status, !!session.value.user)
+  if (!followUp) return
+  if (followUp.toast === 'success') toast.success(followUp.message)
+  else toast.error(followUp.message)
+  if (followUp.open === 'profile') openEditProfile()
+  else if (followUp.open === 'login') openLogin(route.fullPath)
+}
+
 onMounted(() => {
   theme.init()
+  void consumeEmailVerification()
 })
 </script>
 

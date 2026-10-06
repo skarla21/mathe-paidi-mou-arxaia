@@ -13,7 +13,7 @@ Find things quickly and explain where they live and how they connect.
 
 ```
 app/
-  pages/         index, about, login, register, profile, profile/edit, dashboard
+  pages/         index, about, login, register, dashboard
                  grade/[grade], grade/[grade]/[subject]
                  course/[courseId], lesson/[lessonId]
                  admin/* (index, grades, subjects, courses, lessons, purchases, uploads)

@@ -1,3 +1,4 @@
+import { lessonFileBlock } from '#shared/utils/lessonFileBlock.mjs'
 import { canAccessLesson } from '../../utils/access'
 import { serverSupabaseService } from '../../utils/supabaseServer'
 
@@ -19,11 +20,18 @@ export default defineEventHandler(async (event) => {
 
   const { allowed, canAccessContent, lesson, content_url } = await canAccessLesson(userId, id, emailVerified)
   if (!lesson) throw createError({ statusCode: 404, message: 'Lesson not found' })
+  const hasContent = Boolean(lesson.content_url)
   return {
     ...lesson,
     content_url: canAccessContent ? content_url : null,
-    has_content: Boolean(lesson.content_url),
+    has_content: hasContent,
     can_access: allowed,
     can_access_content: canAccessContent,
+    file_block: lessonFileBlock({
+      canAccess: allowed,
+      canAccessContent,
+      hasContent,
+      isLoggedIn: !!userId,
+    }),
   }
 })

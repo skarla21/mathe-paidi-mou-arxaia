@@ -5,7 +5,9 @@
     "#shared/utils/slugify.mjs": "./shared/utils/slugify.mjs",
     "#shared/utils/foldGreekSearch.mjs": "./shared/utils/foldGreekSearch.mjs",
     "#shared/utils/uploadProgress.mjs": "./shared/utils/uploadProgress.mjs",
-    "#shared/utils/lessonAttachment.mjs": "./shared/utils/lessonAttachment.mjs"
+    "#shared/utils/lessonAttachment.mjs": "./shared/utils/lessonAttachment.mjs",
+    "#shared/utils/lessonFileBlock.mjs": "./shared/utils/lessonFileBlock.mjs",
+    "#shared/utils/emailVerificationLanding.mjs": "./shared/utils/emailVerificationLanding.mjs"
   },
   "private": true,
   "packageManager": "pnpm@9.15.0",

@@ -42,7 +42,7 @@ Modern educational platform (Nuxt 3, Vue 3, Tailwind, Supabase, Stripe, PDF.js).
 ## Routes
 
 - **Public:** `/`, `/grade/[grade]`, `/grade/[grade]/[subject]`, `/chapter/[id]`, `/lesson/[id]`, `/about`, `/login`, `/register`
-- **Authenticated:** `/dashboard`, `/profile`
+- **Authenticated:** `/dashboard`
 - **Admin:** `/admin`, `/admin/grades`, `/admin/subjects`, `/admin/chapters`, `/admin/lessons`, `/admin/categories`, `/admin/purchases`
 
 Admin middleware is a placeholder (allows all). Wire Auth.js and set `event.context.auth` (e.g. `userId`, `role`) in server middleware so `/admin/*` and Stripe checkout require an admin or logged-in user.

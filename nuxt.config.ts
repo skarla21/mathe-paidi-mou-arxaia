@@ -32,6 +32,8 @@ export default defineNuxtConfig({
     },
   },
   routeRules: {
+    '/profile': { redirect: '/' },
+    '/profile/**': { redirect: '/' },
     '/**': {
       headers: {
         'X-Frame-Options': 'DENY',

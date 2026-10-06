@@ -50,7 +50,7 @@ Skills provide **design principles, workflows, and quality standards**. Agents p
 
 ```
 app/
-  pages/         # index, about, login, register, profile, profile/edit,
+  pages/         # index, about, login, register,
                  # dashboard, [grade], [grade]/[subject], category/[categoryId],
                  # articles, notes, admin/*
   components/
