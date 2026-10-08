@@ -189,13 +189,7 @@ async function onSubmit() {
 
           <div class="flex shrink-0 flex-col items-center gap-5 sm:w-72">
             <div class="relative size-32">
-              <button
-                type="button"
-                class="flex size-full items-center justify-center overflow-hidden rounded-full bg-secondary transition cursor-pointer disabled:pointer-events-none disabled:opacity-70"
-                aria-label="Φωτογραφία προφίλ"
-                :disabled="avatarUploading"
-                @click="onAvatarClick"
-              >
+              <div class="flex size-full items-center justify-center overflow-hidden rounded-full bg-secondary">
                 <img v-if="avatarPreview" :src="avatarPreview" alt="" class="size-full object-cover" >
                 <VIcon v-else name="bi-person" class="size-16 text-muted-foreground" aria-hidden="true" />
                 <span
@@ -204,28 +198,34 @@ async function onSubmit() {
                 >
                   <VIcon name="bi-arrow-repeat" class="size-6 animate-spin" />
                 </span>
-              </button>
-              <span
-                class="pointer-events-none absolute bottom-0 right-0 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-card"
+              </div>
+              <button
+                type="button"
+                class="absolute bottom-0 right-0 z-20 flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm ring-2 ring-card transition-colors hover:bg-primary/90 cursor-pointer disabled:pointer-events-none disabled:opacity-70"
+                aria-label="Αλλαγή φωτογραφίας προφίλ"
+                :disabled="avatarUploading"
+                @click="onAvatarClick"
               >
                 <VIcon name="bi-camera" class="size-4" aria-hidden="true" />
-              </span>
+              </button>
             </div>
             <input id="ep-avatar-input" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only" @change="onAvatarChange" >
             <p class="text-center text-sm text-muted-foreground">JPEG, PNG ή WebP, μέγιστο 2MB</p>
 
             <div class="w-full space-y-3 rounded-2xl bg-secondary p-4 text-sm">
-              <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
-                <VIcon name="bi-shield" class="size-4 shrink-0" aria-hidden="true" />
-                Τρόπος σύνδεσης
-              </p>
+              <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                  <VIcon name="bi-shield" class="size-4 shrink-0" aria-hidden="true" />
+                  Τρόπος σύνδεσης
+                </p>
+                <div class="flex items-center gap-2 text-foreground">
+                  <VIcon name="bi-key" class="size-4 shrink-0 text-amethyst" aria-hidden="true" />
+                  <span>{{ isCredentials ? 'Email & κωδικός' : 'Λογαριασμός Google' }}</span>
+                </div>
+              </div>
               <div class="flex items-start gap-2 text-foreground">
                 <VIcon name="bi-envelope" class="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span class="break-all">{{ session.user?.email }}</span>
-              </div>
-              <div class="flex items-center gap-2 text-foreground">
-                <VIcon name="bi-key" class="size-4 shrink-0 text-amethyst" aria-hidden="true" />
-                <span>{{ isCredentials ? 'Email & κωδικός' : 'Λογαριασμός Google' }}</span>
               </div>
               <div v-if="joinedAt" class="flex items-center gap-2 text-foreground">
                 <VIcon name="bi-calendar3" class="size-4 shrink-0 text-laurel" aria-hidden="true" />
