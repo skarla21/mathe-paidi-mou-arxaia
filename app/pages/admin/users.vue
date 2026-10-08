@@ -83,7 +83,8 @@ onMounted(fetchUsers)
 
     <!-- Skeleton loading -->
     <template v-if="loading">
-      <div class="border overflow-x-auto">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
             <TableRow>
@@ -96,16 +97,18 @@ onMounted(fetchUsers)
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
 
     <!-- Data table -->
     <template v-else>
-      <div class="border overflow-x-auto">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
-            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/60">
-              <TableHead class="border-r border-border/60 pr-3">
+            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border">
+              <TableHead class="border-r border-border pr-3">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
@@ -119,8 +122,8 @@ onMounted(fetchUsers)
                   />
                 </button>
               </TableHead>
-              <TableHead class="border-r border-border/60">Email</TableHead>
-              <TableHead class="border-r border-border/60">
+              <TableHead class="border-r border-border">Email</TableHead>
+              <TableHead class="border-r border-border">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
@@ -134,7 +137,7 @@ onMounted(fetchUsers)
                   />
                 </button>
               </TableHead>
-              <TableHead class="text-center border-r border-border/60">
+              <TableHead class="text-center border-r border-border">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer mx-auto"
@@ -148,7 +151,7 @@ onMounted(fetchUsers)
                   />
                 </button>
               </TableHead>
-              <TableHead class="text-center border-r border-border/60">
+              <TableHead class="text-center border-r border-border">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer mx-auto"
@@ -162,15 +165,15 @@ onMounted(fetchUsers)
                   />
                 </button>
               </TableHead>
-              <TableHead class="text-center border-r border-border/60 text-xs">Προτιμήσεις άρθρων</TableHead>
-              <TableHead class="text-center border-r border-border/60 text-xs">Σχόλια άρθρων</TableHead>
+              <TableHead class="text-center border-r border-border text-xs">Προτιμήσεις άρθρων</TableHead>
+              <TableHead class="text-center border-r border-border text-xs">Σχόλια άρθρων</TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredUsers.length">
-              <TableCell :colspan="8" class="h-32 text-center border-r border-border/60">
+              <TableCell :colspan="8" class="h-32 text-center border-r border-border">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
                   <p>Δεν υπάρχουν χρήστες ακόμα.</p>
@@ -179,7 +182,7 @@ onMounted(fetchUsers)
             </TableRow>
             <!-- Rows -->
             <TableRow v-for="u in filteredUsers" v-else :key="u.id">
-              <TableCell class="border-r border-border/60">
+              <TableCell class="border-r border-border">
                 <div class="flex items-center gap-2">
                   <img
                     v-if="u.avatar_url"
@@ -191,14 +194,14 @@ onMounted(fetchUsers)
                   <span>{{ u.name ?? '—' }}</span>
                 </div>
               </TableCell>
-              <TableCell class="text-muted-foreground border-r border-border/60">{{ u.email }}</TableCell>
-              <TableCell class="text-muted-foreground border-r border-border/60">
+              <TableCell class="text-muted-foreground border-r border-border">{{ u.email }}</TableCell>
+              <TableCell class="text-muted-foreground border-r border-border">
                 {{ new Date(u.created_at).toLocaleDateString() }}
               </TableCell>
-              <TableCell class="text-center border-r border-border/60">{{ u.downloadCount ?? 0 }}</TableCell>
-              <TableCell class="text-center border-r border-border/60">{{ u.purchaseCount ?? 0 }}</TableCell>
-              <TableCell class="text-center border-r border-border/60">{{ u.articleLikeCount ?? 0 }}</TableCell>
-              <TableCell class="text-center border-r border-border/60">{{ u.articleCommentCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border">{{ u.downloadCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border">{{ u.purchaseCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border">{{ u.articleLikeCount ?? 0 }}</TableCell>
+              <TableCell class="text-center border-r border-border">{{ u.articleCommentCount ?? 0 }}</TableCell>
               <TableCell class="text-right">
                 <UiButton size="sm" variant="outline" @click="detailUserId = u.id">
                   Λεπτομέρειες χρήστη
@@ -207,6 +210,7 @@ onMounted(fetchUsers)
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
 

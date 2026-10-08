@@ -192,6 +192,7 @@ describe('admin shell', () => {
     assert.match(page, /filterDownloads/)
     assert.match(page, /sortDownloads/)
     assert.doesNotMatch(page, />Τύπος</)
-    assert.match(page, /border-border\/40/)
+    assert.match(page, /rounded-2xl border border-border/)
+    assert.doesNotMatch(page, /border-border\/40/)
   })
 })

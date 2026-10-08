@@ -166,7 +166,7 @@ onBeforeUnmount(() => {
       <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
         <div class="min-w-0 flex-1">
           <div class="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-            <UiCard v-for="i in 5" :key="i" class="shadow-md">
+            <UiCard v-for="i in 5" :key="i" class="rounded-2xl border-border">
               <UiCardContent class="space-y-2 p-3">
                 <UiSkeleton class="h-3 w-16" />
                 <UiSkeleton class="h-7 w-12" />
@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
             </UiCard>
           </div>
         </div>
-        <UiCard class="shadow-md flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
+        <UiCard class="rounded-2xl border-border flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
           <UiCardContent class="space-y-3 p-4">
             <UiSkeleton class="h-4 w-32" />
             <div class="flex flex-col gap-2">
@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
         </UiCard>
       </div>
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <UiCard v-for="i in 2" :key="i">
+        <UiCard v-for="i in 2" :key="i" class="rounded-2xl border-border">
           <UiCardContent class="p-5 space-y-3">
             <UiSkeleton class="h-4 w-32" />
             <UiSkeleton v-for="j in 4" :key="j" class="h-4 w-full" />
@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
       <div class="flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-4">
         <div class="min-w-0 flex-1">
           <div class="grid h-full grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 md:gap-3">
-            <UiCard v-for="card in kpiCards" :key="card.iconLabel" class="shadow-md flex min-h-0 flex-col">
+            <UiCard v-for="card in kpiCards" :key="card.iconLabel" class="rounded-2xl border-border flex min-h-0 flex-col">
               <UiCardContent class="flex h-full min-h-0 flex-col p-3 sm:p-3.5">
                 <div class="mb-2 flex items-start gap-2">
                   <div class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 sm:size-10">
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
             </UiCard>
           </div>
         </div>
-        <UiCard class="shadow-md flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
+        <UiCard class="rounded-2xl border-border flex w-full shrink-0 flex-col justify-center lg:max-w-[240px] xl:max-w-[260px]">
           <UiCardContent class="flex flex-col gap-3 p-4 sm:p-4">
             <p class="text-sm font-semibold">Γρήγορες ενέργειες</p>
             <div class="flex flex-col gap-2">
@@ -262,7 +262,7 @@ onBeforeUnmount(() => {
       <!-- Content Overview row -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Content Breakdown -->
-        <UiCard class="shadow-md">
+        <UiCard class="rounded-2xl border-border">
           <UiCardHeader>
             <p class="font-semibold text-sm">Ανάλυση περιεχομένου</p>
           </UiCardHeader>
@@ -278,7 +278,7 @@ onBeforeUnmount(() => {
         </UiCard>
 
         <!-- Lessons by Grade -->
-        <UiCard class="shadow-md">
+        <UiCard class="rounded-2xl border-border">
           <UiCardHeader>
             <p class="font-semibold text-sm">Υλικό ανά τάξη</p>
           </UiCardHeader>
@@ -305,7 +305,7 @@ onBeforeUnmount(() => {
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:items-start">
         <div ref="recentColumnEl" class="grid grid-cols-1 gap-6">
           <!-- Recent Signups -->
-          <UiCard class="shadow-md">
+          <UiCard class="rounded-2xl border-border">
             <UiCardHeader>
               <p class="font-semibold text-sm">Πρόσφατες εγγραφές</p>
             </UiCardHeader>
@@ -332,7 +332,7 @@ onBeforeUnmount(() => {
           </UiCard>
 
           <!-- Recent Downloads -->
-          <UiCard class="shadow-md">
+          <UiCard class="rounded-2xl border-border">
             <UiCardHeader>
               <p class="font-semibold text-sm">Πρόσφατες λήψεις</p>
             </UiCardHeader>
@@ -351,7 +351,7 @@ onBeforeUnmount(() => {
           </UiCard>
 
           <!-- Recent Purchases -->
-          <UiCard class="shadow-md">
+          <UiCard class="rounded-2xl border-border">
             <UiCardHeader>
               <p class="font-semibold text-sm">Πρόσφατες αγορές</p>
             </UiCardHeader>
@@ -374,7 +374,7 @@ onBeforeUnmount(() => {
 
         <!-- Top Lessons -->
         <UiCard
-          class="shadow-md flex min-h-0 min-w-0 flex-col overflow-hidden lg:self-start"
+          class="rounded-2xl border-border flex min-h-0 min-w-0 flex-col overflow-hidden lg:self-start"
           :style="topLessonsCardStyle"
         >
           <UiCardHeader class="shrink-0">

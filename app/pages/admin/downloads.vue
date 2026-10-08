@@ -72,8 +72,8 @@ onMounted(fetchDownloads)
         <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
         <UiInput
           v-model="userQuery"
-          placeholder="Χρήστης..."
-          aria-label="Φίλτρο χρήστη"
+          placeholder="Όνομα..."
+          aria-label="Φίλτρο ονόματος"
           class="pl-9"
         />
       </div>
@@ -89,7 +89,8 @@ onMounted(fetchDownloads)
     </div>
 
     <template v-if="loading">
-      <div class="overflow-x-auto rounded-xl border border-border/40">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
             <TableRow>
@@ -102,29 +103,31 @@ onMounted(fetchDownloads)
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
 
     <template v-else>
-      <div class="overflow-x-auto rounded-xl border border-border/40">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
-            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/40">
-              <TableHead class="border-r border-border/40 pr-3">
+            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border">
+              <TableHead class="border-r border-border pr-3">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
-                  :aria-label="`Χρήστης ${sortBy === 'user' ? (sortOrder === 'asc' ? 'Αύξουσα' : 'Φθίνουσα') : ''}`"
+                  :aria-label="`Όνομα ${sortBy === 'user' ? (sortOrder === 'asc' ? 'Αύξουσα' : 'Φθίνουσα') : ''}`"
                   @click="setSort('user')"
                 >
-                  Χρήστης
+                  Όνομα
                   <VIcon
                     :name="sortBy === 'user' ? (sortOrder === 'asc' ? 'bi-arrow-up-short' : 'bi-arrow-down-short') : 'bi-arrow-down-up'"
                     :class="sortBy === 'user' ? 'size-4 text-foreground shrink-0' : 'size-4 text-muted-foreground/40 shrink-0'"
                   />
                 </button>
               </TableHead>
-              <TableHead class="border-r border-border/40 pr-3">
+              <TableHead class="border-r border-border pr-3">
                 <button
                   type="button"
                   class="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer w-full text-left"
@@ -138,7 +141,7 @@ onMounted(fetchDownloads)
                   />
                 </button>
               </TableHead>
-              <TableHead class="border-r border-border/40">{{ LESSON_TYPE_HEADING }}</TableHead>
+              <TableHead class="border-r border-border">{{ LESSON_TYPE_HEADING }}</TableHead>
               <TableHead class="pr-3">
                 <button
                   type="button"
@@ -165,16 +168,17 @@ onMounted(fetchDownloads)
               </TableCell>
             </TableRow>
             <TableRow v-for="row in visibleDownloads" v-else :key="row.id">
-              <TableCell class="border-r border-border/40">
+              <TableCell class="border-r border-border">
                 <div class="font-medium">{{ row.users?.name ?? '—' }}</div>
                 <div class="text-muted-foreground">{{ row.users?.email }}</div>
               </TableCell>
-              <TableCell class="border-r border-border/40">{{ row.lessons?.title ?? row.lesson_id }}</TableCell>
-              <TableCell class="border-r border-border/40">{{ lessonTypeLabel(row) }}</TableCell>
+              <TableCell class="border-r border-border">{{ row.lessons?.title ?? row.lesson_id }}</TableCell>
+              <TableCell class="border-r border-border">{{ lessonTypeLabel(row) }}</TableCell>
               <TableCell class="text-muted-foreground">{{ formatDownloadedAt(row.downloaded_at) }}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
   </div>

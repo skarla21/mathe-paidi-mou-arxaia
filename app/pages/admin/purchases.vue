@@ -31,7 +31,8 @@ useHead(() => ({ title: 'Διαχείριση - Αγορές' }))
 
 const purchases = ref<PurchaseWithUser[]>([])
 const loading = ref(true)
-const search = ref('')
+const userQuery = ref('')
+const lessonQuery = ref('')
 
 // Grant access confirmation
 const grantDialogOpen = ref(false)
@@ -39,13 +40,19 @@ const pendingGrant = ref<{ userId: string; lessonId: string } | null>(null)
 const grantingId = ref<string | null>(null)
 
 const filteredPurchases = computed(() => {
-  if (!search.value) return purchases.value
-  const q = search.value.toLowerCase()
-  return purchases.value.filter(p =>
-    p.users?.name?.toLowerCase().includes(q) ||
-    p.users?.email?.toLowerCase().includes(q) ||
-    p.lessons?.title?.toLowerCase().includes(q)
-  )
+  const userQ = userQuery.value.trim().toLowerCase()
+  const lessonQ = lessonQuery.value.trim().toLowerCase()
+  let list = purchases.value
+  if (userQ) {
+    list = list.filter(p =>
+      p.users?.name?.toLowerCase().includes(userQ)
+      || p.users?.email?.toLowerCase().includes(userQ),
+    )
+  }
+  if (lessonQ) {
+    list = list.filter(p => p.lessons?.title?.toLowerCase().includes(lessonQ))
+  }
+  return list
 })
 
 async function fetchPurchases() {
@@ -96,15 +103,31 @@ function copyStripeId(value: string | null | undefined) {
       <h1 class="text-2xl font-bold font-heading">Αγορές</h1>
     </div>
 
-    <!-- Search -->
-    <div class="relative mb-4">
-      <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-      <UiInput v-model="search" placeholder="Αναζήτηση..." class="pl-9" />
+    <div class="mb-4 grid gap-3 sm:grid-cols-2">
+      <div class="relative">
+        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <UiInput
+          v-model="userQuery"
+          placeholder="Όνομα..."
+          aria-label="Φίλτρο ονόματος"
+          class="pl-9"
+        />
+      </div>
+      <div class="relative">
+        <VIcon name="bi-search" class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <UiInput
+          v-model="lessonQuery"
+          placeholder="Υλικό..."
+          aria-label="Φίλτρο υλικού"
+          class="pl-9"
+        />
+      </div>
     </div>
 
     <!-- Skeleton loading -->
     <template v-if="loading">
-      <div class="border overflow-x-auto">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
             <TableRow>
@@ -117,43 +140,45 @@ function copyStripeId(value: string | null | undefined) {
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
 
     <!-- Data table -->
     <template v-else>
-      <div class="border overflow-x-auto">
+      <div class="overflow-hidden rounded-2xl border border-border">
+        <div class="overflow-x-auto">
         <Table class="text-base">
           <TableHeader>
-            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border/60">
-              <TableHead class="border-r border-border/60">Όνομα</TableHead>
-              <TableHead class="border-r border-border/60">Υλικό</TableHead>
-              <TableHead class="border-r border-border/60">Εγγραφή</TableHead>
-              <TableHead class="border-r border-border/60">Stripe ID</TableHead>
+            <TableRow class="bg-muted/80 hover:bg-muted/80 border-b border-border">
+              <TableHead class="border-r border-border">Όνομα</TableHead>
+              <TableHead class="border-r border-border">Υλικό</TableHead>
+              <TableHead class="border-r border-border">Εγγραφή</TableHead>
+              <TableHead class="border-r border-border">Stripe ID</TableHead>
               <TableHead class="text-right" />
             </TableRow>
           </TableHeader>
           <TableBody>
             <!-- Empty state -->
             <TableRow v-if="!filteredPurchases.length">
-              <TableCell :colspan="5" class="h-32 text-center border-r border-border/60">
+              <TableCell :colspan="5" class="h-32 text-center border-r border-border">
                 <div class="flex flex-col items-center gap-2 text-muted-foreground">
                   <VIcon name="bi-inbox" class="size-8" />
-                  <p>Δεν υπάρχουν αγορές ακόμη.</p>
+                  <p>{{ purchases.length ? 'Δεν βρέθηκαν αγορές.' : 'Δεν υπάρχουν αγορές ακόμη.' }}</p>
                 </div>
               </TableCell>
             </TableRow>
             <!-- Rows -->
             <TableRow v-for="p in filteredPurchases" v-else :key="p.id">
-              <TableCell class="border-r border-border/60">
+              <TableCell class="border-r border-border">
                 <div class="font-medium">{{ p.users?.name ?? '—' }}</div>
                 <div class="text-muted-foreground">{{ p.users?.email }}</div>
               </TableCell>
-              <TableCell class="border-r border-border/60">{{ p.lessons?.title ?? p.lesson_id }}</TableCell>
-              <TableCell class="text-muted-foreground border-r border-border/60">
+              <TableCell class="border-r border-border">{{ p.lessons?.title ?? p.lesson_id }}</TableCell>
+              <TableCell class="text-muted-foreground border-r border-border">
                 {{ new Date(p.created_at).toLocaleDateString() }}
               </TableCell>
-              <TableCell class="border-r border-border/60">
+              <TableCell class="border-r border-border">
                 <TooltipProvider v-if="p.stripe_session_id">
                   <Tooltip>
                     <TooltipTrigger as-child>
@@ -185,6 +210,7 @@ function copyStripeId(value: string | null | undefined) {
             </TableRow>
           </TableBody>
         </Table>
+        </div>
       </div>
     </template>
 
