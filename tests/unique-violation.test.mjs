@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { isLessonSlugConflict, isUniqueViolation, withUniqueSlugRetry } from '../server/utils/uniqueViolation.ts'
+import { isFoldedNameConflict, isLessonSlugConflict, isUniqueViolation, withUniqueSlugRetry } from '../server/utils/uniqueViolation.ts'
 
 describe('unique slug writes', () => {
   it('recognizes a postgres unique violation', () => {
@@ -12,6 +12,35 @@ describe('unique slug writes', () => {
   it('recognizes only the lesson slug conflict among unique violations', () => {
     assert.equal(isLessonSlugConflict({ code: '23505', message: 'lesson slug taken' }), true)
     assert.equal(isLessonSlugConflict({ code: '23505', message: 'duplicate key value violates unique constraint' }), false)
+  })
+
+  it('recognizes a folded subject or chapter name conflict', () => {
+    assert.equal(isFoldedNameConflict({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "subjects_grade_name_folded_key"',
+    }), true)
+    assert.equal(isFoldedNameConflict({
+      code: '23505',
+      message: 'duplicate key value violates unique constraint "chapters_subject_title_folded_key"',
+    }), true)
+    assert.equal(isFoldedNameConflict({ code: '23505', message: 'duplicate key value violates unique constraint "subjects_grade_slug_key"' }), false)
+    assert.equal(isFoldedNameConflict({ code: '23503', message: 'subjects_grade_name_folded_key' }), false)
+  })
+
+  it('does not retry a folded name conflict', async () => {
+    let calls = 0
+    const result = await withUniqueSlugRetry(3, async () => {
+      calls += 1
+      return {
+        data: null,
+        error: {
+          code: '23505',
+          message: 'duplicate key value violates unique constraint "chapters_subject_title_folded_key"',
+        },
+      }
+    })
+    assert.equal(calls, 1)
+    assert.equal(result.error?.code, '23505')
   })
 
   it('retries a unique violation and stops on any other error', async () => {

@@ -2,13 +2,16 @@ import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
 import { nextSubjectSlug } from '../../utils/contentSlug'
 import { withUniqueSlugRetry } from '../../utils/uniqueViolation'
+import { plainGreekLabel } from '#shared/utils/foldGreekSearch.mjs'
+import { assertSubjectNameAvailable, rethrowFoldedNameConflict, SUBJECT_NAME_TAKEN } from '../../utils/foldedName'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
   const body = await readBody<{ name: string; grade_id: string; image_url?: string }>(event)
-  if (!body.name?.trim() || !body.grade_id) throw createError({ statusCode: 400, message: 'Απαιτούνται όνομα και τάξη' })
+  const name = plainGreekLabel(body.name ?? '')
+  if (!name || !body.grade_id) throw createError({ statusCode: 400, message: 'Απαιτούνται όνομα και τάξη' })
   const supabase = serverSupabaseService()
-  const name = body.name.trim()
+  await assertSubjectNameAvailable(supabase, name, body.grade_id)
   const { data, error } = await withUniqueSlugRetry(3, async () => {
     const slug = await nextSubjectSlug(supabase, name, body.grade_id)
     return supabase.from('subjects').insert({
@@ -19,6 +22,7 @@ export default defineEventHandler(async (event) => {
     }).select().single()
   })
   if (error || !data) {
+    rethrowFoldedNameConflict(error, SUBJECT_NAME_TAKEN)
     console.error('[admin/subjects.post]', error?.message)
     throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }

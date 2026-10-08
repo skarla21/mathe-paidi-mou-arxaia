@@ -2,6 +2,8 @@ import { serverSupabaseService } from '../../utils/supabaseServer'
 import { requireAdmin } from '../../utils/requireAdmin'
 import { nextChapterSlug } from '../../utils/contentSlug'
 import { withUniqueSlugRetry } from '../../utils/uniqueViolation'
+import { plainGreekLabel } from '#shared/utils/foldGreekSearch.mjs'
+import { assertChapterTitleAvailable, CHAPTER_TITLE_TAKEN, rethrowFoldedNameConflict } from '../../utils/foldedName'
 
 export default defineEventHandler(async (event) => {
   requireAdmin(event)
@@ -9,11 +11,12 @@ export default defineEventHandler(async (event) => {
     title: string; description?: string; subject_id: string
     image_url?: string; order?: number
   }>(event)
-  if (!body.title?.trim() || !body.subject_id) throw createError({ statusCode: 400, message: 'Απαιτούνται τίτλος και μάθημα' })
+  const title = plainGreekLabel(body.title ?? '')
+  if (!title || !body.subject_id) throw createError({ statusCode: 400, message: 'Απαιτούνται τίτλος και μάθημα' })
   const supabase = serverSupabaseService()
   const { data: subject } = await supabase.from('subjects').select('grade_id').eq('id', body.subject_id).single()
   if (!subject) throw createError({ statusCode: 400, message: 'Το μάθημα δεν βρέθηκε' })
-  const title = body.title.trim()
+  await assertChapterTitleAvailable(supabase, title, body.subject_id)
   const { data, error } = await withUniqueSlugRetry(3, async () => {
     const slug = await nextChapterSlug(supabase, title, body.subject_id)
     return supabase.from('chapters').insert({
@@ -27,6 +30,7 @@ export default defineEventHandler(async (event) => {
     }).select().single()
   })
   if (error || !data) {
+    rethrowFoldedNameConflict(error, CHAPTER_TITLE_TAKEN)
     console.error('[admin/chapters.post]', error?.message)
     throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' })
   }

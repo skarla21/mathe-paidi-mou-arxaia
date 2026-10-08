@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
-import { foldGreekSearch, searchLikePattern } from '../shared/utils/foldGreekSearch.mjs'
+import { foldGreekName, foldGreekSearch, plainGreekLabel, searchLikePattern } from '../shared/utils/foldGreekSearch.mjs'
 
 const YPOGEGRAMMENI = [837, 890]
 const COMBINING_MARK_START = 768
@@ -104,6 +104,33 @@ describe('foldGreekSearch', () => {
     for (const sample of ['Γραμματική', 'Συντακτικό', 'λόγος', 'Ἀγών', 'ᾅδης', '᾿α', 'τῷ']) {
       assert.equal(foldGreekSearch(sample), sqlMirror(sample), sample)
     }
+  })
+})
+
+describe('plainGreekLabel', () => {
+  it('collapses whitespace that displays as the same name', () => {
+    assert.equal(plainGreekLabel('  Αρχαία  Ελληνικά  '), 'Αρχαία Ελληνικά')
+    assert.equal(plainGreekLabel('Αρχαία\u00A0Ελληνικά'), 'Αρχαία Ελληνικά')
+    assert.equal(plainGreekLabel('Αρχαία\tΕλληνικά'), 'Αρχαία Ελληνικά')
+    assert.equal(plainGreekLabel('Αρχαία\nΕλληνικά'), 'Αρχαία Ελληνικά')
+    assert.equal(plainGreekLabel('Αρχαία\u200B'), 'Αρχαία')
+    assert.equal(plainGreekLabel('\u200B'), '')
+  })
+
+  it('keeps visible punctuation', () => {
+    assert.equal(plainGreekLabel('Αρχαία!'), 'Αρχαία!')
+  })
+})
+
+describe('foldGreekName', () => {
+  it('uses the plain label before the search fold', () => {
+    assert.equal(foldGreekName('  ΑΡΧΑΙΑ  ΕΛΛΗΝΙΚΑ  '), foldGreekName('αρχαία ελληνικά'))
+    assert.equal(foldGreekName('Αρχαία\u00A0Ελληνικά'), foldGreekName('Αρχαία Ελληνικά'))
+    assert.equal(foldGreekName('Ἀρχαῖα\u200B'), foldGreekName('αρχαια'))
+    assert.equal(foldGreekName('λόγοσ'), foldGreekName('λόγος'))
+    assert.equal(foldGreekName('Αρχαία!'), `${foldGreekName('Αρχαία')}!`)
+    assert.equal(foldGreekName('΄'), '')
+    assert.equal(foldGreekName('   '), '')
   })
 })
 
