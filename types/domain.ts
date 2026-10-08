@@ -91,6 +91,15 @@ export interface LessonDownload {
   downloaded_at: string
 }
 
+/**
+ * Shape returned by GET /api/admin/downloads.
+ * Supabase join syntax: `select('*, users(name, email), lessons(title, is_free)')`.
+ */
+export interface DownloadWithJoins extends LessonDownload {
+  users: { name: string | null; email: string | null } | null
+  lessons: { title: string | null; is_free: boolean } | null
+}
+
 // ---------------------------------------------------------------------------
 // User (DB row shape -- NOT the auth session user)
 // ---------------------------------------------------------------------------

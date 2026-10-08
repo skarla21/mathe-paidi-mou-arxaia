@@ -2,11 +2,19 @@
 import 'vue-sonner/style.css'
 import { Toaster } from 'vue-sonner'
 import { NuxtLink } from '#components'
+import { resetAdminMainScroll } from '#shared/utils/adminShell.mjs'
 import AdminNotificationsModal from '~/components/admin/AdminNotificationsModal.vue'
 import UiBadge from '~/components/ui/Badge.vue'
 
 const route = useRoute()
 const adminFetch = useAdminFetch()
+const mainEl = ref<HTMLElement | null>(null)
+const mobileMenuOpen = ref(false)
+
+watch(() => route.path, () => {
+  mobileMenuOpen.value = false
+  resetAdminMainScroll(mainEl.value)
+})
 
 const notificationsOpen = ref(false)
 const unreadCount = ref(0)
@@ -47,14 +55,13 @@ const contentLinks = computed(() => [
 
 const peopleLinks = computed(() => [
   { to: '/admin/users', label: 'Χρήστες', icon: 'bi-people' },
+  { to: '/admin/downloads', label: 'Λήψεις', icon: 'bi-download' },
   { to: '/admin/purchases', label: 'Αγορές', icon: 'bi-cart' },
 ])
 
 const publishingLinks = computed(() => [
   { to: '/admin/articles', label: 'Άρθρα', icon: 'bi-newspaper' },
 ])
-
-const mobileMenuOpen = ref(false)
 
 function isActive(to: string) {
   return route.path === to
@@ -66,7 +73,7 @@ function onNotificationsRefresh() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-muted/30 flex flex-col">
+  <div class="flex h-dvh flex-col overflow-hidden bg-muted/30">
     <Toaster />
     <AuthModal />
     <EditProfileModal />
@@ -77,7 +84,7 @@ function onNotificationsRefresh() {
     />
 
     <!-- Mobile top bar -->
-    <header class="md:hidden flex items-center gap-2 px-4 py-3 bg-card border-b">
+    <header class="flex shrink-0 items-center gap-2 border-b border-border/60 bg-card px-4 py-3 md:hidden">
       <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex-1 min-w-0">Διαχείριση</NuxtLink>
       <button
         type="button"
@@ -104,7 +111,7 @@ function onNotificationsRefresh() {
     </header>
 
     <!-- Mobile drawer -->
-    <div v-if="mobileMenuOpen" class="md:hidden bg-card border-b px-4 py-3 space-y-1">
+    <div v-if="mobileMenuOpen" class="min-h-0 flex-1 space-y-1 overflow-y-auto border-b border-border/60 bg-card px-4 py-3 md:hidden">
       <NuxtLink
         to="/admin"
         class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted"
@@ -161,9 +168,9 @@ function onNotificationsRefresh() {
     </div>
 
     <!-- Desktop layout -->
-    <div class="flex flex-1">
-      <aside class="hidden md:flex w-56 border-r bg-card shrink-0 flex-col">
-        <div class="p-4 border-b flex items-center justify-between gap-2">
+    <div class="min-h-0 flex-1" :class="mobileMenuOpen ? 'hidden md:flex' : 'flex'">
+      <aside class="hidden h-full min-h-0 w-56 shrink-0 flex-col border-r border-border/60 bg-card md:flex">
+        <div class="flex shrink-0 items-center justify-between gap-2 border-b border-border/60 p-4">
           <NuxtLink to="/admin" class="font-heading font-semibold text-lg flex items-center gap-2 min-w-0">
             <VIcon name="bi-shield-check" class="size-5 text-primary shrink-0" />
             <span class="truncate">Διαχείριση</span>
@@ -184,7 +191,7 @@ function onNotificationsRefresh() {
             </UiBadge>
           </button>
         </div>
-        <nav aria-label="Πλοήγηση διαχείρισης" class="p-2 flex-1 space-y-4 overflow-y-auto">
+        <nav aria-label="Πλοήγηση διαχείρισης" class="min-h-0 flex-1 space-y-4 overflow-y-auto p-2">
           <div>
             <NuxtLink
               to="/admin"
@@ -235,14 +242,14 @@ function onNotificationsRefresh() {
             </NuxtLink>
           </div>
         </nav>
-        <div class="p-2 border-t">
+        <div class="shrink-0 border-t border-border/60 p-2">
           <NuxtLink to="/" class="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-heading hover:bg-muted transition-colors">
             <VIcon name="bi-arrow-left" class="size-4" />
             Πίσω στην εφαρμογή
           </NuxtLink>
         </div>
       </aside>
-      <main class="flex-1 min-h-screen p-6 overflow-auto">
+      <main ref="mainEl" class="min-h-0 flex-1 overflow-y-auto p-6">
         <slot />
       </main>
     </div>

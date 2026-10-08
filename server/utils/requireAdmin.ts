@@ -1,4 +1,4 @@
-import type { H3Event } from "h3";
+import { createError, type H3Event } from "h3";
 
 export function requireAdmin(event: H3Event): void {
   const auth = event.context.auth;
