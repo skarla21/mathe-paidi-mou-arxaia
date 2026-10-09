@@ -9,5 +9,11 @@ export default withNuxt({
     'vue/require-default-prop': 'off',
     // Rendered from trusted server-generated HTML (lesson content)
     'vue/no-v-html': 'warn',
+    // Format-on-save self-closes void tags (<img />). The preset forbids that slash.
+    'vue/html-self-closing': ['warn', {
+      html: {
+        void: 'any',
+      },
+    }],
   },
 })

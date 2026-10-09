@@ -1,5 +1,6 @@
 import { serverSupabaseService } from "../../utils/supabaseServer";
 import { requireAuth } from "../../utils/requireAuth";
+import { replaceUserAvatar } from "../../utils/avatarStorage";
 
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -10,22 +11,6 @@ const EXT_MAP: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
 };
-
-function extractStoragePathFromUrl(
-  url: string,
-  supabaseUrl: string,
-): string | null {
-  const base = supabaseUrl.replace(/\/$/, "");
-  const prefix = "/storage/v1/object/public/" + BUCKET + "/";
-  if (!url.startsWith(base) || !url.includes(prefix)) return null;
-  const idx = url.indexOf(prefix);
-  const beforeQuery = url.split("?")[0];
-  if (idx < 0 || !beforeQuery) return null;
-  const pathPart = beforeQuery.slice(idx + prefix.length);
-  return pathPart && pathPart.startsWith("avatars/")
-    ? decodeURIComponent(pathPart)
-    : null;
-}
 
 export default defineEventHandler(async (event) => {
   const userId = requireAuth(event);
@@ -61,27 +46,6 @@ export default defineEventHandler(async (event) => {
   }
 
   const supabase = serverSupabaseService();
-  const config = useRuntimeConfig();
-  const supabaseUrl = (config.public.supabaseUrl as string) || "";
-
-  const { data: userRow } = await supabase
-    .from("users")
-    .select("avatar_url")
-    .eq("id", userId)
-    .single();
-
-  const oldPath = userRow?.avatar_url
-    ? extractStoragePathFromUrl(userRow.avatar_url, supabaseUrl)
-    : null;
-
-  if (oldPath) {
-    const { error: removeError } = await supabase.storage
-      .from(BUCKET)
-      .remove([oldPath]);
-    if (removeError) {
-      console.warn("[avatar.post] Failed to delete old avatar:", removeError.message);
-    }
-  }
 
   const ext = EXT_MAP[file.type ?? ""] || "jpg";
   const path = `avatars/${userId}/${Date.now()}.${ext}`;
@@ -102,15 +66,16 @@ export default defineEventHandler(async (event) => {
     .from(BUCKET)
     .getPublicUrl(upload.path);
   const avatar_url = urlData.publicUrl;
-
-  const { error: updateError } = await supabase
-    .from("users")
-    .update({ avatar_url })
-    .eq("id", userId);
-
-  if (updateError) {
-    console.error('[user/avatar.post] DB update failed:', updateError.message)
-    throw createError({ statusCode: 500, message: 'Κάτι πήγε στραβά' });
+  const supabaseUrl = String(useRuntimeConfig().public.supabaseUrl || "");
+  const saved = await replaceUserAvatar(
+    supabase,
+    userId,
+    avatar_url,
+    upload.path,
+    supabaseUrl,
+  );
+  if (saved === "db-failed") {
+    throw createError({ statusCode: 500, message: "Κάτι πήγε στραβά" });
   }
 
   return { avatar_url };

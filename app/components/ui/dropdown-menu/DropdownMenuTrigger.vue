@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   <DropdownMenuTrigger
     :as-child="props.asChild"
     :disabled="props.disabled"
-    :class="cn(
+    :class="props.asChild ? props.class : cn(
       'flex items-center justify-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:underline underline-offset-4 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
       props.class
     )"

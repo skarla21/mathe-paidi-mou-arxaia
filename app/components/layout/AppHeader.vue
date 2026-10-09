@@ -23,17 +23,26 @@ const { openLogin, openRegister } = useAuthModal();
 const { open: openEditProfile } = useEditProfileModal();
 
 const logoRef = ref<HTMLElement | null>(null);
+const avatarRef = ref<HTMLElement | null>(null);
 const logoutDialogOpen = ref(false);
 const mobileMenuOpen = ref(false);
 
 const homeActive = computed(() => route.path === "/");
 const aboutActive = computed(() => route.path === "/about");
 
-function onLogoHover() {
-  if (import.meta.client && logoRef.value) {
+function wiggleIcon(el: HTMLElement | null) {
+  if (import.meta.client && el) {
     const { iconWiggle } = useGsapReveal();
-    iconWiggle(logoRef.value as HTMLElement);
+    iconWiggle(el);
   }
+}
+
+function onLogoHover() {
+  wiggleIcon(logoRef.value);
+}
+
+function onAvatarHover() {
+  wiggleIcon(avatarRef.value);
 }
 
 function openMobileMenu() {
@@ -165,22 +174,24 @@ async function confirmLogout() {
             <UiDropdownMenuTrigger as-child>
               <button
                 type="button"
-                class="flex size-9 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-transparent bg-muted ring-offset-background transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                class="group/avatar flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label="Μενού χρήστη"
+                @mouseenter="onAvatarHover"
               >
-                <img
-                  v-if="session.user.avatar_url"
-                  :src="session.user.avatar_url"
-                  :alt="session.user.name ?? ''"
-                  class="size-full object-cover"
-                >
                 <span
-                  v-else
-                  class="flex size-full items-center justify-center rounded-full bg-muted text-muted-foreground"
+                  ref="avatarRef"
+                  class="flex size-full items-center justify-center overflow-hidden rounded-full bg-muted ring-2 ring-primary/20 transition-all group-hover/avatar:ring-primary"
                 >
+                  <img
+                    v-if="session.user.avatar_url"
+                    :src="session.user.avatar_url"
+                    :alt="session.user.name ?? ''"
+                    class="size-full object-cover"
+                  >
                   <VIcon
+                    v-else
                     name="bi-person-fill"
-                    class="size-5"
+                    class="size-6 text-muted-foreground"
                     aria-hidden="true"
                   />
                 </span>
@@ -346,17 +357,15 @@ async function confirmLogout() {
           </UiAlertDialogRoot>
 
           <template #fallback>
-            <button
-              type="button"
-              class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-transparent bg-muted"
-              aria-label="Μενού χρήστη"
+            <span
+              class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted ring-2 ring-primary/20"
+              aria-hidden="true"
             >
               <VIcon
-                name="bi-person-circle"
+                name="bi-person-fill"
                 class="size-6 text-muted-foreground"
-                aria-hidden="true"
               />
-            </button>
+            </span>
           </template>
         </ClientOnly>
       </div>

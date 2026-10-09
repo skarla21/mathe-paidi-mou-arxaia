@@ -47,6 +47,8 @@ const mobileGradeId = ref<string | null>(null)
 const mobileSubjectId = ref<string | null>(null)
 let closeTimer: ReturnType<typeof setTimeout> | null = null
 
+const choiceHit = 'relative z-0 before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:rounded-lg after:absolute after:inset-x-0 after:top-full after:h-1'
+
 const activeSubjects = computed(() =>
   activeGradeId.value ? subjectsForGrade(activeGradeId.value) : [],
 )
@@ -80,12 +82,16 @@ function clearCloseTimer() {
   }
 }
 
+let positionToken = 0
+
 async function positionPanel() {
+  const token = ++positionToken
   await nextTick()
   const panel = panelRef.value
-  if (!panel) return
+  if (!panel || token !== positionToken) return
   panelShift.value = 0
   await nextTick()
+  if (token !== positionToken) return
   const rect = panel.getBoundingClientRect()
   const margin = 12
   let shift = 0
@@ -163,13 +169,22 @@ watch([activeGradeId, activeSubjectId], () => {
   if (open.value) void positionPanel()
 })
 
+let panelObserver: ResizeObserver | null = null
+
 onMounted(() => {
   void ensure()
   window.addEventListener('resize', onResize)
+  if (panelRef.value) {
+    panelObserver = new ResizeObserver(() => {
+      if (open.value) void positionPanel()
+    })
+    panelObserver.observe(panelRef.value)
+  }
 })
 
 onBeforeUnmount(() => {
   clearCloseTimer()
+  panelObserver?.disconnect()
   if (import.meta.client) window.removeEventListener('resize', onResize)
 })
 </script>
@@ -204,11 +219,14 @@ onBeforeUnmount(() => {
       v-show="open"
       ref="panelRef"
       class="absolute top-full left-0 z-50 pt-3"
-      :class="activeSubjectId ? 'w-[min(780px,calc(100vw-2rem))]' : activeGradeId ? 'w-[min(36rem,calc(100vw-2rem))]' : 'w-80'"
+      :class="activeSubjectId ? 'w-max max-w-[calc(100vw-1.5rem)]' : activeGradeId ? 'w-[min(36rem,calc(100vw-2rem))]' : 'w-80'"
       :style="panelShift ? { transform: `translateX(${panelShift}px)` } : undefined"
     >
       <div class="flex gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-[0_24px_48px_-12px_rgba(15,23,42,0.18)]">
-        <div class="flex min-w-52 flex-1 flex-col gap-1 rounded-xl bg-secondary p-2">
+        <div
+          class="flex flex-col gap-1 rounded-xl bg-secondary p-2"
+          :class="activeGradeId ? 'w-[calc((36rem-2rem-0.75rem)/2)] shrink-0' : 'min-w-52 flex-1'"
+        >
           <span class="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Τάξεις
           </span>
@@ -216,8 +234,11 @@ onBeforeUnmount(() => {
             v-for="grade in grades"
             :key="grade.id"
             :to="`/${grade.slug}`"
-            class="flex items-center justify-between rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-laurel"
-            :class="activeGradeId === grade.id && 'bg-card text-foreground shadow-sm'"
+            :class="[
+              choiceHit,
+              'flex items-center justify-between px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-laurel hover:before:bg-muted',
+              activeGradeId === grade.id && 'text-foreground before:bg-card before:shadow-sm',
+            ]"
             @mouseenter="selectGrade(grade.id)"
             @focus="selectGrade(grade.id)"
             @click="onNavigate"
@@ -235,7 +256,7 @@ onBeforeUnmount(() => {
             Δεν υπάρχουν ακόμη τάξεις.
           </p>
         </div>
-        <div v-if="activeGradeId" class="flex min-w-52 flex-1 flex-col gap-1 rounded-xl bg-secondary/60 p-2">
+        <div v-if="activeGradeId" class="flex w-[calc((36rem-2rem-0.75rem)/2)] shrink-0 flex-col gap-1 rounded-xl bg-secondary/60 p-2">
           <span class="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Μαθήματα
           </span>
@@ -243,8 +264,11 @@ onBeforeUnmount(() => {
           <NuxtLink
             v-if="activeGrade?.slug && subject.slug"
             :to="`/${activeGrade.slug}/${subject.slug}`"
-            class="rounded-lg px-3 py-2 text-sm font-semibold text-foreground hover:bg-muted"
-            :class="activeSubjectId === subject.id && 'bg-card shadow-sm'"
+            :class="[
+              choiceHit,
+              'px-3 py-2 text-sm font-semibold text-foreground hover:before:bg-muted',
+              activeSubjectId === subject.id && 'before:bg-card before:shadow-sm',
+            ]"
             @mouseenter="selectSubject(subject.id)"
             @focus="selectSubject(subject.id)"
             @click="onNavigate"
@@ -256,7 +280,7 @@ onBeforeUnmount(() => {
             Δεν υπάρχουν ακόμη μαθήματα σε αυτή την τάξη.
           </p>
         </div>
-        <div v-if="activeSubjectId" class="flex min-w-52 max-h-[min(70vh,32rem)] flex-1 flex-col gap-1 overflow-y-auto p-2">
+        <div v-if="activeSubjectId" class="flex w-max min-w-[calc((36rem-2rem-0.75rem)/2)] max-w-[calc(100vw-36rem-2.25rem)] max-h-[min(70vh,32rem)] flex-col gap-1 overflow-x-hidden overflow-y-auto whitespace-normal p-2">
           <span class="px-2 py-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Περιεχόμενο
           </span>
@@ -278,7 +302,7 @@ onBeforeUnmount(() => {
                 <NuxtLink
                   v-if="activeGrade?.slug && activeSubject?.slug && chapter.slug"
                   :to="`/${activeGrade.slug}/${activeSubject.slug}/${chapter.slug}`"
-                  class="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-secondary"
+                  :class="[choiceHit, 'px-3 py-2 text-sm text-foreground hover:before:bg-secondary']"
                   @click="onNavigate"
                 >
                   {{ chapter.title }}
@@ -299,7 +323,7 @@ onBeforeUnmount(() => {
                 <NuxtLink
                   v-if="activeGrade?.slug && activeSubject?.slug && lesson.slug"
                   :to="`/${activeGrade.slug}/${activeSubject.slug}/lesson/${lesson.slug}`"
-                  class="rounded-lg px-3 py-2 text-sm text-foreground hover:bg-secondary"
+                  :class="[choiceHit, 'px-3 py-2 text-sm text-foreground hover:before:bg-secondary']"
                   @click="onNavigate"
                 >
                   {{ lesson.title }}

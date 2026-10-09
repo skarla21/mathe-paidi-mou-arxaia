@@ -122,11 +122,13 @@ onUnmounted(() => {
       </div>
     </UiPopoverAnchor>
     <UiPopoverContent
-      class="max-h-80 overflow-auto py-2"
+      class="w-max min-w-(--radix-popover-trigger-width) max-w-[min(36rem,calc(100vw-2rem))] max-h-80 overflow-x-hidden overflow-y-auto rounded-2xl border-border p-2 shadow-lg"
       align="start"
       :side-offset="4"
+      prioritize-position
+      :collision-padding="16"
     >
-      <p v-if="loading" class="px-4 py-2 text-sm text-muted-foreground">
+      <p v-if="loading" class="px-2 py-2 text-sm text-muted-foreground">
         Γίνεται αναζήτηση...
       </p>
       <div role="listbox" aria-label="Αναζήτηση υλικού...">
@@ -135,18 +137,29 @@ onUnmounted(() => {
           :key="`${r.type}-${r.id}`"
           role="option"
           :to="r.url"
-          class="block px-4 py-2 text-sm hover:bg-accent rounded-sm"
+          class="flex w-full min-w-0 items-center gap-3 rounded-xl px-2 py-2 hover:bg-secondary focus-visible:bg-secondary"
           @click="close"
         >
-          <span class="text-muted-foreground text-xs">
-            {{ r.type === 'chapter' ? 'Κεφάλαιο' : 'Υλικό' }}:
+          <UiIconWell>
+            <VIcon
+              :name="r.type === 'chapter' ? 'bi-journal-bookmark' : 'bi-journal-text'"
+              class="size-4"
+              aria-hidden="true"
+            />
+          </UiIconWell>
+          <span class="min-w-0">
+            <span class="block truncate text-sm font-semibold leading-tight">
+              {{ r.title }}
+            </span>
+            <span class="mt-0.5 block text-xs text-muted-foreground">
+              {{ r.type === 'chapter' ? 'Κεφάλαιο' : 'Υλικό' }}
+            </span>
           </span>
-          {{ r.title }}
         </NuxtLink>
       </div>
       <p
         v-if="!loading && results.length === 0 && query.trim()"
-        class="px-4 py-3 text-sm text-muted-foreground text-center"
+        class="px-2 py-2 text-center text-sm text-muted-foreground"
       >
         Δεν βρέθηκαν αποτελέσματα
       </p>

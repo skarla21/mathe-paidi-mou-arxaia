@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
       created_at = dbUser.created_at ?? null
       provider = dbUser.provider ?? 'credentials'
       name = dbUser.name ?? name
-      avatar_url = dbUser.avatar_url ?? avatar_url
+      avatar_url = dbUser.avatar_url
       email_verified = !!dbUser.email_verified
     }
   }
